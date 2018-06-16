@@ -133,9 +133,23 @@ module Context = {
     disposeDroppable: 'droppableId => unit,
     getDraggableShift: 'draggableId => option(Direction.t),
     startDragging:
-      (Ghost.t('draggableId, 'droppableId), Subscriptions.t) => unit,
+      (
+        ~draggableId: 'draggableId,
+        ~droppableId: 'droppableId,
+        ~start: Point.t,
+        ~current: Point.t,
+        ~element: Dom.htmlElement,
+        ~subscriptions: Subscriptions.t
+      ) =>
+      unit,
     updateGhostPosition:
-      (Ghost.t('draggableId, 'droppableId), Subscriptions.t) => unit,
+      (
+        ~ghost: Ghost.t('draggableId, 'droppableId),
+        ~point: Point.t,
+        ~element: Dom.htmlElement,
+        ~subscriptions: Subscriptions.t
+      ) =>
+      unit,
     startDropping: Ghost.t('draggableId, 'droppableId) => unit,
     cancelDropping: Ghost.t('draggableId, 'droppableId) => unit,
   };

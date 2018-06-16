@@ -4,7 +4,7 @@ open Dnd__Types;
 module Html = Dnd__Html;
 module Style = Dnd__Style;
 
-let getDirection = (prev, next) => Direction.(prev >= next ? Alpha : Omega);
+let getDirection = (~was, ~is) => Direction.(was >= is ? Alpha : Omega);
 
 let getDimensions = (rect: DomRect.t) =>
   Dimensions.{width: rect |. DomRect.width, height: rect |. DomRect.height};

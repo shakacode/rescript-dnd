@@ -19,65 +19,30 @@ module Make = (Config: Config) => {
     open Webapi.Dom;
 
     let rec onMouseDown = (event, {ReasonReact.state, handle}) =>
-      switch (state.context.status, state.element^, event |. Events.leftClick) {
-      | (StandBy, Some(element), true) =>
+      switch (state.context.status, state.element^) {
+      | (StandBy, Some(element)) when event |. Events.leftClick =>
         let moveThreshold = 1;
 
-        let startX = event |. ReactEventRe.Mouse.pageX;
-        let startY = event |. ReactEventRe.Mouse.pageY;
+        let start =
+          Point.{
+            x: event |. ReactEventRe.Mouse.pageX,
+            y: event |. ReactEventRe.Mouse.pageY,
+          };
 
         let rec onInitialMouseMove = event => {
-          let currentX = event |. MouseEvent.pageX;
-          let currentY = event |. MouseEvent.pageY;
+          let current =
+            Point.{
+              x: event |. MouseEvent.pageX,
+              y: event |. MouseEvent.pageY,
+            };
 
           let initiateDrag =
-            Js.Math.abs_int(startX - currentX) > moveThreshold
-            || Js.Math.abs_int(startY - currentY) > moveThreshold;
+            Js.Math.abs_int(start.x - current.x) > moveThreshold
+            || Js.Math.abs_int(start.y - current.y) > moveThreshold;
 
           if (initiateDrag) {
             dropInitialSubscriptions();
-
-            /* Clear text selection */
-            switch (document |> Document.asHtmlDocument) {
-            | Some(document) =>
-              document
-              |> HtmlDocument.getSelection
-              |> Selection.removeAllRanges
-            | None => ()
-            };
-
-            let rect = element |. HtmlElement.getBoundingClientRect;
-            let style =
-              element
-              |. Html.castHtmlElementToElement
-              |. Window.getComputedStyle(window);
-
-            let ghost =
-              Ghost.{
-                draggableId: state.draggableId,
-                originalDroppable: state.droppableId,
-                targetDroppable: Some(state.droppableId),
-                targetingOriginalDroppable: true,
-                direction: Geometry.getDirection(startY, currentY),
-                dimensions: rect |. Geometry.getDimensions,
-                margins: style |. Geometry.getMargins,
-                borders: style |. Geometry.getBorders,
-                center: rect |. Geometry.getAbsCenter,
-                departureRect: rect |. Geometry.getAbsRect,
-                currentRect: rect |. Geometry.getAbsRect,
-                departurePoint: {
-                  x: currentX,
-                  y: currentY,
-                },
-                currentPoint: {
-                  x: currentX,
-                  y: currentY,
-                },
-                delta: {
-                  x: 0,
-                  y: 0,
-                },
-              };
+            Html.clearTextSelection();
 
             let onMouseMove = onMouseMove |. handle;
             let onMouseUp = onMouseUp |. handle;
@@ -97,7 +62,14 @@ module Make = (Config: Config) => {
                 },
               };
 
-            state.context.startDragging(ghost, subscriptions);
+            state.context.startDragging(
+              ~draggableId=state.draggableId,
+              ~droppableId=state.droppableId,
+              ~start,
+              ~current,
+              ~element,
+              ~subscriptions,
+            );
           };
         }
         and onInitialMouseUp = _ => dropInitialSubscriptions()
@@ -112,10 +84,10 @@ module Make = (Config: Config) => {
         Events.subscribeToMouseUp(onInitialMouseUp);
         Events.subscribeToDrag(onInitialDrag);
 
-      | (_, _, false) => ()
-      | (StandBy, None, _)
-      | (Dropping(_), _, _)
-      | (Dragging(_, _), _, _) => ()
+      | (StandBy, Some(_))
+      | (StandBy, None)
+      | (Dropping(_), _)
+      | (Dragging(_, _), _) => ()
       }
     and onMouseMove = (event, {ReasonReact.state}) =>
       switch (state.context.status, state.element^) {
@@ -123,27 +95,15 @@ module Make = (Config: Config) => {
           when state.draggableId == ghost.draggableId =>
         event |. MouseEvent.preventDefault;
 
-        let currentX = event |. MouseEvent.pageX;
-        let currentY = event |. MouseEvent.pageY;
+        let point =
+          Point.{x: event |. MouseEvent.pageX, y: event |. MouseEvent.pageY};
 
-        let rect = element |. HtmlElement.getBoundingClientRect;
-
-        let ghost = {
-          ...ghost,
-          direction: Geometry.getDirection(ghost.currentPoint.y, currentY),
-          center: rect |. Geometry.getAbsCenter,
-          currentRect: rect |. Geometry.getAbsRect,
-          currentPoint: {
-            x: currentX,
-            y: currentY,
-          },
-          delta: {
-            x: currentX - ghost.departurePoint.x,
-            y: currentY - ghost.departurePoint.y,
-          },
-        };
-
-        state.context.updateGhostPosition(ghost, subscriptions);
+        state.context.updateGhostPosition(
+          ~ghost,
+          ~point,
+          ~element,
+          ~subscriptions,
+        );
 
       | (Dragging(_, _), _)
       | (Dropping(_), _)
