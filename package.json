@@ -1,0 +1,54 @@
+{
+  "name": "re-dnd",
+  "version": "0.0.0",
+  "description": "Reasonable drag-n-drop for reason-react",
+  "main": "src/Dnd.re",
+  "author": "Alex Fedoseev <alex.fedoseev@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel examples/index.html",
+    "build": "parcel build examples/index.html",
+    "prebuild": "yarn run clean && yarn run build:bs",
+    "build:bs": "bsb -make-world",
+    "clean": "yarn run clean:bs && yarn run clean:dist",
+    "clean:bs": "bsb -clean-world",
+    "clean:dist": "rm -rf dist",
+    "test": "exit 0",
+    "refmt": "find -E . -regex '.+\\.rei?' -exec refmt --in-place {} \\;",
+    "deploy": "now deploy dist --public --name re-dnd",
+    "predeploy": "yarn run build"
+  },
+  "files": [
+    "src",
+    "bsconfig.json"
+  ],
+  "keywords": [
+    "react",
+    "reason",
+    "reason-react",
+    "reasonml",
+    "ocaml",
+    "bucklescript",
+    "ui",
+    "dnd",
+    "drag-n-drop"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexfedoseev/re-dnd.git"
+  },
+  "peerDependencies": {
+    "bs-platform": "^3.1.0",
+    "reason-react": "^0.4.1"
+  },
+  "dependencies": {
+    "bs-webapi": "0.9.1"
+  },
+  "devDependencies": {
+    "bs-platform": "3.1.5",
+    "bsb-js": "^1.1.3",
+    "parcel-bundler": "1.8.1",
+    "re-classnames": "2.0.0",
+    "reason-react": "0.4.2"
+  }
+}

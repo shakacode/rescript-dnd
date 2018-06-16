@@ -1,0 +1,26 @@
+{
+  "name": "re-dnd",
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "examples",
+      "type": "dev",
+      "subdirs": true
+    }
+  ],
+  "bs-dependencies": ["reason-react", "bs-webapi"],
+  "bs-dev-dependencies": ["re-classnames"],
+  "reason": {
+    "react-jsx": 2
+  },
+  "refmt": 3,
+  "bsc-flags": ["-bs-super-errors", "-w -45", "-open Belt"],
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": true
+  },
+  "suffix": ".bs.js"
+}
