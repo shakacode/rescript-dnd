@@ -1,0 +1,29 @@
+:root {
+  --font-size: 16px;
+  --background-color: #eaeaea;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  background-color: #eaeaea;
+  font-family: Menlo, Consolas, monospace;
+  font-weight: 300;
+  font-size: var(--font-size);
+}
+
+#app {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  flex: 1;
+  min-height: 100%;
+  padding: 0;
+}

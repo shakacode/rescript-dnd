@@ -1,0 +1,113 @@
+nav {
+  display: flex;
+  position: fixed;
+  flex-flow: column nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  transition: transform 200ms ease-in-out;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 300px;
+  padding: 20px 0;
+  transform: translateX(0);
+  background-color: #333;
+  color: #eee;
+}
+
+@media (max-width: 1024px) {
+  nav {
+    transform: translateX(-100%);
+  }
+
+  nav.shown-mobile {
+    transform: translateX(0);
+  }
+}
+
+nav header {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 20px 20px;
+}
+
+nav header h1 {
+  margin: 0;
+  width: 100%;
+  font-size: 27px;
+  text-align: left;
+  cursor: pointer;
+}
+
+nav header a {
+  display: inline-flex;
+  padding: 6px;
+  text-decoration: none;
+}
+
+nav header .github-link {
+  display: flex;
+}
+
+nav header .close-button {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  nav header .github-link {
+    display: none;
+  }
+
+  nav header .close-button {
+    display: flex;
+  }
+}
+
+nav header .github-icon,
+nav header .close-icon {
+  width: 22px;
+  height: 22px;
+  fill: #ccc;
+}
+
+nav header .github-icon {
+  display: flex;
+}
+
+nav header .close-icon {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  nav header .github-icon {
+    display: none;
+  }
+
+  nav header .close-icon {
+    display: flex;
+  }
+}
+
+nav .link {
+  margin: 0;
+  padding: 12px 20px;
+  width: 100%;
+  color: #ccc;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: background-color 100ms ease-in-out;
+}
+
+nav .link.active {
+  border-left: 2px solid #29d;
+}
+
+nav .link:focus,
+nav .link:hover {
+  outline: none;
+  background-color: #555;
+}

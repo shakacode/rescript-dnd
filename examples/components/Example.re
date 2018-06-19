@@ -6,7 +6,7 @@ type layout =
 
 let component = ReasonReact.statelessComponent(__MODULE__);
 
-let make = (~layout, children) => {
+let make = (~layout, ~showMobileNav, children) => {
   ...component,
   render: _ =>
     <div
@@ -19,6 +19,11 @@ let make = (~layout, children) => {
           },
         ])
       )>
+      <div className="example-header-mobile">
+        <Control onClick=showMobileNav> <MenuIcon /> </Control>
+        <h1> ("re-dnd" |> ReasonReact.string) </h1>
+        <a href="https://github.com/alexfedoseev/re-dnd"> <GithubIcon /> </a>
+      </div>
       <Fragment> ...children </Fragment>
     </div>,
 };
