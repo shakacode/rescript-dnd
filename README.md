@@ -12,13 +12,13 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 ## Features
 * Vertical lists
 * Multiple drop targets
+* Mouse & Touch interactions
 
 ### TODO
 - [ ] Horizontal lists
 - [ ] Conditional drag & drop
 - [ ] Auto-scroll container when dragging at container's edge
 - [ ] Drag handlers
-- [ ] Touch interactions
 - [ ] Keyboard interactions
 - [ ] Ignore form elements (opt-out)
 - [ ] Scrollable containers
@@ -89,12 +89,9 @@ let make = _ => {
                id=TodoList
                context=dnd.context
                className=(
-                 Cn.make([
-                   "todos",
-                   "active" |> Cn.ifSome(dnd.target),
-                 ])
-               )
-             >
+                 (~draggingOver) =>
+                   Cn.make(["todos", "active" |> Cn.ifSome(draggingOver)])
+               )>
                (
                  state.todos
                  |. Array.map(todo =>
@@ -103,7 +100,13 @@ let make = _ => {
                         key=(todo.id |. string_of_int)
                         droppableId=TodoList
                         context=dnd.context
-                        className="todo">
+                        className=(
+                          (~dragging) =>
+                            Cn.make([
+                              "todo",
+                              "dragging" |> Cn.ifTrue(dragging),
+                            ])
+                        )>
                         (todo.todo |> ReasonReact.string)
                       </Todos.Draggable>
                     )
