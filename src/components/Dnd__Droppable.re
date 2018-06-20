@@ -61,7 +61,7 @@ module Make = (Config: Config) => {
                          ~borderBottom=Style.(ghost.borders.bottom |. px),
                          ~borderLeft=Style.(ghost.borders.left |. px),
                          ~borderRight=Style.(ghost.borders.right |. px),
-                         ~width=Style.(ghost.dimensions.width |. px),
+                         ~width=Style.(0 |. px),
                          ~height=Style.(ghost.dimensions.height |. px),
                          ~transition=Style.transition("all"),
                          (),
