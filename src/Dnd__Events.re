@@ -121,46 +121,51 @@ let unsubscribeFromVisibilityChange = handler =>
     window,
   );
 
-/* Mouse */
-let leftClick = event => event |. ReactEventRe.Mouse.button == 0;
-let modifier = event =>
-  ReactEventRe.Mouse.(
-    altKey(event) || ctrlKey(event) || metaKey(event) || shiftKey(event)
-  );
+module Mouse = {
+  let leftClick = event => event |. ReactEventRe.Mouse.button == 0;
 
-/* Keyboard */
-let isDomKey = (key, event) => event |> KeyboardEvent.key === key;
-let isReactKey = (key, event) => event |> ReactEventRe.Keyboard.key === key;
-
-let escKey = "Escape";
-let isDomEscKey = event => event |> isDomKey(escKey);
-let isReactEscKey = event => event |> isReactKey(escKey);
-let onDomEscKey = (handler, event) =>
-  if (event |> isDomEscKey) {
-    handler();
-  };
-let onReactEscKey = (handler, event) =>
-  if (event |> isReactEscKey) {
-    handler();
-  };
-
-/* Touch */
-module Touch = {
-  type t = {
-    .
-    "identifier": string,
-    "clientX": int,
-    "clientY": int,
-    "screenX": int,
-    "screenY": int,
-    "pageX": int,
-    "pageY": int,
-    "target": Dom.element,
-  };
+  let modifier = event =>
+    ReactEventRe.Mouse.(
+      altKey(event) || ctrlKey(event) || metaKey(event) || shiftKey(event)
+    );
 };
 
-external castDomTouchListToTouchArray : TouchEvent.touchList => array(Touch.t) =
-  "%identity";
-external castReactTouchListToTouchArray : Js.t({..}) => array(Touch.t) =
-  "%identity";
-external castEventToTouchEvent : Dom.event => Dom.touchEvent = "%identity";
+module Keyboard = {
+  let isDomKey = (key, event) => event |> KeyboardEvent.key === key;
+  let isReactKey = (key, event) => event |> ReactEventRe.Keyboard.key === key;
+
+  let escKey = "Escape";
+  let isDomEscKey = event => event |> isDomKey(escKey);
+  let isReactEscKey = event => event |> isReactKey(escKey);
+  let onDomEscKey = (handler, event) =>
+    if (event |> isDomEscKey) {
+      handler();
+    };
+  let onReactEscKey = (handler, event) =>
+    if (event |> isReactEscKey) {
+      handler();
+    };
+};
+
+module Touch = {
+  module Touch = {
+    type t = {
+      .
+      "identifier": string,
+      "clientX": int,
+      "clientY": int,
+      "screenX": int,
+      "screenY": int,
+      "pageX": int,
+      "pageY": int,
+      "target": Dom.element,
+    };
+  };
+
+  external castDomTouchListToTouchArray :
+    TouchEvent.touchList => array(Touch.t) =
+    "%identity";
+  external castReactTouchListToTouchArray : Js.t({..}) => array(Touch.t) =
+    "%identity";
+  external castEventToTouchEvent : Dom.event => Dom.touchEvent = "%identity";
+};

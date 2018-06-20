@@ -19,7 +19,7 @@ module Make = (Config: Config) => {
     let rec onMouseDown = (event, {ReasonReact.state, handle}) =>
       switch (state.context.status, state.element^) {
       | (StandBy, Some(element))
-          when event |. Events.leftClick && ! (event |. Events.modifier) =>
+          when Events.Mouse.(event |. leftClick && ! (event |. modifier)) =>
         open Webapi.Dom;
 
         let moveThreshold = 1;
@@ -131,7 +131,8 @@ module Make = (Config: Config) => {
       }
     and onKeyDown = (event, {ReasonReact.state}) =>
       switch (state.context.status) {
-      | Dragging(ghost, subscriptions) when event |> Events.isDomEscKey =>
+      | Dragging(ghost, subscriptions)
+          when event |> Events.Keyboard.isDomEscKey =>
         subscriptions.drop();
         state.context.cancelDropping(ghost);
 
@@ -164,7 +165,7 @@ module Make = (Config: Config) => {
       let touch =
         event
         |. ReactEventRe.Touch.touches
-        |. Events.castReactTouchListToTouchArray
+        |. Events.Touch.castReactTouchListToTouchArray
         |. Array.get(0);
 
       switch (state.context.status, state.element^, touch) {
@@ -248,11 +249,11 @@ module Make = (Config: Config) => {
     and onTouchMove = (event, {ReasonReact.state}) => {
       open Webapi.Dom;
 
-      let event = event |. Events.castEventToTouchEvent;
+      let event = event |. Events.Touch.castEventToTouchEvent;
       let touch =
         event
         |. TouchEvent.touches
-        |. Events.castDomTouchListToTouchArray
+        |. Events.Touch.castDomTouchListToTouchArray
         |. Array.get(0);
 
       switch (state.context.status, state.element^, touch) {
