@@ -688,14 +688,14 @@ module Make = (Config: Config) => {
     render: ({state, send, handle}) =>
       children(
         Payload.{
-          target:
-            switch (state.status) {
-            | Dragging(ghost, _)
-            | Dropping(ghost) => ghost.targetDroppable
-            | _ => None
-            },
           context: {
             status: state.status,
+            target:
+              switch (state.status) {
+              | Dragging(ghost, _)
+              | Dropping(ghost) => ghost.targetDroppable
+              | _ => None
+              },
             registerDraggable: Handlers.registerDraggable |> handle,
             registerDroppable: Handlers.registerDroppable |> handle,
             disposeDraggable: Handlers.disposeDraggable |> handle,

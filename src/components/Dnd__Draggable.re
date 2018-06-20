@@ -326,7 +326,7 @@ module Make = (Config: Config) => {
         ~id as draggableId: Config.draggableId,
         ~droppableId: Config.droppableId,
         ~context,
-        ~className: option(string)=?,
+        ~className: option(Draggable.className)=?,
         children,
       ) => {
     ...component,
@@ -364,33 +364,31 @@ module Make = (Config: Config) => {
     },
     willUnmount: _ => context.disposeDraggable(draggableId),
     reducer: ((), _) => ReasonReact.NoUpdate,
-    render: ({state, handle}) =>
-      <Fragment>
-        (
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": element => {
-                let element =
-                  element
-                  |. Js.Nullable.toOption
-                  |. Option.map(Webapi.Dom.Element.unsafeAsHtmlElement);
+    render: ({state, handle}) => {
+      let setRef = element => {
+        let element =
+          element
+          |. Js.Nullable.toOption
+          |. Option.map(Webapi.Dom.Element.unsafeAsHtmlElement);
 
-                state.element := element;
+        state.element := element;
 
-                switch (element) {
-                | Some(element) =>
-                  context.registerDraggable((
-                    draggableId,
-                    droppableId,
-                    element,
-                  ))
-                | None => ()
-                };
-              },
-              "style":
-                switch (context.status) {
-                | Dragging(ghost, _) when draggableId == ghost.draggableId =>
+        switch (element) {
+        | Some(element) =>
+          context.registerDraggable((draggableId, droppableId, element))
+        | None => ()
+        };
+      };
+
+      switch (context.status) {
+      | Dragging(ghost, _) when draggableId == ghost.draggableId =>
+        <Fragment>
+          (
+            ReasonReact.createDomElement(
+              "div",
+              ~props={
+                "ref": setRef,
+                "style":
                   ReactDOMRe.Style.make(
                     ~position="fixed",
                     ~boxSizing="border-box",
@@ -402,15 +400,48 @@ module Make = (Config: Config) => {
                     ~left=Style.(ghost.departureRect.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
                     ~height=Style.(ghost.dimensions.height |. px),
-                    ~transition="none",
                     ~transform=
                       Style.translate(
                         ghost.delta.x - Webapi.Dom.(window |> Window.scrollX),
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  )
-                | Dropping(ghost) when draggableId == ghost.draggableId =>
+                  ),
+                "className":
+                  className
+                  |. Option.map(fn => fn(~dragging=true))
+                  |. Js.Nullable.fromOption,
+                "onMouseDown": Handlers.onMouseDown |. handle,
+                "onTouchStart": Handlers.onTouchStart |. handle,
+              },
+              children,
+            )
+          )
+          <div
+            style=(
+              ReactDOMRe.Style.make(
+                ~boxSizing="border-box",
+                ~marginTop=Style.(ghost.margins.top |. px),
+                ~marginBottom=Style.(ghost.margins.bottom |. px),
+                ~marginLeft=Style.(ghost.margins.left |. px),
+                ~marginRight=Style.(ghost.margins.right |. px),
+                ~width=Style.(0 |. px),
+                ~height=Style.(ghost.dimensions.height |. px),
+                ~transition=Style.transition("all"),
+                (),
+              )
+            )
+          />
+        </Fragment>
+
+      | Dropping(ghost) when draggableId == ghost.draggableId =>
+        <Fragment>
+          (
+            ReasonReact.createDomElement(
+              "div",
+              ~props={
+                "ref": setRef,
+                "style":
                   ReactDOMRe.Style.make(
                     ~position="fixed",
                     ~boxSizing="border-box",
@@ -429,100 +460,182 @@ module Make = (Config: Config) => {
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  )
-                | Dragging(ghost, _)
-                | Dropping(ghost) =>
-                  switch (draggableId |. context.getDraggableShift) {
-                  | Some(Alpha) when ghost.targetingOriginalDroppable =>
-                    ReactDOMRe.Style.make(
-                      ~boxSizing="border-box",
-                      ~transition=Style.transition("transform"),
-                      ~transform=
-                        Style.translate(
-                          0,
-                          - (
-                            ghost.dimensions.height
-                            + ghost.margins.top
-                            + ghost.margins.bottom
-                          ),
-                        ),
-                      (),
-                    )
-                  | Some(Omega) when ghost.targetingOriginalDroppable =>
-                    ReactDOMRe.Style.make(
-                      ~boxSizing="border-box",
-                      ~transition=Style.transition("transform"),
-                      ~transform=
-                        Style.translate(
-                          0,
-                          ghost.dimensions.height
-                          + ghost.margins.top
-                          + ghost.margins.bottom,
-                        ),
-                      (),
-                    )
+                  ),
+                "className":
+                  className
+                  |. Option.map(fn => fn(~dragging=false))
+                  |. Js.Nullable.fromOption,
+                "onMouseDown": Handlers.onMouseDown |. handle,
+                "onTouchStart": Handlers.onTouchStart |. handle,
+              },
+              children,
+            )
+          )
+          <div
+            style=(
+              ReactDOMRe.Style.make(
+                ~boxSizing="border-box",
+                ~marginTop=Style.(ghost.margins.top |. px),
+                ~marginBottom=Style.(ghost.margins.bottom |. px),
+                ~marginLeft=Style.(ghost.margins.left |. px),
+                ~marginRight=Style.(ghost.margins.right |. px),
+                ~width=Style.(0 |. px),
+                ~height=Style.(ghost.dimensions.height |. px),
+                ~transition=Style.transition("all"),
+                (),
+              )
+            )
+          />
+        </Fragment>
 
-                  | Some(Alpha) =>
-                    ReactDOMRe.Style.make(
-                      ~boxSizing="border-box",
-                      ~transition=Style.transition("transform"),
-                      (),
-                    )
-                  | Some(Omega) =>
-                    ReactDOMRe.Style.make(
-                      ~boxSizing="border-box",
-                      ~transition=Style.transition("transform"),
-                      ~transform=
-                        Style.translate(
-                          0,
-                          ghost.dimensions.height
-                          + ghost.margins.top
-                          + ghost.margins.bottom,
-                        ),
-                      (),
-                    )
-                  | None =>
-                    ReactDOMRe.Style.make(
-                      ~boxSizing="border-box",
-                      ~transition=Style.transition("transform"),
-                      (),
-                    )
-                  }
-                | StandBy =>
-                  ReactDOMRe.Style.make(~boxSizing="border-box", ())
-                },
-              "className": className |. Js.Nullable.fromOption,
+      | Dragging(ghost, _)
+      | Dropping(ghost) =>
+        switch (draggableId |. context.getDraggableShift) {
+        | Some(Alpha) when ghost.targetingOriginalDroppable =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style":
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~transition=Style.transition("transform"),
+                  ~transform=
+                    Style.translate(
+                      0,
+                      - (
+                        ghost.dimensions.height
+                        + ghost.margins.top
+                        + ghost.margins.bottom
+                      ),
+                    ),
+                  (),
+                ),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
               "onMouseDown": Handlers.onMouseDown |. handle,
               "onTouchStart": Handlers.onTouchStart |. handle,
             },
             children,
           )
-        )
-        (
-          switch (context.status) {
-          | Dragging(ghost, _)
-          | Dropping(ghost) when draggableId == ghost.draggableId =>
-            <div
-              style=(
+
+        | Some(Omega) when ghost.targetingOriginalDroppable =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
-                  ~marginTop=Style.(ghost.margins.top |. px),
-                  ~marginBottom=Style.(ghost.margins.bottom |. px),
-                  ~marginLeft=Style.(ghost.margins.left |. px),
-                  ~marginRight=Style.(ghost.margins.right |. px),
-                  ~width=Style.(0 |. px),
-                  ~height=Style.(ghost.dimensions.height |. px),
-                  ~transition=Style.transition("all"),
+                  ~transition=Style.transition("transform"),
+                  ~transform=
+                    Style.translate(
+                      0,
+                      ghost.dimensions.height
+                      + ghost.margins.top
+                      + ghost.margins.bottom,
+                    ),
                   (),
-                )
-              )
-            />
+                ),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+              "onMouseDown": Handlers.onMouseDown |. handle,
+              "onTouchStart": Handlers.onTouchStart |. handle,
+            },
+            children,
+          )
 
-          | Dragging(_, _)
-          | Dropping(_)
-          | StandBy => ReasonReact.null
-          }
+        | Some(Alpha) =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style":
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~transition=Style.transition("transform"),
+                  (),
+                ),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+              "onMouseDown": Handlers.onMouseDown |. handle,
+              "onTouchStart": Handlers.onTouchStart |. handle,
+            },
+            children,
+          )
+
+        | Some(Omega) =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style":
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~transition=Style.transition("transform"),
+                  ~transform=
+                    Style.translate(
+                      0,
+                      ghost.dimensions.height
+                      + ghost.margins.top
+                      + ghost.margins.bottom,
+                    ),
+                  (),
+                ),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+              "onMouseDown": Handlers.onMouseDown |. handle,
+              "onTouchStart": Handlers.onTouchStart |. handle,
+            },
+            children,
+          )
+
+        | None =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style":
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~transition=Style.transition("transform"),
+                  (),
+                ),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+              "onMouseDown": Handlers.onMouseDown |. handle,
+              "onTouchStart": Handlers.onTouchStart |. handle,
+            },
+            children,
+          )
+        }
+
+      | StandBy =>
+        ReasonReact.createDomElement(
+          "div",
+          ~props={
+            "ref": setRef,
+            "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
+            "className":
+              className
+              |. Option.map(fn => fn(~dragging=false))
+              |. Js.Nullable.fromOption,
+            "onMouseDown": Handlers.onMouseDown |. handle,
+            "onTouchStart": Handlers.onTouchStart |. handle,
+          },
+          children,
         )
-      </Fragment>,
+      };
+    },
   };
 };

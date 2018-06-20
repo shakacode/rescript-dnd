@@ -77,3 +77,10 @@
   cursor: grab;
   user-select: none;
 }
+
+@media (max-width: 1024px) {
+  .todo.dragging {
+    transition: box-shadow 200ms ease-in-out;
+    box-shadow: 0 0 7px rgba(0, 0, 0, .1);
+  }
+}
