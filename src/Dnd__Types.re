@@ -80,6 +80,8 @@ module Draggable = {
     shift: option(Direction.t),
     animating: bool,
   };
+
+  type className = (~dragging: bool) => string;
 };
 
 module Droppable = {
@@ -88,6 +90,12 @@ module Droppable = {
     element: Dom.htmlElement,
     geometry: option(Geometry.t),
   };
+
+  /* NOTE: `draggingOver` is not bool b/c using pattern matching in userland
+   *       should be faster than using `==` (Caml_obj.caml_equal) internally
+   */
+  type className('droppableId) =
+    (~draggingOver: option('droppableId)) => string;
 };
 
 module Ghost = {
@@ -126,6 +134,7 @@ module Status = {
 module Context = {
   type t('draggableId, 'droppableId) = {
     status: Status.t('draggableId, 'droppableId),
+    target: option('droppableId),
     registerDraggable:
       (('draggableId, 'droppableId, Dom.htmlElement)) => unit,
     registerDroppable: (('droppableId, Dom.htmlElement)) => unit,
@@ -133,9 +142,23 @@ module Context = {
     disposeDroppable: 'droppableId => unit,
     getDraggableShift: 'draggableId => option(Direction.t),
     startDragging:
-      (Ghost.t('draggableId, 'droppableId), Subscriptions.t) => unit,
+      (
+        ~draggableId: 'draggableId,
+        ~droppableId: 'droppableId,
+        ~start: Point.t,
+        ~current: Point.t,
+        ~element: Dom.htmlElement,
+        ~subscriptions: Subscriptions.t
+      ) =>
+      unit,
     updateGhostPosition:
-      (Ghost.t('draggableId, 'droppableId), Subscriptions.t) => unit,
+      (
+        ~ghost: Ghost.t('draggableId, 'droppableId),
+        ~point: Point.t,
+        ~element: Dom.htmlElement,
+        ~subscriptions: Subscriptions.t
+      ) =>
+      unit,
     startDropping: Ghost.t('draggableId, 'droppableId) => unit,
     cancelDropping: Ghost.t('draggableId, 'droppableId) => unit,
   };
@@ -143,7 +166,6 @@ module Context = {
 
 module Payload = {
   type t('draggableId, 'droppableId) = {
-    target: option('droppableId),
     context: Context.t('draggableId, 'droppableId),
   };
 };

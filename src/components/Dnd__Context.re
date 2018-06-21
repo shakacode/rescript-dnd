@@ -1,6 +1,7 @@
 open Dnd__Config;
 open Dnd__Types;
 
+module Html = Dnd__Html;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
 
@@ -39,11 +40,17 @@ module Make = (Config: Config) => {
 
   type action =
     | StartDragging(
-        Ghost.t(Config.draggableId, Config.droppableId),
+        Config.draggableId,
+        Config.droppableId,
+        Point.t,
+        Point.t,
+        Dom.htmlElement,
         Subscriptions.t,
       )
     | UpdateGhostPosition(
         Ghost.t(Config.draggableId, Config.droppableId),
+        Point.t,
+        Dom.htmlElement,
         Subscriptions.t,
       )
     | ResetAnimations(list(Config.draggableId))
@@ -102,7 +109,49 @@ module Make = (Config: Config) => {
     },
     reducer: (action, state) =>
       switch (action) {
-      | StartDragging(ghost, subscriptions) =>
+      | StartDragging(
+          draggableId,
+          droppableId,
+          start,
+          current,
+          element,
+          subscriptions,
+        ) =>
+        open Webapi.Dom;
+
+        let rect = element |. HtmlElement.getBoundingClientRect;
+        let style =
+          element
+          |. Html.castHtmlElementToElement
+          |. Window.getComputedStyle(window);
+
+        let ghost =
+          Ghost.{
+            draggableId,
+            originalDroppable: droppableId,
+            targetDroppable: Some(droppableId),
+            targetingOriginalDroppable: true,
+            direction: Geometry.getDirection(~was=start.y, ~is=current.y),
+            dimensions: rect |. Geometry.getDimensions,
+            margins: style |. Geometry.getMargins,
+            borders: style |. Geometry.getBorders,
+            center: rect |. Geometry.getAbsCenter,
+            departureRect: rect |. Geometry.getAbsRect,
+            currentRect: rect |. Geometry.getAbsRect,
+            departurePoint: {
+              x: current.x,
+              y: current.y,
+            },
+            currentPoint: {
+              x: current.x,
+              y: current.y,
+            },
+            delta: {
+              x: 0,
+              y: 0,
+            },
+          };
+
         state.draggables :=
           state.draggables^
           |. Map.map(draggable =>
@@ -126,13 +175,15 @@ module Make = (Config: Config) => {
           (_ => subscriptions.install()),
         );
 
-      | UpdateGhostPosition(ghost, subscriptions) =>
+      | UpdateGhostPosition(ghost, point, element, subscriptions) =>
+        open Webapi.Dom;
+
         let targetDroppable =
           state.droppables^
           |> Map.valuesToArray
           |> Js.Array.find(droppable =>
                Geometry.(
-                 ghost.currentPoint
+                 point
                  |. isWithin(
                       Option.getExn(Droppable.(droppable.geometry)).rect,
                     )
@@ -149,7 +200,25 @@ module Make = (Config: Config) => {
           | Some(_) => false
           };
 
-        let ghost = {...ghost, targetDroppable, targetingOriginalDroppable};
+        let rect = element |. HtmlElement.getBoundingClientRect;
+
+        let ghost = {
+          ...ghost,
+          targetDroppable,
+          targetingOriginalDroppable,
+          direction:
+            Geometry.getDirection(~was=ghost.currentPoint.y, ~is=point.y),
+          center: rect |. Geometry.getAbsCenter,
+          currentRect: rect |. Geometry.getAbsRect,
+          currentPoint: {
+            x: point.x,
+            y: point.y,
+          },
+          delta: {
+            x: point.x - ghost.departurePoint.x,
+            y: point.y - ghost.departurePoint.y,
+          },
+        };
 
         let (draggables, animate) =
           state.draggables^
@@ -619,24 +688,41 @@ module Make = (Config: Config) => {
     render: ({state, send, handle}) =>
       children(
         Payload.{
-          target:
-            switch (state.status) {
-            | Dragging(ghost, _)
-            | Dropping(ghost) => ghost.targetDroppable
-            | _ => None
-            },
           context: {
             status: state.status,
+            target:
+              switch (state.status) {
+              | Dragging(ghost, _)
+              | Dropping(ghost) => ghost.targetDroppable
+              | _ => None
+              },
             registerDraggable: Handlers.registerDraggable |> handle,
             registerDroppable: Handlers.registerDroppable |> handle,
             disposeDraggable: Handlers.disposeDraggable |> handle,
             disposeDroppable: Handlers.disposeDroppable |> handle,
             getDraggableShift: draggableId =>
               Map.getExn(state.draggables^, draggableId).shift,
-            startDragging: (ghost, subscriptions) =>
-              StartDragging(ghost, subscriptions) |> send,
-            updateGhostPosition: (ghost, subscriptions) =>
-              UpdateGhostPosition(ghost, subscriptions) |> send,
+            startDragging:
+              (
+                ~draggableId,
+                ~droppableId,
+                ~start,
+                ~current,
+                ~element,
+                ~subscriptions,
+              ) =>
+              StartDragging(
+                draggableId,
+                droppableId,
+                start,
+                current,
+                element,
+                subscriptions,
+              )
+              |> send,
+            updateGhostPosition: (~ghost, ~point, ~element, ~subscriptions) =>
+              UpdateGhostPosition(ghost, point, element, subscriptions)
+              |> send,
             startDropping: ghost => StartDropping(ghost) |> send,
             cancelDropping: ghost => CancelDropping(ghost) |> send,
           },

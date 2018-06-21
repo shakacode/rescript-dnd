@@ -66,7 +66,8 @@ let make = (~n, _) => {
                id=TodoList
                context=dnd.context
                className=(
-                 Cn.make(["todos", "active" |> Cn.ifSome(dnd.target)])
+                 (~draggingOver) =>
+                   Cn.make(["todos", "active" |> Cn.ifSome(draggingOver)])
                )>
                (
                  state.todosIndex
@@ -78,7 +79,13 @@ let make = (~n, _) => {
                         key=(todo.id |. string_of_int)
                         droppableId=TodoList
                         context=dnd.context
-                        className="todo">
+                        className=(
+                          (~dragging) =>
+                            Cn.make([
+                              "todo",
+                              "dragging" |> Cn.ifTrue(dragging),
+                            ])
+                        )>
                         (todo.todo |> ReasonReact.string)
                       </Todos.Draggable>;
                     })

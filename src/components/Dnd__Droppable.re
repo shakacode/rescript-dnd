@@ -11,7 +11,7 @@ module Make = (Config: Config) => {
       (
         ~id as droppableId: Config.droppableId,
         ~context: Context.t(Config.draggableId, Config.droppableId),
-        ~className: option(string)=?,
+        ~className: option(Droppable.className(Config.droppableId))=?,
         children,
       ) => {
     ...component,
@@ -34,7 +34,10 @@ module Make = (Config: Config) => {
                 | None => ()
                 };
               },
-              "className": className |. Js.Nullable.fromOption,
+              "className":
+                className
+                |. Option.map(fn => fn(~draggingOver=context.target))
+                |. Js.Nullable.fromOption,
             },
             switch (context.status) {
             | Dragging(ghost, _)
@@ -61,7 +64,7 @@ module Make = (Config: Config) => {
                          ~borderBottom=Style.(ghost.borders.bottom |. px),
                          ~borderLeft=Style.(ghost.borders.left |. px),
                          ~borderRight=Style.(ghost.borders.right |. px),
-                         ~width=Style.(ghost.dimensions.width |. px),
+                         ~width=Style.(0 |. px),
                          ~height=Style.(ghost.dimensions.height |. px),
                          ~transition=Style.transition("all"),
                          (),

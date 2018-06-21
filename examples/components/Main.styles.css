@@ -1,0 +1,14 @@
+main {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+  margin-left: 300px;
+}
+
+@media (max-width: 1024px) {
+  main {
+    margin-left: 0;
+  }
+}

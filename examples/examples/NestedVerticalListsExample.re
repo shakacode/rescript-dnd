@@ -144,17 +144,18 @@ let make = _ => {
                         key=(list.id |. string_of_int)
                         context=dnd.context
                         className=(
-                          Cn.make([
-                            "todos",
-                            "active"
-                            |> Cn.ifTrue(
-                                 switch (dnd.target) {
-                                 | Some(TodoListContainer(id)) =>
-                                   id === list.id
-                                 | _ => false
-                                 },
-                               ),
-                          ])
+                          (~draggingOver) =>
+                            Cn.make([
+                              "todos",
+                              "active"
+                              |> Cn.ifTrue(
+                                   switch (draggingOver) {
+                                   | Some(TodoListContainer(id)) =>
+                                     id === list.id
+                                   | _ => false
+                                   },
+                                 ),
+                            ])
                         )>
                         (
                           list.todos
@@ -167,7 +168,13 @@ let make = _ => {
                                  key=(todo.id |. string_of_int)
                                  droppableId=(TodoListContainer(list.id))
                                  context=dnd.context
-                                 className="todo">
+                                 className=(
+                                   (~dragging) =>
+                                     Cn.make([
+                                       "todo",
+                                       "dragging" |> Cn.ifTrue(dragging),
+                                     ])
+                                 )>
                                  (todo.todo |> ReasonReact.string)
                                </Todos.Draggable>;
                              })
