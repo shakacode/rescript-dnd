@@ -1,5 +1,9 @@
 # History
 
+## Unreleased
+**Improvements**
+* Disable text selection on drag in Safari.
+
 ## 0.1.0
 **Features**
 * Add touch interactions support.

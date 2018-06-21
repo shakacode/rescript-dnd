@@ -396,6 +396,7 @@ module Make = (Config: Config) => {
                     ~margin="0",
                     ~overflow="visible",
                     ~pointerEvents="none",
+                    ~userSelect="none",
                     ~top=Style.(ghost.departureRect.top |. px),
                     ~left=Style.(ghost.departureRect.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
@@ -406,7 +407,11 @@ module Make = (Config: Config) => {
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  ),
+                  )
+                  |. ReactDOMRe.Style.unsafeAddProp(
+                       "WebkitUserSelect",
+                       "none",
+                     ),
                 "className":
                   className
                   |. Option.map(fn => fn(~dragging=true))
@@ -449,6 +454,7 @@ module Make = (Config: Config) => {
                     ~margin="0",
                     ~overflow="visible",
                     ~pointerEvents="none",
+                    ~userSelect="none",
                     ~top=Style.(ghost.departureRect.top |. px),
                     ~left=Style.(ghost.departureRect.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
@@ -460,7 +466,11 @@ module Make = (Config: Config) => {
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  ),
+                  )
+                  |. ReactDOMRe.Style.unsafeAddProp(
+                       "WebkitUserSelect",
+                       "none",
+                     ),
                 "className":
                   className
                   |. Option.map(fn => fn(~dragging=false))
@@ -499,6 +509,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -510,7 +522,8 @@ module Make = (Config: Config) => {
                       ),
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -529,6 +542,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -538,7 +553,8 @@ module Make = (Config: Config) => {
                       + ghost.margins.bottom,
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -557,9 +573,12 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -578,6 +597,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -587,7 +608,8 @@ module Make = (Config: Config) => {
                       + ghost.margins.bottom,
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -606,9 +628,12 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
