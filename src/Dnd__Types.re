@@ -55,6 +55,15 @@ module Paddings = {
   };
 };
 
+module Offset = {
+  type t = {
+    top: int,
+    bottom: int,
+    left: int,
+    right: int,
+  };
+};
+
 module Direction = {
   type t =
     | Alpha
