@@ -1,5 +1,10 @@
 # History
 
+## 0.1.1
+**Improvements**
+* Don't interrupt text selection on desktops.
+* Disable text selection on drag in Safari.
+
 ## 0.1.0
 **Features**
 * Add touch interactions support.

@@ -121,6 +121,16 @@ let isWithin = (point: Point.t, rect: Rect.t) =>
   && point.y >= rect.top
   && point.y <= rect.bottom;
 
+let isWithinWithOffset = (point: Point.t, rect: Rect.t, offset: Offset.t) =>
+  point.x >= rect.left
+  - offset.left
+  && point.x <= rect.right
+  + offset.right
+  && point.y >= rect.top
+  - offset.top
+  && point.y <= rect.bottom
+  + offset.bottom;
+
 let isAbove = (ghost: Rect.t, item: Rect.t) => {
   let ghostHeight = ghost.bottom - ghost.top;
   let itemHeight = item.bottom - item.top;
@@ -144,4 +154,39 @@ let isAboveAdjusted = (ghost: Rect.t, item: Rect.t, direction: Direction.t) => {
   | Alpha => ghostCenter - directionFactor < itemCenter
   | Omega => ghostCenter + directionFactor < itemCenter
   };
+};
+
+/* TODO: Remove after webapi bump */
+external castNodeToNullableNode : Dom.node => Js.nullable(Dom.node) =
+  "%identity";
+
+let pointWithinSelection = point => {
+  open! Webapi.Dom;
+
+  window
+  |. Window.getSelection
+  |. Selection.anchorNode
+  |. castNodeToNullableNode
+  |. Js.Nullable.toOption
+  |. Option.map(text => {
+       let range = Range.make();
+       range |> Range.selectNode(text);
+       let rect = range |. Range.getBoundingClientRect |. getAbsRect;
+       range |> Range.detach;
+
+       let vOffset = 10;
+       let hOffset = 40;
+
+       point
+       |. isWithinWithOffset(
+            rect,
+            Offset.{
+              top: vOffset,
+              bottom: vOffset,
+              left: hOffset,
+              right: hOffset,
+            },
+          );
+     })
+  |. Option.getWithDefault(false);
 };

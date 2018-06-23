@@ -20,9 +20,21 @@ module Make = (Config: Config) => {
       switch (state.context.status, state.element^) {
       | (StandBy, Some(element))
           when Events.Mouse.(event |. leftClick && ! (event |. modifier)) =>
-        open Webapi.Dom;
-
+        /*
+         * We don't want to prevent text selection by initiating drag start
+         * if user wants to select chunk of a text.
+         * Sadly, there's no way to distinguish if user actually starts
+         * dragging item or selecting a text. But we do can distinguish
+         * if user double clicked to selected the whole word then
+         * continuing to move cursor to expand the selection.
+         * The difference is that in the first case selection will be collapsed
+         * on the first move but in the second case there will be selected text.
+         * Since `selcetionchange` event is fired after `mousedown`
+         * we can't capture it right here right now but we can capture it
+         * on the very first mouse move after mouse down.
+         */
         let moveThreshold = 1;
+        let selectionOnStart: ref(option(bool)) = ref(None);
 
         let start =
           Point.{
@@ -31,19 +43,37 @@ module Make = (Config: Config) => {
           };
 
         let rec onInitialMouseMove = event => {
+          open Webapi.Dom;
+
           let current =
             Point.{
               x: event |. MouseEvent.pageX,
               y: event |. MouseEvent.pageY,
             };
 
-          let initiateDrag =
+          let moved =
             Js.Math.abs_int(start.x - current.x) > moveThreshold
             || Js.Math.abs_int(start.y - current.y) > moveThreshold;
 
-          if (initiateDrag) {
+          selectionOnStart :=
+            selectionOnStart^
+            |. Option.getWithDefault(! Html.selectionCollapsed())
+            |. Some;
+
+          let selecting =
+            switch (
+              selectionOnStart^,
+              current |. Geometry.pointWithinSelection,
+            ) {
+            | (Some(false), _)
+            | (Some(true), false) => false
+            | (None, _)
+            | (Some(true), true) => true
+            };
+
+          if (moved && ! selecting) {
             dropInitialSubscriptions();
-            Html.clearTextSelection();
+            Html.clearSelection();
 
             let onMouseMove = onMouseMove |. handle;
             let onMouseUp = onMouseUp |. handle;
@@ -122,6 +152,7 @@ module Make = (Config: Config) => {
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
           when state.draggableId == ghost.draggableId =>
+        Html.clearSelection();
         subscriptions.drop();
         state.context.startDropping(ghost);
 
@@ -180,7 +211,7 @@ module Make = (Config: Config) => {
           Js.Global.setTimeout(
             () => {
               dropInitialSubscriptions();
-              Html.clearTextSelection();
+              Html.clearSelection();
 
               let onTouchMove = onTouchMove |. handle;
               let onTouchEnd = onTouchEnd |. handle;
@@ -396,6 +427,7 @@ module Make = (Config: Config) => {
                     ~margin="0",
                     ~overflow="visible",
                     ~pointerEvents="none",
+                    ~userSelect="none",
                     ~top=Style.(ghost.departureRect.top |. px),
                     ~left=Style.(ghost.departureRect.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
@@ -406,7 +438,11 @@ module Make = (Config: Config) => {
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  ),
+                  )
+                  |. ReactDOMRe.Style.unsafeAddProp(
+                       "WebkitUserSelect",
+                       "none",
+                     ),
                 "className":
                   className
                   |. Option.map(fn => fn(~dragging=true))
@@ -449,6 +485,7 @@ module Make = (Config: Config) => {
                     ~margin="0",
                     ~overflow="visible",
                     ~pointerEvents="none",
+                    ~userSelect="none",
                     ~top=Style.(ghost.departureRect.top |. px),
                     ~left=Style.(ghost.departureRect.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
@@ -460,7 +497,11 @@ module Make = (Config: Config) => {
                         ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
                       ),
                     (),
-                  ),
+                  )
+                  |. ReactDOMRe.Style.unsafeAddProp(
+                       "WebkitUserSelect",
+                       "none",
+                     ),
                 "className":
                   className
                   |. Option.map(fn => fn(~dragging=false))
@@ -499,6 +540,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -510,7 +553,8 @@ module Make = (Config: Config) => {
                       ),
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -529,6 +573,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -538,7 +584,8 @@ module Make = (Config: Config) => {
                       + ghost.margins.bottom,
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -557,9 +604,12 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -578,6 +628,8 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
                     Style.translate(
@@ -587,7 +639,8 @@ module Make = (Config: Config) => {
                       + ghost.margins.bottom,
                     ),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))
@@ -606,9 +659,12 @@ module Make = (Config: Config) => {
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
+                  ~pointerEvents="none",
+                  ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   (),
-                ),
+                )
+                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
               "className":
                 className
                 |. Option.map(fn => fn(~dragging=false))

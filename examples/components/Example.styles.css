@@ -75,7 +75,6 @@
   border-radius: 4px;
   background-color: #fff;
   cursor: grab;
-  user-select: none;
 }
 
 @media (max-width: 1024px) {
