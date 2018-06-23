@@ -122,7 +122,7 @@ let unsubscribeFromVisibilityChange = handler =>
   );
 
 module Mouse = {
-  let leftClick = event => event |. ReactEventRe.Mouse.button == 0;
+  let leftClick = event => event |. ReactEventRe.Mouse.button === 0;
 
   let modifier = event =>
     ReactEventRe.Mouse.(

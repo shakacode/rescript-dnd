@@ -5,34 +5,34 @@ module Html = Dnd__Html;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
 
-module Make = (Config: Config) => {
+module Make = (Cfg: Config) => {
   module DraggableComparator =
     Id.MakeComparable({
-      type t = Config.draggableId;
+      type t = Cfg.Draggable.t;
       let cmp = Pervasives.compare;
     });
 
   module DroppableComparator =
     Id.MakeComparable({
-      type t = Config.droppableId;
+      type t = Cfg.Droppable.t;
       let cmp = Pervasives.compare;
     });
 
   type state = {
-    status: Status.t(Config.draggableId, Config.droppableId),
+    status: Status.t(Cfg.Draggable.t, Cfg.Droppable.t),
     draggables:
       ref(
         Map.t(
-          Config.draggableId,
-          Draggable.t(Config.draggableId, Config.droppableId),
+          Cfg.Draggable.t,
+          DraggableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
           DraggableComparator.identity,
         ),
       ),
     droppables:
       ref(
         Map.t(
-          Config.droppableId,
-          Droppable.t(Config.droppableId),
+          Cfg.Droppable.t,
+          DroppableBag.t(Cfg.Droppable.t),
           DroppableComparator.identity,
         ),
       ),
@@ -40,23 +40,23 @@ module Make = (Config: Config) => {
 
   type action =
     | StartDragging(
-        Config.draggableId,
-        Config.droppableId,
+        Cfg.Draggable.t,
+        Cfg.Droppable.t,
         Point.t,
         Point.t,
         Dom.htmlElement,
         Subscriptions.t,
       )
     | UpdateGhostPosition(
-        Ghost.t(Config.draggableId, Config.droppableId),
+        Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t),
         Point.t,
         Dom.htmlElement,
         Subscriptions.t,
       )
-    | ResetAnimations(list(Config.draggableId))
-    | StartDropping(Ghost.t(Config.draggableId, Config.droppableId))
-    | CancelDropping(Ghost.t(Config.draggableId, Config.droppableId))
-    | FinishDropping(DropResult.t(Config.draggableId, Config.droppableId))
+    | ResetAnimations(list(Cfg.Draggable.t))
+    | StartDropping(Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t))
+    | CancelDropping(Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t))
+    | FinishDropping(DropResult.t(Cfg.Draggable.t, Cfg.Droppable.t))
     | Reset;
 
   module Handlers = {
@@ -185,7 +185,7 @@ module Make = (Config: Config) => {
                Geometry.(
                  point
                  |. isWithin(
-                      Option.getExn(Droppable.(droppable.geometry)).rect,
+                      Option.getExn(DroppableBag.(droppable.geometry)).rect,
                     )
                )
              )
@@ -195,7 +195,7 @@ module Make = (Config: Config) => {
           switch (targetDroppable) {
           | None => true
           | Some(targetDroppable)
-              when targetDroppable == ghost.originalDroppable =>
+              when Cfg.Droppable.eq(targetDroppable, ghost.originalDroppable) =>
             true
           | Some(_) => false
           };
@@ -228,7 +228,7 @@ module Make = (Config: Config) => {
                switch (ghost.targetDroppable, draggable.droppableId) {
                | (Some(targetDroppable), draggableDroppable)
                    when
-                     targetDroppable == draggableDroppable
+                     Cfg.Droppable.eq(targetDroppable, draggableDroppable)
                      && ghost.targetingOriginalDroppable =>
                  let shiftedDraggableRect =
                    ghost.dimensions
@@ -249,7 +249,8 @@ module Make = (Config: Config) => {
                       );
                  switch (draggable.shift, isAbove, wasAbove) {
                  /* Dragging this one, no changes here */
-                 | (_, _, _) when draggable.id == ghost.draggableId => (
+                 | (_, _, _)
+                     when Cfg.Draggable.eq(draggable.id, ghost.draggableId) => (
                      draggables,
                      animate,
                    )
@@ -303,7 +304,10 @@ module Make = (Config: Config) => {
 
                | (Some(ghostTargetDroppable), draggableDroppable)
                    when
-                     ghostTargetDroppable == draggableDroppable
+                     Cfg.Droppable.eq(
+                       ghostTargetDroppable,
+                       draggableDroppable,
+                     )
                      && ! ghost.targetingOriginalDroppable =>
                  let shiftedDraggableRect =
                    ghost.dimensions
@@ -386,7 +390,9 @@ module Make = (Config: Config) => {
                      |. Map.updateU(id, (. draggable) =>
                           switch (draggable) {
                           | Some(draggable) =>
-                            Some(Draggable.{...draggable, animating: false})
+                            Some(
+                              DraggableBag.{...draggable, animating: false},
+                            )
                           | None => None
                           }
                         )
@@ -409,14 +415,14 @@ module Make = (Config: Config) => {
             let sortedDraggables =
               state.draggables^
               |. Map.keep((_, draggable) =>
-                   draggable.droppableId == targetDroppableId
+                   Cfg.Droppable.eq(draggable.droppableId, targetDroppableId)
                  )
               |. Map.reduce(
                    [||],
                    (acc, id, draggable) => {
                      let geometry = draggable.geometry |. Option.getExn;
                      switch (draggable.shift) {
-                     | _ when id == ghost.draggableId =>
+                     | _ when Cfg.Draggable.eq(id, ghost.draggableId) =>
                        acc
                        |. Array.concat([|
                             DropResult.{
@@ -513,15 +519,15 @@ module Make = (Config: Config) => {
             let sortedDraggables =
               state.draggables^
               |. Map.keep((_, draggable) =>
-                   draggable.droppableId == targetDroppableId
-                   || draggable.id == ghost.draggableId
+                   Cfg.Droppable.eq(draggable.droppableId, targetDroppableId)
+                   || Cfg.Draggable.eq(draggable.id, ghost.draggableId)
                  )
               |. Map.reduce(
                    [||],
                    (acc, id, draggable) => {
                      let geometry = draggable.geometry |. Option.getExn;
                      switch (draggable.shift) {
-                     | _ when id == ghost.draggableId =>
+                     | _ when Cfg.Draggable.eq(id, ghost.draggableId) =>
                        acc
                        |. Array.concat([|
                             DropResult.{

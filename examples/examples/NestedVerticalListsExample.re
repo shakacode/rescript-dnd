@@ -1,10 +1,25 @@
 open Dnd__React;
 
 module Cfg = {
-  type draggableId =
-    | Todo(int);
-  type droppableId =
-    | TodoListContainer(int);
+  module Draggable = {
+    type t =
+      | Todo(int);
+
+    let eq = (d1, d2) =>
+      switch (d1, d2) {
+      | (Todo(id1), Todo(id2)) => id1 === id2
+      };
+  };
+
+  module Droppable = {
+    type t =
+      | TodoListContainer(int);
+
+    let eq = (d1, d2) =>
+      switch (d1, d2) {
+      | (TodoListContainer(id1), TodoListContainer(id2)) => id1 === id2
+      };
+  };
 };
 
 module Todos = Dnd.Make(Cfg);
@@ -31,7 +46,7 @@ type state = {
 };
 
 type action =
-  | Reorder(Dnd.result(Cfg.draggableId, Cfg.droppableId));
+  | Reorder(Dnd.result(Cfg.Draggable.t, Cfg.Droppable.t));
 
 let component = ReasonReact.reducerComponent(__MODULE__);
 
@@ -147,14 +162,7 @@ let make = _ => {
                           (~draggingOver) =>
                             Cn.make([
                               "todos",
-                              "active"
-                              |> Cn.ifTrue(
-                                   switch (draggingOver) {
-                                   | Some(TodoListContainer(id)) =>
-                                     id === list.id
-                                   | _ => false
-                                   },
-                                 ),
+                              "active" |> Cn.ifTrue(draggingOver),
                             ])
                         )>
                         (
