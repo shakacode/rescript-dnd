@@ -4,14 +4,14 @@ open Dnd__Types;
 
 module Style = Dnd__Style;
 
-module Make = (Config: Config) => {
+module Make = (Cfg: Config) => {
   let component = ReasonReact.statelessComponent("DndDroppable");
 
   let make =
       (
-        ~id as droppableId: Config.droppableId,
-        ~context: Context.t(Config.draggableId, Config.droppableId),
-        ~className: option(Droppable.className(Config.droppableId))=?,
+        ~id as droppableId: Cfg.Droppable.t,
+        ~context: Context.t(Cfg.Draggable.t, Cfg.Droppable.t),
+        ~className: option(DroppableBag.className)=?,
         children,
       ) => {
     ...component,
@@ -36,7 +36,16 @@ module Make = (Config: Config) => {
               },
               "className":
                 className
-                |. Option.map(fn => fn(~draggingOver=context.target))
+                |. Option.map(fn =>
+                     fn(
+                       ~draggingOver=
+                         context.target
+                         |. Option.map(target =>
+                              Cfg.Droppable.eq(target, droppableId)
+                            )
+                         |. Option.getWithDefault(false),
+                     )
+                   )
                 |. Js.Nullable.fromOption,
             },
             switch (context.status) {
@@ -46,8 +55,7 @@ module Make = (Config: Config) => {
                   Option.eq(
                     ghost.targetDroppable,
                     Some(droppableId),
-                    (targetDroppable, droppableId) =>
-                    targetDroppable == droppableId
+                    Cfg.Droppable.eq,
                   )
                   && ! ghost.targetingOriginalDroppable =>
               children

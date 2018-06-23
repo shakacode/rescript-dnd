@@ -80,7 +80,7 @@ module Geometry = {
   };
 };
 
-module Draggable = {
+module DraggableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'draggableId,
     droppableId: 'droppableId,
@@ -93,18 +93,14 @@ module Draggable = {
   type className = (~dragging: bool) => string;
 };
 
-module Droppable = {
+module DroppableBag = {
   type t('droppableId) = {
     id: 'droppableId,
     element: Dom.htmlElement,
     geometry: option(Geometry.t),
   };
 
-  /* NOTE: `draggingOver` is not bool b/c using pattern matching in userland
-   *       should be faster than using `==` (Caml_obj.caml_equal) internally
-   */
-  type className('droppableId) =
-    (~draggingOver: option('droppableId)) => string;
+  type className = (~draggingOver: bool) => string;
 };
 
 module Ghost = {

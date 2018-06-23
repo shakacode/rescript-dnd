@@ -51,10 +51,22 @@ Quickie:
 
 ```reason
 module Cfg = {
-  type draggableId =
-    | Todo(int);
-  type droppableId =
-    | TodoList;
+  module Draggable = {
+    type t =
+      | Todo(int);
+
+    let eq = (d1, d2) =>
+      switch (d1, d2) {
+      | (Todo(id1), Todo(id2)) => id1 === id2
+      };
+  };
+
+  module Droppable = {
+    type t =
+      | TodoList;
+
+    let eq = (_, _) => true;
+  };
 };
 
 module Todos = Dnd.Make(Cfg);
@@ -64,7 +76,7 @@ type state = {
 };
 
 type action =
-  | Reorder(Dnd.result(Cfg.draggableId, Cfg.droppableId));
+  | Reorder(Dnd.result(Cfg.Draggable.t, Cfg.Droppable.t));
 
 let component = ReasonReact.reducerComponent(__MODULE__);
 
@@ -90,7 +102,7 @@ let make = _ => {
                context=dnd.context
                className=(
                  (~draggingOver) =>
-                   Cn.make(["todos", "active" |> Cn.ifSome(draggingOver)])
+                   Cn.make(["todos", "active" |> Cn.ifTrue(draggingOver)])
                )>
                (
                  state.todos

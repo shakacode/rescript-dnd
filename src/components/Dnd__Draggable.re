@@ -7,11 +7,11 @@ module Events = Dnd__Events;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
 
-module Make = (Config: Config) => {
+module Make = (Cfg: Config) => {
   type state = {
-    draggableId: Config.draggableId,
-    droppableId: Config.droppableId,
-    context: Context.t(Config.draggableId, Config.droppableId),
+    draggableId: Cfg.Draggable.t,
+    droppableId: Cfg.Droppable.t,
+    context: Context.t(Cfg.Draggable.t, Cfg.Droppable.t),
     element: ref(option(Dom.htmlElement)),
   };
 
@@ -129,7 +129,7 @@ module Make = (Config: Config) => {
     and onMouseMove = (event, {ReasonReact.state}) =>
       switch (state.context.status, state.element^) {
       | (Dragging(ghost, subscriptions), Some(element))
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         open Webapi.Dom;
 
         event |. MouseEvent.preventDefault;
@@ -151,7 +151,7 @@ module Make = (Config: Config) => {
     and onMouseUp = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         Html.clearSelection();
         subscriptions.drop();
         state.context.startDropping(ghost);
@@ -183,7 +183,7 @@ module Make = (Config: Config) => {
     and onVisibilityChange = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
         state.context.cancelDropping(ghost);
 
@@ -289,7 +289,7 @@ module Make = (Config: Config) => {
 
       switch (state.context.status, state.element^, touch) {
       | (Dragging(ghost, subscriptions), Some(element), Some(touch))
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         event |. TouchEvent.preventDefault;
 
         let point = Point.{x: touch##pageX, y: touch##pageY};
@@ -309,7 +309,7 @@ module Make = (Config: Config) => {
     and onTouchEnd = (event, {ReasonReact.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         event |> Webapi.Dom.Event.preventDefault;
         subscriptions.drop();
         state.context.startDropping(ghost);
@@ -320,7 +320,8 @@ module Make = (Config: Config) => {
       }
     and onContextMenu = (event, {ReasonReact.state}) =>
       switch (state.context.status) {
-      | Dragging(ghost, _) when state.draggableId == ghost.draggableId =>
+      | Dragging(ghost, _)
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         event |> Webapi.Dom.Event.preventDefault
       | Dragging(_, _)
       | Dropping(_)
@@ -329,7 +330,7 @@ module Make = (Config: Config) => {
     and onOrientationChange = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
         state.context.cancelDropping(ghost);
 
@@ -340,7 +341,7 @@ module Make = (Config: Config) => {
     and onVisibilityChange = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
-          when state.draggableId == ghost.draggableId =>
+          when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
         state.context.cancelDropping(ghost);
 
@@ -354,10 +355,10 @@ module Make = (Config: Config) => {
 
   let make =
       (
-        ~id as draggableId: Config.draggableId,
-        ~droppableId: Config.droppableId,
+        ~id as draggableId: Cfg.Draggable.t,
+        ~droppableId: Cfg.Droppable.t,
         ~context,
-        ~className: option(Draggable.className)=?,
+        ~className: option(DraggableBag.className)=?,
         children,
       ) => {
     ...component,
@@ -376,7 +377,7 @@ module Make = (Config: Config) => {
           switch (state.context.status) {
           | Dragging(ghost, _)
               when
-                state.draggableId == ghost.draggableId
+                Cfg.Draggable.eq(state.draggableId, ghost.draggableId)
                 && ! (event |> Event.defaultPrevented) =>
             event |. Event.preventDefault
           | _ => ()
@@ -412,7 +413,8 @@ module Make = (Config: Config) => {
       };
 
       switch (context.status) {
-      | Dragging(ghost, _) when draggableId == ghost.draggableId =>
+      | Dragging(ghost, _)
+          when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
         <Fragment>
           (
             ReasonReact.createDomElement(
@@ -470,7 +472,7 @@ module Make = (Config: Config) => {
           />
         </Fragment>
 
-      | Dropping(ghost) when draggableId == ghost.draggableId =>
+      | Dropping(ghost) when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
         <Fragment>
           (
             ReasonReact.createDomElement(
