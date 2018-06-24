@@ -148,7 +148,8 @@ let isAboveAdjusted = (ghost: Rect.t, item: Rect.t, direction: Direction.t) => {
   let ghostCenter = ghost.top + ghostHeight / 2;
   let itemCenter = item.top + itemHeight / 2;
 
-  let directionFactor = (itemHeight |> float_of_int) *. 0.45 |> int_of_float;
+  let height = ghostHeight < itemHeight ? ghostHeight : itemHeight;
+  let directionFactor = (height |> float_of_int) *. 0.55 |> int_of_float;
 
   switch (direction) {
   | Alpha => ghostCenter - directionFactor < itemCenter
