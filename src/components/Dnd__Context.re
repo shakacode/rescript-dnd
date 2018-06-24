@@ -32,7 +32,7 @@ module Make = (Cfg: Config) => {
       ref(
         Map.t(
           Cfg.Droppable.t,
-          DroppableBag.t(Cfg.Droppable.t),
+          DroppableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
           DroppableComparator.identity,
         ),
       ),
@@ -81,12 +81,16 @@ module Make = (Cfg: Config) => {
       | Dropping(_) => ()
       };
 
-    let registerDroppable = ((droppableId, element), {ReasonReact.state}) =>
+    let registerDroppable =
+        ((droppableId, accept, element), {ReasonReact.state}) =>
       switch (state.status) {
       | StandBy =>
         state.droppables :=
           state.droppables^
-          |. Map.set(droppableId, {id: droppableId, element, geometry: None})
+          |. Map.set(
+               droppableId,
+               {id: droppableId, accept, element, geometry: None},
+             )
       | Dragging(_, _)
       | Dropping(_) => ()
       };
@@ -182,12 +186,14 @@ module Make = (Cfg: Config) => {
           state.droppables^
           |> Map.valuesToArray
           |> Js.Array.find(droppable =>
-               Geometry.(
-                 point
-                 |. isWithin(
-                      Option.getExn(DroppableBag.(droppable.geometry)).rect,
-                    )
+               DroppableBag.(
+                 droppable.accept
+                 |. Option.map(fn => fn(ghost.draggableId))
+                 |. Option.getWithDefault(true)
                )
+               && Geometry.(
+                    point |. isWithin(Option.getExn(droppable.geometry).rect)
+                  )
              )
           |. Option.map(droppable => droppable.id);
 

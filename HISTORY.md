@@ -1,5 +1,46 @@
 # History
 
+## 0.3.0
+**Features**
+* Conditional drag & drop. Now each `Droppable` takes optional `accept` prop:
+
+```reason
+~accept: option(Draggable.t => bool)=?
+
+<Dnd.Droppable
+  accept=(
+    fun
+    | Todo => true
+    | TodoList => false
+  )
+/>
+```
+
+* Custom drag handles.
+
+```reason
+/* Without custom drag handle */
+<Dnd.Draggable>
+  ...(Children("Drag me" |> ReasonReact.string))
+</Dnd.Draggable>
+
+/* With custom drag handle */
+<Dnd.Draggable>
+  ...(
+    ChildrenWithHandle(
+      handle =>
+        <button
+          style=handle.style
+          onMouseDown=handle.onMouseDown
+          onTouchStart=handle.onTouchStart
+        >
+          ("Drag me" |> ReasonReact.string)
+        </button>
+    )
+  )
+</Dnd.Draggable>
+```
+
 ## 0.2.0
 **API**
 * **[ BREAKING ]** `Config` updated: structure is changed and `eq` function is required for both types `Draggable.t` and `Droppable.t`. It should improve overall perf.

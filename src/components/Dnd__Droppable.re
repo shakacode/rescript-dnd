@@ -10,6 +10,7 @@ module Make = (Cfg: Config) => {
   let make =
       (
         ~id as droppableId: Cfg.Droppable.t,
+        ~accept: option(Cfg.Draggable.t => bool)=?,
         ~context: Context.t(Cfg.Draggable.t, Cfg.Droppable.t),
         ~className: option(DroppableBag.className)=?,
         children,
@@ -30,7 +31,7 @@ module Make = (Cfg: Config) => {
 
                 switch (element) {
                 | Some(element) =>
-                  context.registerDroppable((droppableId, element))
+                  context.registerDroppable((droppableId, accept, element))
                 | None => ()
                 };
               },

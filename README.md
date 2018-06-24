@@ -13,12 +13,12 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 * Vertical lists
 * Multiple drop targets
 * Mouse & Touch interactions
+* Conditional drag & drop
+* Custom drag handles
 
 ### TODO
 - [ ] Horizontal lists
-- [ ] Conditional drag & drop
 - [ ] Auto-scroll container when dragging at container's edge
-- [ ] Drag handlers
 - [ ] Keyboard interactions
 - [ ] Ignore form elements (opt-out)
 - [ ] Scrollable containers
@@ -69,7 +69,7 @@ module Cfg = {
   };
 };
 
-module Todos = Dnd.Make(Cfg);
+module Screen = Dnd.Make(Cfg);
 
 type state = {
   todos: array(Todo.t),
@@ -94,10 +94,10 @@ let make = _ => {
       }
     },
   render: ({state, send}) =>
-    <Todos.Context onDrop=(result => Reorder(result) |> send)>
+    <Screen.Context onDrop=(result => Reorder(result) |> send)>
       ...(
            dnd =>
-             <Todos.Droppable
+             <Screen.Droppable
                id=TodoList
                context=dnd.context
                className=(
@@ -107,7 +107,7 @@ let make = _ => {
                (
                  state.todos
                  |. Array.map(todo =>
-                      <Todos.Draggable
+                      <Screen.Draggable
                         id=(Todo(todo.id))
                         key=(todo.id |. string_of_int)
                         droppableId=TodoList
@@ -119,14 +119,14 @@ let make = _ => {
                               "dragging" |> Cn.ifTrue(dragging),
                             ])
                         )>
-                        (todo.todo |> ReasonReact.string)
-                      </Todos.Draggable>
+                        ...(Children(todo.todo |> ReasonReact.string))
+                      </Screen.Draggable>
                     )
                  |. ReasonReact.array
                )
-             </Todos.Droppable>
+             </Screen.Droppable>
          )
-    </Todos.Context>,
+    </Screen.Context>,
 };
 ```
 

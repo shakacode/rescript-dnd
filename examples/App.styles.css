@@ -1,5 +1,6 @@
 :root {
   --font-size: 16px;
+  --font-family: Menlo, Consolas, monospace;
   --background-color: #eaeaea;
 }
 
@@ -13,8 +14,8 @@ html,
 body,
 #app {
   width: 100%;
-  background-color: #eaeaea;
-  font-family: Menlo, Consolas, monospace;
+  background-color: var(--background-color);
+  font-family: var(--font-family);
   font-weight: 300;
   font-size: var(--font-size);
 }

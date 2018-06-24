@@ -1,28 +1,32 @@
-open Dnd__React;
-
 module Cfg = {
   module Draggable = {
     type t =
-      | Todo(int);
+      | Todo(int)
+      | TodoList(int);
 
     let eq = (d1, d2) =>
       switch (d1, d2) {
       | (Todo(id1), Todo(id2)) => id1 === id2
+      | (TodoList(id1), TodoList(id2)) => id1 === id2
+      | _ => false
       };
   };
 
   module Droppable = {
     type t =
-      | TodoListContainer(int);
+      | TodosDroppable(int)
+      | TodoListsDroppable;
 
     let eq = (d1, d2) =>
       switch (d1, d2) {
-      | (TodoListContainer(id1), TodoListContainer(id2)) => id1 === id2
+      | (TodosDroppable(id1), TodosDroppable(id2)) => id1 === id2
+      | (TodoListsDroppable, TodoListsDroppable) => true
+      | _ => false
       };
   };
 };
 
-module Todos = Dnd.Make(Cfg);
+module Screen = Dnd.Make(Cfg);
 
 module Todo = {
   type t = {
@@ -78,7 +82,21 @@ let make = _ => {
     switch (action) {
     | Reorder(result) =>
       switch (result) {
-      | SameTarget(Todo(_todoId), TodoListContainer(listId), todos) =>
+      /* Handle TodoLists reordering */
+      | SameTarget(TodoList(_id), TodoListsDroppable, lists) =>
+        ReasonReact.Update({
+          ...state,
+          todoListsIndex:
+            lists
+            |. Array.map(
+                 fun
+                 | TodoList(id) => id
+                 | _ => failwith("Draggable is not TodoList"),
+               ),
+        })
+
+      /* Handle Todos reordering within same TodoList */
+      | SameTarget(Todo(_id), TodosDroppable(listId), todos) =>
         ReasonReact.Update({
           ...state,
           todoListsMap:
@@ -91,21 +109,22 @@ let make = _ => {
                      ...list,
                      todos:
                        todos
-                       |. Array.map(todo =>
-                            switch (todo) {
+                       |. Array.map(
+                            fun
                             | Todo(id) => id
-                            }
+                            | _ => failwith("Draggable is not Todo"),
                           ),
                    });
                  },
                ),
         })
 
+      /* Handle Todos reordering when Todo is moved to the new TodoList */
       | NewTarget(
           Todo(todoId),
           {
-            prev: TodoListContainer(originalListId),
-            next: TodoListContainer(targetListId),
+            prev: TodosDroppable(originalListId),
+            next: TodosDroppable(targetListId),
           },
           todos,
         ) =>
@@ -131,68 +150,124 @@ let make = _ => {
                      ...list,
                      todos:
                        todos
-                       |. Array.map(todo =>
-                            switch (todo) {
+                       |. Array.map(
+                            fun
                             | Todo(id) => id
-                            }
+                            | _ => failwith("Draggable is not Todo"),
                           ),
                    });
                  },
                ),
         })
 
-      | NoChanges => ReasonReact.NoUpdate
+      | NoChanges
+      | SameTarget(Todo(_), TodoListsDroppable, _)
+      | SameTarget(TodoList(_), TodosDroppable(_), _)
+      | NewTarget(Todo(_), _, _)
+      | NewTarget(TodoList(_), _, _) => ReasonReact.NoUpdate
       }
     },
   render: ({state, send}) =>
-    <Todos.Context onDrop=(result => Reorder(result) |> send)>
+    <Screen.Context onDrop=(result => Reorder(result) |> send)>
       ...(
            dnd =>
-             <Fragment>
+             <Screen.Droppable
+               id=TodoListsDroppable
+               accept=(
+                        fun
+                        | Todo(_) => false
+                        | TodoList(_) => true
+                      )
+               context=dnd.context
+               className=((~draggingOver as _) => "todo-lists")>
                (
                  state.todoListsIndex
                  |. Array.mapU((. listId) => {
                       let list = state.todoListsMap |. Map.Int.getExn(listId);
 
-                      <Todos.Droppable
-                        id=(TodoListContainer(list.id))
+                      <Screen.Draggable
+                        id=(TodoList(list.id))
                         key=(list.id |. string_of_int)
+                        droppableId=TodoListsDroppable
                         context=dnd.context
                         className=(
-                          (~draggingOver) =>
+                          (~dragging) =>
                             Cn.make([
-                              "todos",
-                              "active" |> Cn.ifTrue(draggingOver),
+                              "todo-list",
+                              "dragging" |> Cn.ifTrue(dragging),
                             ])
                         )>
-                        (
-                          list.todos
-                          |. Array.mapU((. id) => {
-                               let todo =
-                                 state.todosMap |. Map.Int.getExn(id);
+                        ...(
+                             ChildrenWithDragHandle(
+                               handle =>
+                                 <Screen.Droppable
+                                   id=(TodosDroppable(list.id))
+                                   key=(list.id |. string_of_int)
+                                   accept=(
+                                            fun
+                                            | Todo(_) => true
+                                            | TodoList(_) => false
+                                          )
+                                   context=dnd.context
+                                   className=(
+                                     (~draggingOver) =>
+                                       Cn.make([
+                                         "todos",
+                                         "active" |> Cn.ifTrue(draggingOver),
+                                       ])
+                                   )>
+                                   <div className="todos-header">
+                                     <Control
+                                       className="drag-handle"
+                                       style=handle.style
+                                       onMouseDown=handle.onMouseDown
+                                       onTouchStart=handle.onTouchStart>
+                                       <DragHandleIcon />
+                                     </Control>
+                                     <div className="title">
+                                       (list.name |> ReasonReact.string)
+                                     </div>
+                                   </div>
+                                   (
+                                     list.todos
+                                     |. Array.mapU((. id) => {
+                                          let todo =
+                                            state.todosMap
+                                            |. Map.Int.getExn(id);
 
-                               <Todos.Draggable
-                                 id=(Todo(todo.id))
-                                 key=(todo.id |. string_of_int)
-                                 droppableId=(TodoListContainer(list.id))
-                                 context=dnd.context
-                                 className=(
-                                   (~dragging) =>
-                                     Cn.make([
-                                       "todo",
-                                       "dragging" |> Cn.ifTrue(dragging),
-                                     ])
-                                 )>
-                                 (todo.todo |> ReasonReact.string)
-                               </Todos.Draggable>;
-                             })
-                          |. ReasonReact.array
-                        )
-                      </Todos.Droppable>;
+                                          <Screen.Draggable
+                                            id=(Todo(todo.id))
+                                            key=(todo.id |. string_of_int)
+                                            droppableId=(
+                                              TodosDroppable(list.id)
+                                            )
+                                            context=dnd.context
+                                            className=(
+                                              (~dragging) =>
+                                                Cn.make([
+                                                  "todo",
+                                                  "dragging"
+                                                  |> Cn.ifTrue(dragging),
+                                                ])
+                                            )>
+                                            ...(
+                                                 Children(
+                                                   todo.todo
+                                                   |> ReasonReact.string,
+                                                 )
+                                               )
+                                          </Screen.Draggable>;
+                                        })
+                                     |. ReasonReact.array
+                                   )
+                                 </Screen.Droppable>,
+                             )
+                           )
+                      </Screen.Draggable>;
                     })
                  |. ReasonReact.array
                )
-             </Fragment>
+             </Screen.Droppable>
          )
-    </Todos.Context>,
+    </Screen.Context>,
 };
