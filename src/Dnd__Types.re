@@ -80,13 +80,17 @@ module Geometry = {
   };
 };
 
+module Shift = {
+  type t = option(Direction.t);
+};
+
 module DraggableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'draggableId,
     droppableId: 'droppableId,
     element: Dom.htmlElement,
     geometry: option(Geometry.t),
-    shift: option(Direction.t),
+    shift: Shift.t,
     animating: bool,
   };
 
@@ -188,10 +192,14 @@ module DropResult = {
     | NewTarget('draggableId, droppables('droppableId), array('draggableId))
     | NoChanges;
 
+  type trait =
+    | Ghost
+    | Item(Shift.t);
+
   type draggableIntermediateResult('draggableId) = {
     id: 'draggableId,
+    trait,
     rect: Rect.t,
     margins: Margins.t,
-    ghost: bool,
   };
 };

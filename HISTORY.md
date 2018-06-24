@@ -1,5 +1,9 @@
 # History
 
+## 0.3.1
+**Fixes**
+* Fix sorting for case when draggable that being dragged is way bigger or smaller than siblings.
+
 ## 0.3.0
 **Features**
 * Conditional drag & drop. Now each `Droppable` takes optional `accept` prop:
