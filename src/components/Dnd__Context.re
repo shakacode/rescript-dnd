@@ -433,9 +433,9 @@ module Make = (Cfg: Config) => {
                        |. Array.concat([|
                             DropResult.{
                               id,
+                              trait: Ghost,
                               rect: ghost.currentRect,
                               margins: geometry.margins,
-                              ghost: true,
                             },
                           |])
                      | _ as shift =>
@@ -443,6 +443,7 @@ module Make = (Cfg: Config) => {
                        |. Array.concat([|
                             {
                               id,
+                              trait: Item(shift),
                               rect:
                                 ghost.dimensions
                                 |. Geometry.shiftInternalSibling(
@@ -450,17 +451,36 @@ module Make = (Cfg: Config) => {
                                      shift,
                                    ),
                               margins: geometry.margins,
-                              ghost: false,
                             },
                           |])
                      };
                    },
                  )
-              |. SortArray.stableSortBy((d1, d2) => d1.rect.top - d2.rect.top);
+              |. SortArray.stableSortBy((d1, d2) =>
+                   switch (d1.trait, d2.trait) {
+                   | (Ghost, Item(Some(Alpha))) => 1
+                   | (Ghost, Item(Some(Omega))) => (-1)
+                   | (Ghost, Item(None)) =>
+                     ghost.departureRect.top - d2.rect.top
+                   | (Item(Some(Alpha)), Ghost) => (-1)
+                   | (Item(Some(Omega)), Ghost) => 1
+                   | (Item(None), Ghost) =>
+                     d1.rect.top - ghost.departureRect.top
+                   | (Item(_), Item(_)) => d1.rect.top - d2.rect.top
+                   | (Ghost, Ghost) => 0 /* impossible */
+                   }
+                 );
 
             let ghostIndex =
               sortedDraggables
-              |> Js.Array.findIndex(item => DropResult.(item.ghost));
+              |> Js.Array.findIndex(item =>
+                   DropResult.(
+                     switch (item.trait) {
+                     | Ghost => true
+                     | Item(_) => false
+                     }
+                   )
+                 );
 
             switch (sortedDraggables |. Array.get(ghostIndex - 1)) {
             | Some(draggable) => (
@@ -538,9 +558,9 @@ module Make = (Cfg: Config) => {
                        |. Array.concat([|
                             DropResult.{
                               id,
+                              trait: Ghost,
                               rect: ghost.currentRect,
                               margins: geometry.margins,
-                              ghost: true,
                             },
                           |])
                      | _ as shift =>
@@ -548,6 +568,7 @@ module Make = (Cfg: Config) => {
                        |. Array.concat([|
                             {
                               id,
+                              trait: Item(shift),
                               rect:
                                 ghost.dimensions
                                 |. Geometry.shiftExternalSibling(
@@ -555,17 +576,34 @@ module Make = (Cfg: Config) => {
                                      shift,
                                    ),
                               margins: geometry.margins,
-                              ghost: false,
                             },
                           |])
                      };
                    },
                  )
-              |. SortArray.stableSortBy((d1, d2) => d1.rect.top - d2.rect.top);
+              |. SortArray.stableSortBy((d1, d2) =>
+                   switch (d1.trait, d2.trait) {
+                   | (Ghost, Item(Some(Alpha))) => 1
+                   | (Ghost, Item(Some(Omega))) => (-1)
+                   | (Ghost, Item(None)) => 1
+                   | (Item(Some(Alpha)), Ghost) => (-1)
+                   | (Item(Some(Omega)), Ghost) => 1
+                   | (Item(None), Ghost) => (-1)
+                   | (Item(_), Item(_)) => d1.rect.top - d2.rect.top
+                   | (Ghost, Ghost) => 0 /* impossible */
+                   }
+                 );
 
             let ghostIndex =
               sortedDraggables
-              |> Js.Array.findIndex(item => DropResult.(item.ghost));
+              |> Js.Array.findIndex(item =>
+                   DropResult.(
+                     switch (item.trait) {
+                     | Ghost => true
+                     | Item(_) => false
+                     }
+                   )
+                 );
 
             switch (sortedDraggables |. Array.get(ghostIndex - 1)) {
             | Some(draggable) => (
@@ -628,12 +666,18 @@ module Make = (Cfg: Config) => {
                     delta: {
                       x: 0,
                       y:
-                        /* To top bound of droppable */
-                        droppable.rect.top
-                        /* add top border and padding of droppable */
-                        + (droppable.borders.top + droppable.paddings.top)
-                        /* add distance between pointer and ghost's top bound */
-                        + (ghost.departurePoint.y - ghost.departureRect.top)
+                        /* From bottom bound of droppable */
+                        droppable.rect.bottom
+                        /* substract bottom border and padding of droppable */
+                        - (
+                          droppable.borders.bottom + droppable.paddings.bottom
+                        )
+                        /* substract distance between ghost's bottom bound and pointer */
+                        - (
+                          ghost.departureRect.bottom - ghost.departurePoint.y
+                        )
+                        /* add ghost's height since ghost pushed bottom down */
+                        + ghost.dimensions.height
                         /* finally, substract distance from page top */
                         - ghost.departurePoint.y,
                     },
