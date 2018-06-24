@@ -351,6 +351,16 @@ module Make = (Cfg: Config) => {
       };
   };
 
+  type dragHandle = {
+    style: ReactDOMRe.Style.t,
+    onMouseDown: ReactEventRe.Mouse.t => unit,
+    onTouchStart: ReactEventRe.Touch.t => unit,
+  };
+
+  type children =
+    | Children(ReasonReact.reactElement)
+    | ChildrenWithDragHandle(dragHandle => ReasonReact.reactElement);
+
   let component = ReasonReact.reducerComponent("DndDraggable");
 
   let make =
@@ -412,6 +422,23 @@ module Make = (Cfg: Config) => {
         };
       };
 
+      let dragHandle = {
+        style:
+          ReactDOMRe.Style.make()
+          |. ReactDOMRe.Style.unsafeAddProp(
+               "WebkitTapHighlightColor",
+               "rgba(0, 0, 0, 0)",
+             ),
+        onMouseDown: Handlers.onMouseDown |. handle,
+        onTouchStart: Handlers.onTouchStart |. handle,
+      };
+
+      let children' =
+        switch (children) {
+        | Children(children) => [|children|]
+        | ChildrenWithDragHandle(children) => [|dragHandle |. children|]
+        };
+
       switch (context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
@@ -449,10 +476,8 @@ module Make = (Cfg: Config) => {
                   className
                   |. Option.map(fn => fn(~dragging=true))
                   |. Js.Nullable.fromOption,
-                "onMouseDown": Handlers.onMouseDown |. handle,
-                "onTouchStart": Handlers.onTouchStart |. handle,
               },
-              children,
+              children',
             )
           )
           <div
@@ -508,10 +533,8 @@ module Make = (Cfg: Config) => {
                   className
                   |. Option.map(fn => fn(~dragging=false))
                   |. Js.Nullable.fromOption,
-                "onMouseDown": Handlers.onMouseDown |. handle,
-                "onTouchStart": Handlers.onTouchStart |. handle,
               },
-              children,
+              children',
             )
           )
           <div
@@ -561,10 +584,8 @@ module Make = (Cfg: Config) => {
                 className
                 |. Option.map(fn => fn(~dragging=false))
                 |. Js.Nullable.fromOption,
-              "onMouseDown": Handlers.onMouseDown |. handle,
-              "onTouchStart": Handlers.onTouchStart |. handle,
             },
-            children,
+            children',
           )
 
         | Some(Omega) when ghost.targetingOriginalDroppable =>
@@ -592,10 +613,8 @@ module Make = (Cfg: Config) => {
                 className
                 |. Option.map(fn => fn(~dragging=false))
                 |. Js.Nullable.fromOption,
-              "onMouseDown": Handlers.onMouseDown |. handle,
-              "onTouchStart": Handlers.onTouchStart |. handle,
             },
-            children,
+            children',
           )
 
         | Some(Alpha) =>
@@ -616,10 +635,8 @@ module Make = (Cfg: Config) => {
                 className
                 |. Option.map(fn => fn(~dragging=false))
                 |. Js.Nullable.fromOption,
-              "onMouseDown": Handlers.onMouseDown |. handle,
-              "onTouchStart": Handlers.onTouchStart |. handle,
             },
-            children,
+            children',
           )
 
         | Some(Omega) =>
@@ -647,10 +664,8 @@ module Make = (Cfg: Config) => {
                 className
                 |. Option.map(fn => fn(~dragging=false))
                 |. Js.Nullable.fromOption,
-              "onMouseDown": Handlers.onMouseDown |. handle,
-              "onTouchStart": Handlers.onTouchStart |. handle,
             },
-            children,
+            children',
           )
 
         | None =>
@@ -671,28 +686,42 @@ module Make = (Cfg: Config) => {
                 className
                 |. Option.map(fn => fn(~dragging=false))
                 |. Js.Nullable.fromOption,
-              "onMouseDown": Handlers.onMouseDown |. handle,
-              "onTouchStart": Handlers.onTouchStart |. handle,
             },
-            children,
+            children',
           )
         }
 
       | StandBy =>
-        ReasonReact.createDomElement(
-          "div",
-          ~props={
-            "ref": setRef,
-            "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
-            "className":
-              className
-              |. Option.map(fn => fn(~dragging=false))
-              |. Js.Nullable.fromOption,
-            "onMouseDown": Handlers.onMouseDown |. handle,
-            "onTouchStart": Handlers.onTouchStart |. handle,
-          },
-          children,
-        )
+        switch (children) {
+        | Children(_) =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+              "onMouseDown": dragHandle.onMouseDown,
+              "onTouchStart": dragHandle.onTouchStart,
+            },
+            children',
+          )
+        | ChildrenWithDragHandle(_) =>
+          ReasonReact.createDomElement(
+            "div",
+            ~props={
+              "ref": setRef,
+              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
+              "className":
+                className
+                |. Option.map(fn => fn(~dragging=false))
+                |. Js.Nullable.fromOption,
+            },
+            children',
+          )
+        }
       };
     },
   };

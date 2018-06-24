@@ -11,13 +11,13 @@ module Cfg = {
 
   module Droppable = {
     type t =
-      | TodoList;
+      | TodosDroppable;
 
     let eq = (_, _) => true;
   };
 };
 
-module Todos = Dnd.Make(Cfg);
+module Screen = Dnd.Make(Cfg);
 
 module Todo = {
   type t = {
@@ -54,15 +54,14 @@ let make = (~n, _) => {
     switch (action) {
     | Reorder(result) =>
       switch (result) {
-      | SameTarget(Todo(_todoId), TodoList, todos) =>
+      | SameTarget(Todo(_id), TodosDroppable, todos) =>
         ReasonReact.Update({
           ...state,
           todosIndex:
             todos
-            |. Array.map(todo =>
-                 switch (todo) {
-                 | Todo(id) => id
-                 }
+            |. Array.map(
+                 fun
+                 | Todo(id) => id,
                ),
         })
 
@@ -71,11 +70,11 @@ let make = (~n, _) => {
       }
     },
   render: ({state, send}) =>
-    <Todos.Context onDrop=(result => Reorder(result) |> send)>
+    <Screen.Context onDrop=(result => Reorder(result) |> send)>
       ...(
            dnd =>
-             <Todos.Droppable
-               id=TodoList
+             <Screen.Droppable
+               id=TodosDroppable
                context=dnd.context
                className=(
                  (~draggingOver) =>
@@ -86,10 +85,10 @@ let make = (~n, _) => {
                  |. Array.mapU((. id) => {
                       let todo = state.todosMap |. Map.Int.getExn(id);
 
-                      <Todos.Draggable
+                      <Screen.Draggable
                         id=(Todo(todo.id))
                         key=(todo.id |. string_of_int)
-                        droppableId=TodoList
+                        droppableId=TodosDroppable
                         context=dnd.context
                         className=(
                           (~dragging) =>
@@ -98,12 +97,12 @@ let make = (~n, _) => {
                               "dragging" |> Cn.ifTrue(dragging),
                             ])
                         )>
-                        (todo.todo |> ReasonReact.string)
-                      </Todos.Draggable>;
+                        ...(Children(todo.todo |> ReasonReact.string))
+                      </Screen.Draggable>;
                     })
                  |. ReasonReact.array
                )
-             </Todos.Droppable>
+             </Screen.Droppable>
          )
-    </Todos.Context>,
+    </Screen.Context>,
 };

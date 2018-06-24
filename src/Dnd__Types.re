@@ -94,10 +94,11 @@ module DraggableBag = {
 };
 
 module DroppableBag = {
-  type t('droppableId) = {
+  type t('draggableId, 'droppableId) = {
     id: 'droppableId,
     element: Dom.htmlElement,
     geometry: option(Geometry.t),
+    accept: option('draggableId => bool),
   };
 
   type className = (~draggingOver: bool) => string;
@@ -142,7 +143,8 @@ module Context = {
     target: option('droppableId),
     registerDraggable:
       (('draggableId, 'droppableId, Dom.htmlElement)) => unit,
-    registerDroppable: (('droppableId, Dom.htmlElement)) => unit,
+    registerDroppable:
+      (('droppableId, option('draggableId => bool), Dom.htmlElement)) => unit,
     disposeDraggable: 'draggableId => unit,
     disposeDroppable: 'droppableId => unit,
     getDraggableShift: 'draggableId => option(Direction.t),

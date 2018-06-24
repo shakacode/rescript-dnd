@@ -31,6 +31,7 @@
     flex-flow: row nowrap;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 30px;
     width: 90%;
   }
 
@@ -46,22 +47,81 @@
   }
 }
 
+.todo-lists {
+  display: flex;
+  position: relative;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.todo-list {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 20px 20px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .todo-list {
+    width: 95%;
+  }
+
+  .todo-list.dragging {
+    transition: box-shadow 200ms ease-in-out;
+    box-shadow: 0 0 7px rgba(0, 0, 0, .1);
+  }
+}
+
 .todos {
   display: flex;
   position: relative;
   flex-flow: column nowrap;
   transition: background-color 200ms ease-in-out;
-  margin: 20px;
-  padding: 30px;
+  padding: 24px 30px 30px;
   width: 100%;
   border: 1px dashed #ccc;
   border-radius: 6px;
+  background-color: var(--background-color);
 }
 
 @media (max-width: 1024px) {
+  .todo-list .todos {
+    width: 100%;
+  }
+
   .todos {
     width: 95%;
   }
+}
+
+.todos-header {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+.todos-header .drag-handle {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  margin-right: 10px;
+  cursor: grab;
+
+  /* FIXME: Part of keyboard interactions feature */
+  outline: none;
+}
+
+.todos-header .drag-handle .drag-handle-icon {
+  width: 16px;
+  height: 16px;
+  fill: #aaa;
 }
 
 .todos.active {
