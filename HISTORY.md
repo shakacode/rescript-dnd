@@ -3,6 +3,7 @@
 ## 0.3.1
 **Fixes**
 * Fix sorting for case when draggable that being dragged is way bigger or smaller than siblings.
+* Fix determination of a landing point when dropping on empty droppable with header.
 
 ## 0.3.0
 **Features**

@@ -666,12 +666,18 @@ module Make = (Cfg: Config) => {
                     delta: {
                       x: 0,
                       y:
-                        /* To top bound of droppable */
-                        droppable.rect.top
-                        /* add top border and padding of droppable */
-                        + (droppable.borders.top + droppable.paddings.top)
-                        /* add distance between pointer and ghost's top bound */
-                        + (ghost.departurePoint.y - ghost.departureRect.top)
+                        /* From bottom bound of droppable */
+                        droppable.rect.bottom
+                        /* substract bottom border and padding of droppable */
+                        - (
+                          droppable.borders.bottom + droppable.paddings.bottom
+                        )
+                        /* substract distance between ghost's bottom bound and pointer */
+                        - (
+                          ghost.departureRect.bottom - ghost.departurePoint.y
+                        )
+                        /* add ghost's height since ghost pushed bottom down */
+                        + ghost.dimensions.height
                         /* finally, substract distance from page top */
                         - ghost.departurePoint.y,
                     },
