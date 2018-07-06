@@ -6,8 +6,11 @@
 
 Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-react/).
 
-` 🚧 === The library is in active development === 🚧 `  
-` 🚧 === Breaking changes are highly expected === 🚧 `
+<pre align="center">
+🚧 === The library is in active development and not production ready yet === 🚧
+🚧 ===               Breaking changes are highly expected                === 🚧
+</pre>
+
 
 ## Features
 * Vertical lists
@@ -15,13 +18,14 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 * Mouse & Touch interactions
 * Conditional drag & drop
 * Custom drag handles
+* Auto-scroll when dragging at window's edge
 
 ### TODO
+- [ ] Perf optimizations
+- [ ] Scrollable containers
 - [ ] Horizontal lists
-- [ ] Auto-scroll container when dragging at container's edge
 - [ ] Keyboard interactions
 - [ ] Ignore form elements (opt-out)
-- [ ] Scrollable containers
 - [ ] Drop-zones
 - [ ] Multi-select
 
@@ -129,6 +133,9 @@ let make = _ => {
     </Screen.Context>,
 };
 ```
+
+## Thanks
+* To [`react-beautiful-dnd`](https://github.com/atlassian/react-beautiful-dnd) for inspiration
 
 ## License
 

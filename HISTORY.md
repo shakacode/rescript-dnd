@@ -1,5 +1,9 @@
 # History
 
+## 0.4.0
+**Features**
+* Auto-scroll at the vertical edges of the window.
+
 ## 0.3.1
 **Fixes**
 * Fix sorting for case when draggable that being dragged is way bigger or smaller than siblings.

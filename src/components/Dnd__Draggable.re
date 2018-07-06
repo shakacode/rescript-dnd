@@ -15,6 +15,9 @@ module Make = (Cfg: Config) => {
     element: ref(option(Dom.htmlElement)),
   };
 
+  type action =
+    | RegisterDraggable;
+
   module Handlers = {
     let rec onMouseDown = (event, {ReasonReact.state, handle}) =>
       switch (state.context.status, state.element^) {
@@ -37,23 +40,39 @@ module Make = (Cfg: Config) => {
         let selectionOnStart: ref(option(bool)) = ref(None);
 
         let start =
-          Point.{
-            x: event |. ReactEventRe.Mouse.pageX,
-            y: event |. ReactEventRe.Mouse.pageY,
+          RelativityBag.{
+            page:
+              Point.{
+                x: event |. ReactEventRe.Mouse.pageX,
+                y: event |. ReactEventRe.Mouse.pageY,
+              },
+            viewport:
+              Point.{
+                x: event |. ReactEventRe.Mouse.clientX,
+                y: event |. ReactEventRe.Mouse.clientY,
+              },
           };
 
         let rec onInitialMouseMove = event => {
           open Webapi.Dom;
 
           let current =
-            Point.{
-              x: event |. MouseEvent.pageX,
-              y: event |. MouseEvent.pageY,
+            RelativityBag.{
+              page:
+                Point.{
+                  x: event |. MouseEvent.pageX,
+                  y: event |. MouseEvent.pageY,
+                },
+              viewport:
+                Point.{
+                  x: event |. MouseEvent.clientX,
+                  y: event |. MouseEvent.clientY,
+                },
             };
 
           let moved =
-            Js.Math.abs_int(start.x - current.x) > moveThreshold
-            || Js.Math.abs_int(start.y - current.y) > moveThreshold;
+            Js.Math.abs_int(start.page.x - current.page.x) > moveThreshold
+            || Js.Math.abs_int(start.page.y - current.page.y) > moveThreshold;
 
           selectionOnStart :=
             selectionOnStart^
@@ -99,7 +118,7 @@ module Make = (Cfg: Config) => {
                 },
               };
 
-            state.context.startDragging(
+            state.context.initDrag(
               ~draggableId=state.draggableId,
               ~droppableId=state.droppableId,
               ~start,
@@ -127,26 +146,32 @@ module Make = (Cfg: Config) => {
       | (Dropping(_), _) => ()
       }
     and onMouseMove = (event, {ReasonReact.state}) =>
-      switch (state.context.status, state.element^) {
-      | (Dragging(ghost, subscriptions), Some(element))
+      switch (state.context.status) {
+      | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         open Webapi.Dom;
 
         event |. MouseEvent.preventDefault;
 
         let point =
-          Point.{x: event |. MouseEvent.pageX, y: event |. MouseEvent.pageY};
+          RelativityBag.{
+            page:
+              Point.{
+                x: event |. MouseEvent.pageX,
+                y: event |. MouseEvent.pageY,
+              },
+            viewport:
+              Point.{
+                x: event |. MouseEvent.clientX,
+                y: event |. MouseEvent.clientY,
+              },
+          };
 
-        state.context.updateGhostPosition(
-          ~ghost,
-          ~point,
-          ~element,
-          ~subscriptions,
-        );
+        state.context.updateGhostPosition(point);
 
-      | (Dragging(_, _), _)
-      | (Dropping(_), _)
-      | (StandBy, _) => ()
+      | Dragging(_, _)
+      | Dropping(_)
+      | StandBy => ()
       }
     and onMouseUp = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
@@ -154,7 +179,7 @@ module Make = (Cfg: Config) => {
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         Html.clearSelection();
         subscriptions.drop();
-        state.context.startDropping(ghost);
+        state.context.drop();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -162,10 +187,9 @@ module Make = (Cfg: Config) => {
       }
     and onKeyDown = (event, {ReasonReact.state}) =>
       switch (state.context.status) {
-      | Dragging(ghost, subscriptions)
-          when event |> Events.Keyboard.isDomEscKey =>
+      | Dragging(_, subscriptions) when event |> Events.Keyboard.isDomEscKey =>
         subscriptions.drop();
-        state.context.cancelDropping(ghost);
+        state.context.cancelDrag();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -173,9 +197,9 @@ module Make = (Cfg: Config) => {
       }
     and onResize = (_event, {ReasonReact.state}) =>
       switch (state.context.status) {
-      | Dragging(ghost, subscriptions) =>
+      | Dragging(_, subscriptions) =>
         subscriptions.drop();
-        state.context.cancelDropping(ghost);
+        state.context.cancelDrag();
 
       | Dropping(_)
       | StandBy => ()
@@ -185,7 +209,7 @@ module Make = (Cfg: Config) => {
       | Dragging(ghost, subscriptions)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
-        state.context.cancelDropping(ghost);
+        state.context.cancelDrag();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -203,7 +227,11 @@ module Make = (Cfg: Config) => {
       | (StandBy, Some(element), Some(touch)) =>
         let delay = 200;
 
-        let start = Point.{x: touch##pageX, y: touch##pageY};
+        let start =
+          RelativityBag.{
+            page: Point.{x: touch##pageX, y: touch##pageY},
+            viewport: Point.{x: touch##clientX, y: touch##clientY},
+          };
 
         let timeoutId: ref(option(Js.Global.timeoutId)) = ref(None);
 
@@ -241,7 +269,7 @@ module Make = (Cfg: Config) => {
                   },
                 };
 
-              state.context.startDragging(
+              state.context.initDrag(
                 ~draggableId=state.draggableId,
                 ~droppableId=state.droppableId,
                 ~start,
@@ -288,18 +316,17 @@ module Make = (Cfg: Config) => {
         |. Array.get(0);
 
       switch (state.context.status, state.element^, touch) {
-      | (Dragging(ghost, subscriptions), Some(element), Some(touch))
+      | (Dragging(ghost, _), Some(_), Some(touch))
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         event |. TouchEvent.preventDefault;
 
-        let point = Point.{x: touch##pageX, y: touch##pageY};
+        let point =
+          RelativityBag.{
+            page: Point.{x: touch##pageX, y: touch##pageY},
+            viewport: Point.{x: touch##clientX, y: touch##clientY},
+          };
 
-        state.context.updateGhostPosition(
-          ~ghost,
-          ~point,
-          ~element,
-          ~subscriptions,
-        );
+        state.context.updateGhostPosition(point);
 
       | (Dragging(_, _), _, _)
       | (Dropping(_), _, _)
@@ -312,7 +339,7 @@ module Make = (Cfg: Config) => {
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         event |> Webapi.Dom.Event.preventDefault;
         subscriptions.drop();
-        state.context.startDropping(ghost);
+        state.context.drop();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -332,7 +359,7 @@ module Make = (Cfg: Config) => {
       | Dragging(ghost, subscriptions)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
-        state.context.cancelDropping(ghost);
+        state.context.cancelDrag();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -343,7 +370,7 @@ module Make = (Cfg: Config) => {
       | Dragging(ghost, subscriptions)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         subscriptions.drop();
-        state.context.cancelDropping(ghost);
+        state.context.cancelDrag();
 
       | Dragging(_, _)
       | Dropping(_)
@@ -367,8 +394,8 @@ module Make = (Cfg: Config) => {
       (
         ~id as draggableId: Cfg.Draggable.t,
         ~droppableId: Cfg.Droppable.t,
-        ~context,
-        ~className: option(DraggableBag.className)=?,
+        ~context: Context.t(Cfg.Draggable.t, Cfg.Droppable.t),
+        ~className: option((~dragging: bool) => string)=?,
         children,
       ) => {
     ...component,
@@ -378,7 +405,9 @@ module Make = (Cfg: Config) => {
       context,
       element: ref(None),
     },
-    didMount: ({handle, onUnmount}) => {
+    didMount: ({send, handle, onUnmount}) => {
+      RegisterDraggable |> send;
+
       /* HACK: We have to add persistent event listener due to webkit bug:
        *       https://bugs.webkit.org/show_bug.cgi?id=184250
        */
@@ -404,23 +433,35 @@ module Make = (Cfg: Config) => {
       droppableId,
       context,
     },
+    didUpdate: ({oldSelf, newSelf}) =>
+      switch (oldSelf.state.context.status, newSelf.state.context.status) {
+      | (Dropping(_), StandBy) => RegisterDraggable |> newSelf.send
+      | _ => ()
+      },
     willUnmount: _ => context.disposeDraggable(draggableId),
-    reducer: ((), _) => ReasonReact.NoUpdate,
+    reducer: (action, _) =>
+      switch (action) {
+      | RegisterDraggable =>
+        ReasonReact.SideEffects(
+          (
+            ({state}) =>
+              context.registerDraggable({
+                id: draggableId,
+                droppableId,
+                getGeometry: () =>
+                  state.element^
+                  |> Option.getExn
+                  |> Geometry.getElementGeometry,
+              })
+          ),
+        )
+      },
     render: ({state, handle}) => {
-      let setRef = element => {
-        let element =
+      let setElementRef = element =>
+        state.element :=
           element
           |. Js.Nullable.toOption
           |. Option.map(Webapi.Dom.Element.unsafeAsHtmlElement);
-
-        state.element := element;
-
-        switch (element) {
-        | Some(element) =>
-          context.registerDraggable((draggableId, droppableId, element))
-        | None => ()
-        };
-      };
 
       let dragHandle = {
         style:
@@ -447,7 +488,7 @@ module Make = (Cfg: Config) => {
             ReasonReact.createDomElement(
               "div",
               ~props={
-                "ref": setRef,
+                "ref": setElementRef,
                 "style":
                   ReactDOMRe.Style.make(
                     ~position="fixed",
@@ -457,14 +498,26 @@ module Make = (Cfg: Config) => {
                     ~overflow="visible",
                     ~pointerEvents="none",
                     ~userSelect="none",
-                    ~top=Style.(ghost.departureRect.top |. px),
-                    ~left=Style.(ghost.departureRect.left |. px),
+                    ~top=Style.(ghost.departureRect.page.top |. px),
+                    ~left=Style.(ghost.departureRect.page.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
                     ~height=Style.(ghost.dimensions.height |. px),
                     ~transform=
                       Style.translate(
-                        ghost.delta.x - Webapi.Dom.(window |> Window.scrollX),
-                        ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
+                        ghost.delta.x
+                        - (
+                          switch (context.scroll) {
+                          | Some(scroll) => scroll.current.x
+                          | None => Webapi.Dom.(window |> Window.pageXOffset)
+                          }
+                        ),
+                        ghost.delta.y
+                        - (
+                          switch (context.scroll) {
+                          | Some(scroll) => scroll.current.y
+                          | None => Webapi.Dom.(window |> Window.pageYOffset)
+                          }
+                        ),
                       ),
                     (),
                   )
@@ -503,7 +556,7 @@ module Make = (Cfg: Config) => {
             ReasonReact.createDomElement(
               "div",
               ~props={
-                "ref": setRef,
+                "ref": setElementRef,
                 "style":
                   ReactDOMRe.Style.make(
                     ~position="fixed",
@@ -513,15 +566,27 @@ module Make = (Cfg: Config) => {
                     ~overflow="visible",
                     ~pointerEvents="none",
                     ~userSelect="none",
-                    ~top=Style.(ghost.departureRect.top |. px),
-                    ~left=Style.(ghost.departureRect.left |. px),
+                    ~top=Style.(ghost.departureRect.page.top |. px),
+                    ~left=Style.(ghost.departureRect.page.left |. px),
                     ~width=Style.(ghost.dimensions.width |. px),
                     ~height=Style.(ghost.dimensions.height |. px),
                     ~transition=Style.transition("transform"),
                     ~transform=
                       Style.translate(
-                        ghost.delta.x - Webapi.Dom.(window |> Window.scrollX),
-                        ghost.delta.y - Webapi.Dom.(window |> Window.scrollY),
+                        ghost.delta.x
+                        - (
+                          switch (context.scroll) {
+                          | Some(scroll) => scroll.current.x
+                          | None => Webapi.Dom.(window |> Window.pageXOffset)
+                          }
+                        ),
+                        ghost.delta.y
+                        - (
+                          switch (context.scroll) {
+                          | Some(scroll) => scroll.current.y
+                          | None => Webapi.Dom.(window |> Window.pageYOffset)
+                          }
+                        ),
                       ),
                     (),
                   )
@@ -561,7 +626,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
@@ -592,7 +657,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
@@ -621,7 +686,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
@@ -643,7 +708,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
@@ -672,7 +737,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style":
                 ReactDOMRe.Style.make(
                   ~boxSizing="border-box",
@@ -697,7 +762,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
               "className":
                 className
@@ -712,7 +777,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.createDomElement(
             "div",
             ~props={
-              "ref": setRef,
+              "ref": setElementRef,
               "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
               "className":
                 className

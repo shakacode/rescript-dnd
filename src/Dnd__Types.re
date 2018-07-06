@@ -64,15 +64,31 @@ module Offset = {
   };
 };
 
+module Scroll = {
+  type t = {
+    initial: Point.t,
+    current: Point.t,
+    delta: Delta.t,
+    max: Dimensions.t,
+  };
+};
+
 module Direction = {
   type t =
     | Alpha
     | Omega;
 };
 
+module RelativityBag = {
+  type t('a) = {
+    page: 'a,
+    viewport: 'a,
+  };
+};
+
 module Geometry = {
   type t = {
-    rect: Rect.t,
+    rect: RelativityBag.t(Rect.t),
     dimensions: Dimensions.t,
     margins: Margins.t,
     borders: Borders.t,
@@ -84,46 +100,62 @@ module Shift = {
   type t = option(Direction.t);
 };
 
+module Scrollable = {
+  type t = {
+    element: Dom.htmlElement,
+    geometry: Geometry.t,
+  };
+};
+
 module DraggableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'draggableId,
     droppableId: 'droppableId,
-    element: Dom.htmlElement,
     geometry: option(Geometry.t),
     shift: Shift.t,
     animating: bool,
+    getGeometry: unit => Geometry.t,
   };
 
-  type className = (~dragging: bool) => string;
+  type registrationPayload('draggableId, 'droppableId) = {
+    id: 'draggableId,
+    droppableId: 'droppableId,
+    getGeometry: unit => Geometry.t,
+  };
 };
 
 module DroppableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'droppableId,
-    element: Dom.htmlElement,
     geometry: option(Geometry.t),
+    scrollable: option(Scrollable.t),
     accept: option('draggableId => bool),
+    getGeometryAndScrollable: unit => (Geometry.t, option(Scrollable.t)),
   };
 
-  type className = (~draggingOver: bool) => string;
+  type registrationPayload('draggableId, 'droppableId) = {
+    id: 'droppableId,
+    accept: option('draggableId => bool),
+    getGeometryAndScrollable: unit => (Geometry.t, option(Scrollable.t)),
+  };
 };
 
 module Ghost = {
   type t('draggableId, 'droppableId) = {
+    element: Dom.htmlElement,
     draggableId: 'draggableId,
     originalDroppable: 'droppableId,
     targetDroppable: option('droppableId),
     targetingOriginalDroppable: bool,
-    direction: Direction.t,
+    direction: option(Direction.t),
     dimensions: Dimensions.t,
     margins: Margins.t,
     borders: Borders.t,
     delta: Delta.t,
-    center: Point.t,
-    departurePoint: Point.t,
-    currentPoint: Point.t,
-    departureRect: Rect.t,
-    currentRect: Rect.t,
+    departurePoint: RelativityBag.t(Point.t),
+    currentPoint: RelativityBag.t(Point.t),
+    departureRect: RelativityBag.t(Rect.t),
+    currentRect: RelativityBag.t(Rect.t),
   };
 };
 
@@ -145,33 +177,27 @@ module Context = {
   type t('draggableId, 'droppableId) = {
     status: Status.t('draggableId, 'droppableId),
     target: option('droppableId),
+    scroll: option(Scroll.t),
     registerDraggable:
-      (('draggableId, 'droppableId, Dom.htmlElement)) => unit,
+      DraggableBag.registrationPayload('draggableId, 'droppableId) => unit,
     registerDroppable:
-      (('droppableId, option('draggableId => bool), Dom.htmlElement)) => unit,
+      DroppableBag.registrationPayload('draggableId, 'droppableId) => unit,
     disposeDraggable: 'draggableId => unit,
     disposeDroppable: 'droppableId => unit,
-    getDraggableShift: 'draggableId => option(Direction.t),
-    startDragging:
+    getDraggableShift: 'draggableId => Shift.t,
+    initDrag:
       (
         ~draggableId: 'draggableId,
         ~droppableId: 'droppableId,
-        ~start: Point.t,
-        ~current: Point.t,
+        ~start: RelativityBag.t(Point.t),
+        ~current: RelativityBag.t(Point.t),
         ~element: Dom.htmlElement,
         ~subscriptions: Subscriptions.t
       ) =>
       unit,
-    updateGhostPosition:
-      (
-        ~ghost: Ghost.t('draggableId, 'droppableId),
-        ~point: Point.t,
-        ~element: Dom.htmlElement,
-        ~subscriptions: Subscriptions.t
-      ) =>
-      unit,
-    startDropping: Ghost.t('draggableId, 'droppableId) => unit,
-    cancelDropping: Ghost.t('draggableId, 'droppableId) => unit,
+    updateGhostPosition: RelativityBag.t(Point.t) => unit,
+    drop: unit => unit,
+    cancelDrag: unit => unit,
   };
 };
 
@@ -199,7 +225,7 @@ module DropResult = {
   type draggableIntermediateResult('draggableId) = {
     id: 'draggableId,
     trait,
-    rect: Rect.t,
+    rect: RelativityBag.t(Rect.t),
     margins: Margins.t,
   };
 };

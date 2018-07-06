@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
+    "prestart": "yarn run clean:bs && yarn run build:bs",
     "build": "parcel build examples/index.html",
     "prebuild": "yarn run clean && yarn run build:bs",
     "build:bs": "bsb -make-world",
