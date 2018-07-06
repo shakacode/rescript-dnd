@@ -40,16 +40,13 @@ let getBorders = (style: Dom.cssStyleDeclaration) =>
     right: style |> CssStyleDeclaration.borderRightWidth |> Style.stripPx,
   };
 
-let getPageRect = (rect: DomRect.t) => {
-  let scroll = Html.getScroll();
-
+let getPageRect = (rect: DomRect.t, scroll: Point.t) =>
   Rect.{
     top: (rect |. DomRect.top) + scroll.y,
     bottom: (rect |. DomRect.bottom) + scroll.y,
     left: (rect |. DomRect.left) + scroll.x,
     right: (rect |. DomRect.right) + scroll.x,
   };
-};
 
 let getViewportRect = (rect: DomRect.t) =>
   Rect.{
@@ -67,11 +64,11 @@ let getPageRectFromViewportRect = (viewport: Rect.t, scroll: Point.t) =>
     right: viewport.right + scroll.x,
   };
 
-let getGeometry = (rect, style) =>
+let getGeometry = (rect, style, scroll) =>
   Geometry.{
     rect:
       RelativityBag.{
-        page: rect |> getPageRect,
+        page: rect |. getPageRect(scroll),
         viewport: rect |> getViewportRect,
       },
     dimensions: rect |> getDimensions,
@@ -87,141 +84,93 @@ let getElementGeometry = (element: Dom.htmlElement) =>
     |> Window.getComputedStyle(element |> Html.castHtmlElementToElement),
   );
 
-let rec getClosestScrollable = (element: Dom.htmlElement) =>
-  element
-  |. HtmlElement.parentElement
-  |. Option.flatMap(element => {
-       let style = window |> Window.getComputedStyle(element);
-       style |> Html.isScrollable ?
-         {
-           let element = element |> HtmlElement.ofElement |> Option.getExn;
-           let rect = element |. HtmlElement.getBoundingClientRect;
-           Some(Scrollable.{element, geometry: getGeometry(rect, style)});
-         } :
-         element
-         |> HtmlElement.ofElement
-         |> Option.getExn
-         |> getClosestScrollable;
-     });
+let getViewport = () => {
+  let element =
+    document
+    |> Document.asHtmlDocument
+    |> Option.getExn
+    |> HtmlDocument.documentElement
+    |> Element.asHtmlElement
+    |> Option.getExn;
 
-let getElementGeometryAndScrollable = (element: Dom.htmlElement) => {
-  let rect = element |. HtmlElement.getBoundingClientRect;
-  let style =
-    window
-    |> Window.getComputedStyle(element |> Html.castHtmlElementToElement);
-
-  let geometry = getGeometry(rect, style);
-
-  let scrollable =
-    if (style |> Html.isScrollable) {
-      Some(Scrollable.{element, geometry});
-    } else {
-      element |> getClosestScrollable;
-    };
-
-  (geometry, scrollable);
+  Dimensions.{
+    width: element |> HtmlElement.clientWidth,
+    height: element |> HtmlElement.clientHeight,
+  };
 };
 
 let shiftInternalSibling =
     (
       ghost: Dimensions.t,
-      scroll: Scroll.t,
       item: Geometry.t,
+      scroll: Scroll.t,
+      scrollable: option(ScrollableElement.t),
       shift: option(Direction.t),
-    ) =>
-  switch (shift) {
-  | None =>
-    let viewport =
-      Rect.{
-        ...item.rect.viewport,
-        top: item.rect.viewport.top - scroll.delta.y,
-        bottom: item.rect.viewport.bottom - scroll.delta.y,
-      };
-    let page = scroll.current |> getPageRectFromViewportRect(viewport);
-
-    RelativityBag.{page, viewport};
-
-  | Some(Alpha) =>
-    let viewport = {
-      ...item.rect.viewport,
-      top:
-        item.rect.viewport.top
-        - scroll.delta.y
-        - ghost.height
-        - item.margins.top
-        - item.margins.bottom,
-      bottom:
-        item.rect.viewport.bottom
-        - scroll.delta.y
-        - ghost.height
-        - item.margins.top
-        - item.margins.bottom,
+    ) => {
+  let scrollableDeltaY =
+    scrollable
+    |. Option.map(scrollable => scrollable.scroll.delta.y)
+    |. Option.getWithDefault(0);
+  let deltaY =
+    switch (shift) {
+    | None => scroll.delta.y + scrollableDeltaY
+    | Some(Alpha) =>
+      scroll.delta.y
+      + scrollableDeltaY
+      + ghost.height
+      + item.margins.top
+      + item.margins.bottom
+    | Some(Omega) =>
+      scroll.delta.y
+      + scrollableDeltaY
+      - ghost.height
+      - item.margins.top
+      - item.margins.bottom
     };
-    let page = scroll.current |> getPageRectFromViewportRect(viewport);
-
-    {page, viewport};
-
-  | Some(Omega) =>
-    let viewport = {
+  let viewport =
+    Rect.{
       ...item.rect.viewport,
-      top:
-        item.rect.viewport.top
-        - scroll.delta.y
-        + ghost.height
-        + item.margins.top
-        + item.margins.bottom,
-      bottom:
-        item.rect.viewport.bottom
-        - scroll.delta.y
-        + ghost.height
-        + item.margins.top
-        + item.margins.bottom,
+      top: item.rect.viewport.top - deltaY,
+      bottom: item.rect.viewport.bottom - deltaY,
     };
-    let page = scroll.current |> getPageRectFromViewportRect(viewport);
+  let page = scroll.current |> getPageRectFromViewportRect(viewport);
 
-    {page, viewport};
-  };
+  RelativityBag.{page, viewport};
+};
 
 let shiftExternalSibling =
     (
       ghost: Dimensions.t,
-      scroll: Scroll.t,
       item: Geometry.t,
+      scroll: Scroll.t,
+      scrollable: option(ScrollableElement.t),
       shift: option(Direction.t),
-    ) =>
-  switch (shift) {
-  | None
-  | Some(Alpha) =>
-    let viewport =
-      Rect.{
-        ...item.rect.viewport,
-        top: item.rect.viewport.top - scroll.delta.y,
-        bottom: item.rect.viewport.bottom - scroll.delta.y,
-      };
-    let page = scroll.current |> getPageRectFromViewportRect(viewport);
-
-    RelativityBag.{page, viewport};
-
-  | Some(Omega) =>
-    let viewport = {
-      ...item.rect.viewport,
-      top:
-        item.rect.viewport.top
-        - scroll.delta.y
-        + ghost.height
-        + item.margins.top
-        + item.margins.bottom,
-      bottom:
-        item.rect.viewport.bottom
-        - scroll.delta.y
-        + ghost.height
-        + item.margins.top
-        + item.margins.bottom,
+    ) => {
+  let scrollableDeltaY =
+    scrollable
+    |. Option.map(scrollable => scrollable.scroll.delta.y)
+    |. Option.getWithDefault(0);
+  let deltaY =
+    switch (shift) {
+    | None
+    | Some(Alpha) => scroll.delta.y + scrollableDeltaY
+    | Some(Omega) =>
+      scroll.delta.y
+      + scrollableDeltaY
+      - ghost.height
+      - item.margins.top
+      - item.margins.bottom
     };
-    let page = scroll.current |> getPageRectFromViewportRect(viewport);
+  let viewport =
+    Rect.{
+      ...item.rect.viewport,
+      top: item.rect.viewport.top - deltaY,
+      bottom: item.rect.viewport.bottom - deltaY,
+    };
+  let page = scroll.current |> getPageRectFromViewportRect(viewport);
 
-    {page, viewport};
-  };
+  RelativityBag.{page, viewport};
+};
 
 let isWithin = (point: Point.t, rect: Rect.t) =>
   point.x >= rect.left
@@ -265,39 +214,4 @@ let isAboveAdjusted =
   | Some(Omega) => ghostCenter + directionFactor < itemCenter
   | None => ghostCenter < itemCenter
   };
-};
-
-/* TODO: Remove after webapi bump */
-external castNodeToNullableNode : Dom.node => Js.nullable(Dom.node) =
-  "%identity";
-
-let pointWithinSelection = (point: RelativityBag.t(Point.t)) => {
-  open! Webapi.Dom;
-
-  window
-  |. Window.getSelection
-  |. Selection.anchorNode
-  |. castNodeToNullableNode
-  |. Js.Nullable.toOption
-  |. Option.map(text => {
-       let range = Range.make();
-       range |> Range.selectNode(text);
-       let rect = range |. Range.getBoundingClientRect |. getPageRect;
-       range |> Range.detach;
-
-       let vOffset = 10;
-       let hOffset = 40;
-
-       point.page
-       |. isWithinWithOffset(
-            rect,
-            Offset.{
-              top: vOffset,
-              bottom: vOffset,
-              left: hOffset,
-              right: hOffset,
-            },
-          );
-     })
-  |. Option.getWithDefault(false);
 };

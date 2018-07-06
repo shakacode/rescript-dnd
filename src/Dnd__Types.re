@@ -100,10 +100,11 @@ module Shift = {
   type t = option(Direction.t);
 };
 
-module Scrollable = {
+module ScrollableElement = {
   type t = {
     element: Dom.htmlElement,
     geometry: Geometry.t,
+    scroll: Scroll.t,
   };
 };
 
@@ -128,15 +129,17 @@ module DroppableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'droppableId,
     geometry: option(Geometry.t),
-    scrollable: option(Scrollable.t),
+    scrollable: option(ScrollableElement.t),
     accept: option('draggableId => bool),
-    getGeometryAndScrollable: unit => (Geometry.t, option(Scrollable.t)),
+    getGeometryAndScrollable:
+      unit => (Geometry.t, option(ScrollableElement.t)),
   };
 
   type registrationPayload('draggableId, 'droppableId) = {
     id: 'droppableId,
     accept: option('draggableId => bool),
-    getGeometryAndScrollable: unit => (Geometry.t, option(Scrollable.t)),
+    getGeometryAndScrollable:
+      unit => (Geometry.t, option(ScrollableElement.t)),
   };
 };
 

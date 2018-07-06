@@ -30,5 +30,10 @@ let make = (~route, ~mobileNavShown, ~hideMobileNav, _) => {
         active=(route === Routes.NestedVerticalLists)>
         ("Nested vertical list" |> ReasonReact.string)
       </Link>
+      <Link
+        path="scrollable-container"
+        active=(route === Routes.ScrollableContainer)>
+        ("Scrollable container" |> ReasonReact.string)
+      </Link>
     </nav>,
 };

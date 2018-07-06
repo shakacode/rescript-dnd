@@ -63,6 +63,10 @@ let make = _ => {
             <Example layout=Vertical showMobileNav>
               <NestedVerticalListsExample />
             </Example>
+          | ScrollableContainer =>
+            <Example layout=Vertical showMobileNav>
+              <ScrollableContainerExample />
+            </Example>
           }
         )
       </Main>

@@ -5,6 +5,7 @@ module Html = Dnd__Html;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
 module Scroller = Dnd__Scroller;
+module Scrollable = Dnd__Scrollable;
 
 module Make = (Cfg: Config) => {
   module DraggableComparator =
@@ -40,6 +41,7 @@ module Make = (Cfg: Config) => {
     scroll: ref(option(Scroll.t)),
     viewport: ref(option(Dimensions.t)),
     scheduledWindowScrollFrameId: ref(option(Webapi.rafId)),
+    scheduledScrollableElementScrollFrameId: ref(option(Webapi.rafId)),
     scheduledLayoutRecalculationFrameId: ref(option(Webapi.rafId)),
   };
 
@@ -58,8 +60,6 @@ module Make = (Cfg: Config) => {
       )
     | UpdateGhostPosition(RelativityBag.t(Point.t))
     | UpdateScroll
-    | UpdateWindowScroll
-    | UpdateScrollableScroll(Scrollable.t)
     | RecalculateLayout(Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t))
     | ResetAnimations(list(Cfg.Draggable.t))
     | PrepareDrop
@@ -142,6 +142,7 @@ module Make = (Cfg: Config) => {
       scroll: ref(None),
       viewport: ref(None),
       scheduledWindowScrollFrameId: ref(None),
+      scheduledScrollableElementScrollFrameId: ref(None),
       scheduledLayoutRecalculationFrameId: ref(None),
     },
     reducer: (action, state) =>
@@ -159,8 +160,8 @@ module Make = (Cfg: Config) => {
             ({state, send}) => {
               open Webapi.Dom;
 
-              let scroll = Html.getScroll();
-              let viewport = Html.getViewport();
+              let maxScroll = Scrollable.Window.getMaxScroll();
+              let scrollPosition = Scrollable.Window.getScrollPosition();
 
               let rect = element |. HtmlElement.getBoundingClientRect;
               let style =
@@ -170,7 +171,8 @@ module Make = (Cfg: Config) => {
 
               let viewportRect = rect |> Geometry.getViewportRect;
               let pageRect =
-                scroll |> Geometry.getPageRectFromViewportRect(viewportRect);
+                scrollPosition
+                |> Geometry.getPageRectFromViewportRect(viewportRect);
               let currentRect =
                 RelativityBag.{page: pageRect, viewport: viewportRect};
 
@@ -213,18 +215,18 @@ module Make = (Cfg: Config) => {
                      {...droppable, geometry: Some(geometry), scrollable};
                    });
 
-              state.viewport := Some(viewport);
+              state.viewport := Some(Geometry.getViewport());
 
               state.scroll :=
                 Some(
                   Scroll.{
-                    initial: scroll,
-                    current: scroll,
+                    max: maxScroll,
+                    initial: scrollPosition,
+                    current: scrollPosition,
                     delta: {
                       x: 0,
                       y: 0,
                     },
-                    max: Html.getMaxScroll(),
                   },
                 );
 
@@ -268,6 +270,16 @@ module Make = (Cfg: Config) => {
                              ) => {
                              let geometry =
                                droppable.geometry |. Option.getExn;
+                             let rect =
+                               switch (droppable.scrollable) {
+                               | Some(scrollable)
+                                   when
+                                     scrollable.geometry.dimensions.height
+                                     < geometry.dimensions.height =>
+                                 scrollable.geometry.rect
+                               | Some(_)
+                               | None => geometry.rect
+                               };
 
                              DroppableBag.(
                                droppable.accept
@@ -276,8 +288,7 @@ module Make = (Cfg: Config) => {
                                   )
                                |. Option.getWithDefault(true)
                                && Geometry.(
-                                    nextPoint.page
-                                    |. isWithin(geometry.rect.page)
+                                    nextPoint.page |. isWithin(rect.page)
                                   )
                              );
                            })
@@ -383,67 +394,48 @@ module Make = (Cfg: Config) => {
         }
 
       | UpdateScroll =>
-        /*
-         * TODO: Perform scroll:
-         *   a. if ghost is inside scrollable which is bigger than viewport
-         *      -> scroll window until edge of scrollable then scroll scrollable
-         *   b. if ghost is inside scrollable which is smaller than viewport
-         *      -> scroll scrollable then scroll window (if required)
-         *   c. if ghost is not inside scrollable
-         *      -> scroll window (if required)
-         */
         ReasonReact.SideEffects(
           (
             ({state, send}) =>
               switch (state.status) {
               | Dragging(ghost, _) =>
-                switch (ghost.targetDroppable) {
-                | Some(targetDroppable) =>
-                  switch (state.droppables^ |. Map.get(targetDroppable)) {
-                  | Some({scrollable: Some(scrollable)}) =>
-                    UpdateScrollableScroll(scrollable) |> send
-                  | Some({scrollable: None}) => UpdateWindowScroll |> send
-                  | None => () /* Shouldn't be the case */
-                  }
-                | None => UpdateWindowScroll |> send
-                }
-              | Dropping(_)
-              | StandBy => ()
-              }
-          ),
-        )
+                let scroller =
+                  Scroller.getScroller(
+                    ~point=ghost.currentPoint,
+                    ~viewport=state.viewport^ |. Option.getExn,
+                    ~scroll=state.scroll^ |. Option.getExn,
+                    ~scrollable=
+                      ghost.targetDroppable
+                      |. Option.map(droppableId =>
+                           (
+                             droppableId,
+                             Map.getExn(state.droppables^, droppableId).
+                               scrollable,
+                           )
+                         ),
+                  );
 
-      /* TODO: Handle scroll inside scrollable elements */
-      | UpdateScrollableScroll(_scrollable) => ReasonReact.NoUpdate
+                switch (scroller) {
+                | Some(Window(requestWindowScroll)) =>
+                  switch (state.scheduledWindowScrollFrameId^) {
+                  | Some(frameId) =>
+                    frameId |> Webapi.cancelAnimationFrame;
+                    state.scheduledWindowScrollFrameId := None;
+                  | None => ()
+                  };
 
-      | UpdateWindowScroll =>
-        ReasonReact.SideEffects(
-          (
-            ({state, send}) =>
-              switch (state.status) {
-              | Dragging(ghost, _) =>
-                switch (state.scheduledWindowScrollFrameId^) {
-                | Some(frameId) =>
-                  frameId |> Webapi.cancelAnimationFrame;
-                  state.scheduledWindowScrollFrameId := None;
-                | None => ()
-                };
-
-                state.scheduledWindowScrollFrameId :=
-                  Scroller.scrollWindow(
-                    ghost.currentPoint,
-                    state.scroll^ |. Option.getExn,
-                    state.viewport^ |. Option.getExn,
-                    () => {
+                  state.scheduledWindowScrollFrameId :=
+                    requestWindowScroll(() => {
                       let scroll = state.scroll^ |. Option.getExn;
-                      let nextCurrentScroll = Html.getScroll();
+                      let nextScrollPosition =
+                        Scrollable.Window.getScrollPosition();
                       let nextScroll =
                         Scroll.{
                           ...scroll,
-                          current: nextCurrentScroll,
+                          current: nextScrollPosition,
                           delta: {
-                            x: nextCurrentScroll.x - scroll.initial.x,
-                            y: nextCurrentScroll.y - scroll.initial.y,
+                            x: nextScrollPosition.x - scroll.initial.x,
+                            y: nextScrollPosition.y - scroll.initial.y,
                           },
                         };
                       let nextPoint =
@@ -469,8 +461,62 @@ module Make = (Cfg: Config) => {
                       state.scroll := Some(nextScroll);
 
                       UpdateGhostPosition(nextPoint) |> send;
-                    },
-                  );
+                    });
+
+                | Some(Element(requestElementScroll)) =>
+                  switch (state.scheduledScrollableElementScrollFrameId^) {
+                  | Some(frameId) =>
+                    frameId |> Webapi.cancelAnimationFrame;
+                    state.scheduledScrollableElementScrollFrameId := None;
+                  | None => ()
+                  };
+
+                  state.scheduledScrollableElementScrollFrameId :=
+                    requestElementScroll((droppableId, scrollable) => {
+                      let nextScrollPosition =
+                        scrollable.element
+                        |> Scrollable.Element.getScrollPosition;
+                      let nextScroll =
+                        Scroll.{
+                          ...scrollable.scroll,
+                          current: nextScrollPosition,
+                          delta: {
+                            x:
+                              nextScrollPosition.x
+                              - scrollable.scroll.initial.x,
+                            y:
+                              nextScrollPosition.y
+                              - scrollable.scroll.initial.y,
+                          },
+                        };
+
+                      state.droppables :=
+                        state.droppables^
+                        |. Map.update(droppableId, droppable =>
+                             droppable
+                             |. Option.map(droppable =>
+                                  {
+                                    ...droppable,
+                                    scrollable:
+                                      Some({
+                                        ...scrollable,
+                                        scroll: nextScroll,
+                                      }),
+                                  }
+                                )
+                           );
+
+                      state.scheduledLayoutRecalculationFrameId :=
+                        Some(
+                          Webapi.requestCancellableAnimationFrame(_ =>
+                            RecalculateLayout(ghost) |> send
+                          ),
+                        );
+                    });
+
+                | None => ()
+                };
+
               | Dropping(_)
               | StandBy => ()
               }
@@ -486,18 +532,25 @@ module Make = (Cfg: Config) => {
                  (state.draggables^, []),
                  ((draggables, animate), id, draggable) =>
                  switch (ghost.targetDroppable, draggable.droppableId) {
-                 | (Some(targetDroppable), draggableDroppable)
+                 /* TODO: Move `targetDroppableId` out of reduce to reduce number of `Map.get` calls */
+                 | (Some(targetDroppableId), draggableDroppableId)
                      when
-                       Cfg.Droppable.eq(targetDroppable, draggableDroppable)
+                       Cfg.Droppable.eq(
+                         targetDroppableId,
+                         draggableDroppableId,
+                       )
                        && ghost.targetingOriginalDroppable =>
-                   let scroll = state.scroll^ |. Option.getExn;
+                   let droppable =
+                     state.droppables^ |. Map.getExn(targetDroppableId);
                    let geometry = draggable.geometry |. Option.getExn;
+                   let scroll = state.scroll^ |. Option.getExn;
 
                    let shiftedDraggableRect =
                      Geometry.shiftInternalSibling(
                        ghost.dimensions,
-                       scroll,
                        geometry,
+                       scroll,
+                       droppable.scrollable,
                        draggable.shift,
                      );
                    let isAbove =
@@ -564,21 +617,24 @@ module Make = (Cfg: Config) => {
                    | (None, _, _) => (draggables, animate)
                    };
 
-                 | (Some(ghostTargetDroppable), draggableDroppable)
+                 | (Some(targetDroppableId), draggableDroppableId)
                      when
                        Cfg.Droppable.eq(
-                         ghostTargetDroppable,
-                         draggableDroppable,
+                         targetDroppableId,
+                         draggableDroppableId,
                        )
                        && ! ghost.targetingOriginalDroppable =>
-                   let scroll = state.scroll^ |. Option.getExn;
+                   let droppable =
+                     state.droppables^ |. Map.getExn(targetDroppableId);
                    let geometry = draggable.geometry |. Option.getExn;
+                   let scroll = state.scroll^ |. Option.getExn;
 
                    let shiftedDraggableRect =
                      Geometry.shiftExternalSibling(
                        ghost.dimensions,
-                       scroll,
                        geometry,
+                       scroll,
+                       droppable.scrollable,
                        draggable.shift,
                      );
                    let isAbove =
@@ -673,16 +729,22 @@ module Make = (Cfg: Config) => {
         ReasonReact.SideEffects(
           (
             ({state, send}) => {
+              switch (state.scheduledLayoutRecalculationFrameId^) {
+              | Some(frameId) =>
+                frameId |> Webapi.cancelAnimationFrame;
+                state.scheduledLayoutRecalculationFrameId := None;
+              | None => ()
+              };
               switch (state.scheduledWindowScrollFrameId^) {
               | Some(frameId) =>
                 frameId |> Webapi.cancelAnimationFrame;
                 state.scheduledWindowScrollFrameId := None;
               | None => ()
               };
-              switch (state.scheduledLayoutRecalculationFrameId^) {
+              switch (state.scheduledScrollableElementScrollFrameId^) {
               | Some(frameId) =>
                 frameId |> Webapi.cancelAnimationFrame;
-                state.scheduledLayoutRecalculationFrameId := None;
+                state.scheduledScrollableElementScrollFrameId := None;
               | None => ()
               };
 
@@ -696,19 +758,41 @@ module Make = (Cfg: Config) => {
         | Dragging(ghost, _) =>
           let (ghost, result) =
             switch (ghost.targetDroppable) {
-            | None => (
-                {
-                  ...ghost,
-                  delta: {
-                    x: 0,
-                    y: 0,
-                  },
+            | None =>
+              let droppable =
+                state.droppables^ |. Map.getExn(ghost.originalDroppable);
+              let scrollableDelta =
+                switch (droppable) {
+                | {scrollable: Some(scrollable)} =>
+                  Delta.{
+                    x: scrollable.scroll.delta.x,
+                    y: scrollable.scroll.delta.y,
+                  }
+                | {scrollable: None} => Delta.{x: 0, y: 0}
+                };
+              let nextGhost = {
+                ...ghost,
+                delta: {
+                  x: 0,
+                  y: 0 - scrollableDelta.y,
                 },
-                DropResult.NoChanges,
-              )
+              };
+
+              (nextGhost, DropResult.NoChanges);
 
             | Some(targetDroppableId) when ghost.targetingOriginalDroppable =>
+              let droppable =
+                state.droppables^ |. Map.getExn(targetDroppableId);
               let scroll = state.scroll^ |. Option.getExn;
+              let scrollableDelta =
+                switch (droppable) {
+                | {scrollable: Some(scrollable)} =>
+                  Delta.{
+                    x: scrollable.scroll.delta.x,
+                    y: scrollable.scroll.delta.y,
+                  }
+                | {scrollable: None} => Delta.{x: 0, y: 0}
+                };
 
               let sortedDraggables =
                 state.draggables^
@@ -723,8 +807,7 @@ module Make = (Cfg: Config) => {
                      (acc, id, draggable) => {
                        let geometry = draggable.geometry |. Option.getExn;
 
-                       switch (draggable.shift) {
-                       | _ when Cfg.Draggable.eq(id, ghost.draggableId) =>
+                       if (Cfg.Draggable.eq(id, ghost.draggableId)) {
                          acc
                          |. Array.concat([|
                               DropResult.{
@@ -733,23 +816,24 @@ module Make = (Cfg: Config) => {
                                 rect: ghost.currentRect,
                                 margins: geometry.margins,
                               },
-                            |])
-                       | _ as shift =>
+                            |]);
+                       } else {
                          acc
                          |. Array.concat([|
                               {
                                 id,
-                                trait: Item(shift),
+                                trait: Item(draggable.shift),
                                 rect:
                                   Geometry.shiftInternalSibling(
                                     ghost.dimensions,
-                                    scroll,
                                     geometry,
-                                    shift,
+                                    scroll,
+                                    droppable.scrollable,
+                                    draggable.shift,
                                   ),
                                 margins: geometry.margins,
                               },
-                            |])
+                            |]);
                        };
                      },
                    )
@@ -758,11 +842,14 @@ module Make = (Cfg: Config) => {
                      | (Ghost, Item(Some(Alpha))) => 1
                      | (Ghost, Item(Some(Omega))) => (-1)
                      | (Ghost, Item(None)) =>
-                       ghost.departureRect.page.top - d2.rect.page.top
+                       ghost.departureRect.page.top
+                       - (d2.rect.page.top + scrollableDelta.y)
                      | (Item(Some(Alpha)), Ghost) => (-1)
                      | (Item(Some(Omega)), Ghost) => 1
                      | (Item(None), Ghost) =>
-                       d1.rect.page.top - ghost.departureRect.page.top
+                       d1.rect.page.top
+                       + scrollableDelta.y
+                       - ghost.departureRect.page.top
                      | (Item(_), Item(_)) =>
                        d1.rect.page.top - d2.rect.page.top
                      | (Ghost, Ghost) => 0 /* impossible */
@@ -844,6 +931,8 @@ module Make = (Cfg: Config) => {
               };
 
             | Some(targetDroppableId) =>
+              let droppable =
+                state.droppables^ |. Map.getExn(targetDroppableId);
               let scroll = state.scroll^ |. Option.getExn;
 
               let sortedDraggables =
@@ -860,8 +949,7 @@ module Make = (Cfg: Config) => {
                      (acc, id, draggable) => {
                        let geometry = draggable.geometry |. Option.getExn;
 
-                       switch (draggable.shift) {
-                       | _ when Cfg.Draggable.eq(id, ghost.draggableId) =>
+                       if (Cfg.Draggable.eq(id, ghost.draggableId)) {
                          acc
                          |. Array.concat([|
                               DropResult.{
@@ -870,23 +958,24 @@ module Make = (Cfg: Config) => {
                                 rect: ghost.currentRect,
                                 margins: geometry.margins,
                               },
-                            |])
-                       | _ as shift =>
+                            |]);
+                       } else {
                          acc
                          |. Array.concat([|
                               {
                                 id,
-                                trait: Item(shift),
+                                trait: Item(draggable.shift),
                                 rect:
                                   Geometry.shiftExternalSibling(
                                     ghost.dimensions,
-                                    scroll,
                                     geometry,
-                                    shift,
+                                    scroll,
+                                    droppable.scrollable,
+                                    draggable.shift,
                                   ),
                                 margins: geometry.margins,
                               },
-                            |])
+                            |]);
                        };
                      },
                    )
@@ -1033,20 +1122,37 @@ module Make = (Cfg: Config) => {
       | CancelDrag =>
         switch (state.status) {
         | Dragging(ghost, _) =>
-          state.draggables :=
+          let droppable =
+            state.droppables^ |. Map.getExn(ghost.originalDroppable);
+
+          let ghost =
+            switch (droppable) {
+            | {scrollable: Some(scrollable)} => {
+                ...ghost,
+                delta: {
+                  x: 0 - scrollable.scroll.delta.x,
+                  y: 0 - scrollable.scroll.delta.y,
+                },
+              }
+            | {scrollable: None} => {
+                ...ghost,
+                delta: {
+                  x: 0,
+                  y: 0,
+                },
+              }
+            };
+
+          let draggables =
             state.draggables^
             |. Map.map(draggable => {...draggable, shift: None});
 
-          let ghost = {
-            ...ghost,
-            delta: {
-              x: 0,
-              y: 0,
-            },
-          };
-
           ReasonReact.UpdateWithSideEffects(
-            {...state, status: Dropping(ghost)},
+            {
+              ...state,
+              status: Dropping(ghost),
+              draggables: ref(draggables),
+            },
             (
               ({send}) =>
                 Js.Global.setTimeout(

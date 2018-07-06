@@ -1,7 +1,8 @@
 type route =
   | VerticalList
   | VerticalListMediumDataset
-  | NestedVerticalLists;
+  | NestedVerticalLists
+  | ScrollableContainer;
 
 let getRoute = url =>
   ReasonReact.Router.(
@@ -9,6 +10,7 @@ let getRoute = url =>
     | "vertical-list" => VerticalList
     | "vertical-list-medium-dataset" => VerticalListMediumDataset
     | "nested-vertical-lists" => NestedVerticalLists
+    | "scrollable-container" => ScrollableContainer
     | _ => VerticalList
     }
   );

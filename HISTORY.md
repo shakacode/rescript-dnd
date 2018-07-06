@@ -1,5 +1,9 @@
 # History
 
+## 0.5.0
+**Features**
+* Scrollable containers support.
+
 ## 0.4.0
 **Features**
 * Auto-scroll at the vertical edges of the window.

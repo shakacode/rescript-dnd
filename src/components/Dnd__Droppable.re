@@ -2,8 +2,10 @@ open Dnd__React;
 open Dnd__Config;
 open Dnd__Types;
 
+module Html = Dnd__Html;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
+module Scrollable = Dnd__Scrollable;
 
 module Make = (Cfg: Config) => {
   type state = {
@@ -14,8 +16,50 @@ module Make = (Cfg: Config) => {
   type action =
     | RegisterDroppable;
 
-  let component = ReasonReact.reducerComponent("DndDroppable");
+  module Handlers = {
+    let getGeometryAndScrollable = ({ReasonReact.state}) => {
+      open Webapi.Dom;
 
+      let element = state.element^ |> Option.getExn;
+
+      let elementRect = element |> HtmlElement.getBoundingClientRect;
+      let elementStyle = element |> Style.getComputedStyle;
+      let windowScrollPosition = Scrollable.Window.getScrollPosition();
+
+      let geometry =
+        Geometry.getGeometry(elementRect, elementStyle, windowScrollPosition);
+
+      let scrollable =
+        if (elementStyle |> Scrollable.Element.isScrollable) {
+          let elementMaxScroll = element |> Scrollable.Element.getMaxScroll;
+          let elementScrollPosition =
+            element |> Scrollable.Element.getScrollPosition;
+
+          Some(
+            ScrollableElement.{
+              element,
+              geometry,
+              scroll:
+                Scroll.{
+                  max: elementMaxScroll,
+                  initial: elementScrollPosition,
+                  current: elementScrollPosition,
+                  delta: {
+                    x: 0,
+                    y: 0,
+                  },
+                },
+            },
+          );
+        } else {
+          element |> Scrollable.Element.getClosestScrollable;
+        };
+
+      (geometry, scrollable);
+    };
+  };
+
+  let component = ReasonReact.reducerComponent("DndDroppable");
   let make =
       (
         ~id as droppableId: Cfg.Droppable.t,
@@ -39,14 +83,12 @@ module Make = (Cfg: Config) => {
       | RegisterDroppable =>
         ReasonReact.SideEffects(
           (
-            ({state}) =>
+            self =>
               context.registerDroppable({
                 id: droppableId,
                 accept,
                 getGeometryAndScrollable: () =>
-                  state.element^
-                  |> Option.getExn
-                  |> Geometry.getElementGeometryAndScrollable,
+                  self |> Handlers.getGeometryAndScrollable,
               })
           ),
         )

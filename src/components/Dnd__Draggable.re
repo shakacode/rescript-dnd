@@ -6,6 +6,8 @@ module Html = Dnd__Html;
 module Events = Dnd__Events;
 module Style = Dnd__Style;
 module Geometry = Dnd__Geometry;
+module Selection = Dnd__Selection;
+module Scrollable = Dnd__Scrollable;
 
 module Make = (Cfg: Config) => {
   type state = {
@@ -19,6 +21,16 @@ module Make = (Cfg: Config) => {
     | RegisterDraggable;
 
   module Handlers = {
+    let getGeometry = ({ReasonReact.state}) => {
+      let element = state.element^ |> Option.getExn;
+
+      Geometry.getGeometry(
+        element |> Webapi.Dom.HtmlElement.getBoundingClientRect,
+        element |> Style.getComputedStyle,
+        Scrollable.Window.getScrollPosition(),
+      );
+    };
+
     let rec onMouseDown = (event, {ReasonReact.state, handle}) =>
       switch (state.context.status, state.element^) {
       | (StandBy, Some(element))
@@ -43,30 +55,28 @@ module Make = (Cfg: Config) => {
           RelativityBag.{
             page:
               Point.{
-                x: event |. ReactEventRe.Mouse.pageX,
-                y: event |. ReactEventRe.Mouse.pageY,
+                x: ReactEventRe.(event |. Mouse.pageX),
+                y: ReactEventRe.(event |. Mouse.pageY),
               },
             viewport:
               Point.{
-                x: event |. ReactEventRe.Mouse.clientX,
-                y: event |. ReactEventRe.Mouse.clientY,
+                x: ReactEventRe.(event |. Mouse.clientX),
+                y: ReactEventRe.(event |. Mouse.clientY),
               },
           };
 
         let rec onInitialMouseMove = event => {
-          open Webapi.Dom;
-
           let current =
             RelativityBag.{
               page:
                 Point.{
-                  x: event |. MouseEvent.pageX,
-                  y: event |. MouseEvent.pageY,
+                  x: Webapi.Dom.(event |. MouseEvent.pageX),
+                  y: Webapi.Dom.(event |. MouseEvent.pageY),
                 },
               viewport:
                 Point.{
-                  x: event |. MouseEvent.clientX,
-                  y: event |. MouseEvent.clientY,
+                  x: Webapi.Dom.(event |. MouseEvent.clientX),
+                  y: Webapi.Dom.(event |. MouseEvent.clientY),
                 },
             };
 
@@ -76,13 +86,13 @@ module Make = (Cfg: Config) => {
 
           selectionOnStart :=
             selectionOnStart^
-            |. Option.getWithDefault(! Html.selectionCollapsed())
+            |. Option.getWithDefault(! Selection.selectionCollapsed())
             |. Some;
 
           let selecting =
             switch (
               selectionOnStart^,
-              current |. Geometry.pointWithinSelection,
+              current |. Selection.pointWithinSelection,
             ) {
             | (Some(false), _)
             | (Some(true), false) => false
@@ -92,7 +102,7 @@ module Make = (Cfg: Config) => {
 
           if (moved && ! selecting) {
             dropInitialSubscriptions();
-            Html.clearSelection();
+            Selection.clearSelection();
 
             let onMouseMove = onMouseMove |. handle;
             let onMouseUp = onMouseUp |. handle;
@@ -149,21 +159,19 @@ module Make = (Cfg: Config) => {
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        open Webapi.Dom;
-
-        event |. MouseEvent.preventDefault;
+        Webapi.Dom.(event |. MouseEvent.preventDefault);
 
         let point =
           RelativityBag.{
             page:
               Point.{
-                x: event |. MouseEvent.pageX,
-                y: event |. MouseEvent.pageY,
+                x: Webapi.Dom.(event |. MouseEvent.pageX),
+                y: Webapi.Dom.(event |. MouseEvent.pageY),
               },
             viewport:
               Point.{
-                x: event |. MouseEvent.clientX,
-                y: event |. MouseEvent.clientY,
+                x: Webapi.Dom.(event |. MouseEvent.clientX),
+                y: Webapi.Dom.(event |. MouseEvent.clientY),
               },
           };
 
@@ -177,7 +185,7 @@ module Make = (Cfg: Config) => {
       switch (state.context.status) {
       | Dragging(ghost, subscriptions)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        Html.clearSelection();
+        Selection.clearSelection();
         subscriptions.drop();
         state.context.drop();
 
@@ -239,7 +247,7 @@ module Make = (Cfg: Config) => {
           Js.Global.setTimeout(
             () => {
               dropInitialSubscriptions();
-              Html.clearSelection();
+              Selection.clearSelection();
 
               let onTouchMove = onTouchMove |. handle;
               let onTouchEnd = onTouchEnd |. handle;
@@ -389,7 +397,6 @@ module Make = (Cfg: Config) => {
     | ChildrenWithDragHandle(dragHandle => ReasonReact.reactElement);
 
   let component = ReasonReact.reducerComponent("DndDraggable");
-
   let make =
       (
         ~id as draggableId: Cfg.Draggable.t,
@@ -444,14 +451,11 @@ module Make = (Cfg: Config) => {
       | RegisterDraggable =>
         ReasonReact.SideEffects(
           (
-            ({state}) =>
+            self =>
               context.registerDraggable({
                 id: draggableId,
                 droppableId,
-                getGeometry: () =>
-                  state.element^
-                  |> Option.getExn
-                  |> Geometry.getElementGeometry,
+                getGeometry: () => self |> Handlers.getGeometry,
               })
           ),
         )

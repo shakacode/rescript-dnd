@@ -1,3 +1,5 @@
+module Html = Dnd__Html;
+
 let px = n => (n |. string_of_int) ++ "px";
 let stripPx = v => v |> Js.String.replace("px", "") |> int_of_string;
 
@@ -15,3 +17,9 @@ let transition = prop =>
 
 let translate = (x, y) =>
   "translate(" ++ (x |> px) ++ ", " ++ (y |> px) ++ ")";
+
+let getComputedStyle = element =>
+  Webapi.Dom.(
+    window
+    |> Window.getComputedStyle(element |> Html.castHtmlElementToElement)
+  );

@@ -18,16 +18,16 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 * Mouse & Touch interactions
 * Conditional drag & drop
 * Custom drag handles
-* Auto-scroll when dragging at window's edge
+* Scrollable containers
+* Auto-scroll when dragging at container's edge
 
 ### TODO
-- [ ] Perf optimizations
-- [ ] Scrollable containers
 - [ ] Horizontal lists
 - [ ] Keyboard interactions
 - [ ] Ignore form elements (opt-out)
 - [ ] Drop-zones
 - [ ] Multi-select
+- [ ] Perf optimizations
 
 ## Installation
 
