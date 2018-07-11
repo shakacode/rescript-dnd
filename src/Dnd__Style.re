@@ -1,7 +1,8 @@
 module Html = Dnd__Html;
 
 let px = n => (n |. string_of_int) ++ "px";
-let stripPx = v => v |> Js.String.replace("px", "") |> int_of_string;
+let stripPx = v =>
+  v |> Js.String.replace("px", "") |> float_of_string |> int_of_float;
 
 let animationFunction = "cubic-bezier(0.2, 0, 0, 1)";
 let animationDuration = 200;
