@@ -527,157 +527,164 @@ module Make = (Cfg: Config) => {
         switch (state.status) {
         | Dragging(_, subscriptions) =>
           let (draggables, animate) =
-            state.draggables^
-            |. Map.reduce(
-                 (state.draggables^, []),
-                 ((draggables, animate), id, draggable) =>
-                 switch (ghost.targetDroppable, draggable.droppableId) {
-                 /* TODO: Move `targetDroppableId` out of reduce to reduce number of `Map.get` calls */
-                 | (Some(targetDroppableId), draggableDroppableId)
-                     when
-                       Cfg.Droppable.eq(
-                         targetDroppableId,
-                         draggableDroppableId,
-                       )
-                       && ghost.targetingOriginalDroppable =>
-                   let droppable =
-                     state.droppables^ |. Map.getExn(targetDroppableId);
-                   let geometry = draggable.geometry |. Option.getExn;
-                   let scroll = state.scroll^ |. Option.getExn;
+            switch (ghost.targetDroppable) {
+            | None =>
+              let draggables =
+                state.draggables^
+                |. Map.map(draggable => {...draggable, shift: None});
+              (draggables, []);
+            | Some(targetDroppableId) =>
+              let droppable =
+                state.droppables^ |. Map.getExn(targetDroppableId);
 
-                   let shiftedDraggableRect =
-                     Geometry.shiftInternalSibling(
-                       ghost.dimensions,
-                       geometry,
-                       scroll,
-                       droppable.scrollable,
-                       draggable.shift,
-                     );
-                   let isAbove =
-                     ghost.currentRect.page
-                     |. Geometry.isAboveAdjusted(
-                          shiftedDraggableRect.page,
-                          ghost.direction,
-                        );
-                   let wasAbove =
-                     ghost.departureRect.page
-                     |. Geometry.isAbove(geometry.rect.page);
-                   switch (draggable.shift, isAbove, wasAbove) {
-                   /* Dragging this one, no changes here */
-                   | (_, _, _)
-                       when Cfg.Draggable.eq(draggable.id, ghost.draggableId) => (
-                       draggables,
+              state.draggables^
+              |. Map.reduce(
+                   (state.draggables^, []),
+                   ((draggables, animate), id, draggable) =>
+                   switch (draggable.droppableId) {
+                   | draggableDroppableId
+                       when
+                         Cfg.Droppable.eq(
+                           targetDroppableId,
+                           draggableDroppableId,
+                         )
+                         && ghost.targetingOriginalDroppable =>
+                     let geometry = draggable.geometry |. Option.getExn;
+                     let scroll = state.scroll^ |. Option.getExn;
+
+                     let shiftedDraggableRect =
+                       Geometry.shiftInternalSibling(
+                         ghost.dimensions,
+                         geometry,
+                         scroll,
+                         droppable.scrollable,
+                         draggable.shift,
+                       );
+                     let isAbove =
+                       ghost.currentRect.page
+                       |. Geometry.isAboveAdjusted(
+                            shiftedDraggableRect.page,
+                            ghost.direction,
+                          );
+                     let wasAbove =
+                       ghost.departureRect.page
+                       |. Geometry.isAbove(geometry.rect.page);
+                     switch (draggable.shift, isAbove, wasAbove) {
+                     /* Dragging this one, no changes here */
+                     | (_, _, _)
+                         when
+                           Cfg.Draggable.eq(draggable.id, ghost.draggableId) => (
+                         draggables,
+                         animate,
+                       )
+                     /* This one is in the middle of transition, ignoring */
+                     | (_, _, _) when draggable.animating => (
+                         draggables,
+                         animate,
+                       )
+                     /* Ghost is above but initially was below: since it's already Omega - ignoring */
+                     | (Some(Omega), true, false) => (draggables, animate)
+                     /* Ghost is above but initially was below: adding to animating list since it's going to be animated on the next render */
+                     | (_, true, false) => (
+                         draggables
+                         |. Map.set(
+                              id,
+                              {
+                                ...draggable,
+                                shift: Some(Omega),
+                                animating: true,
+                              },
+                            ),
+                         [id, ...animate],
+                       )
+                     /* Ghost is below but initially was above: since it's already Alpha - ignoring */
+                     | (Some(Alpha), false, true) => (draggables, animate)
+                     /* Ghost is below but initially was above: adding to animating list since it's going to be animated on the next render */
+                     | (_, false, true) => (
+                         draggables
+                         |. Map.set(
+                              id,
+                              {
+                                ...draggable,
+                                shift: Some(Alpha),
+                                animating: true,
+                              },
+                            ),
+                         [id, ...animate],
+                       )
+                     /* If we got here, draggable should go to original position: if it was shifted — animating it */
+                     | (Some(_), _, _) => (
+                         draggables
+                         |. Map.set(
+                              id,
+                              {...draggable, shift: None, animating: true},
+                            ),
+                         [id, ...animate],
+                       )
+                     /* Draggable is in original position, no updates required */
+                     | (None, _, _) => (draggables, animate)
+                     };
+
+                   | draggableDroppableId
+                       when
+                         Cfg.Droppable.eq(
+                           targetDroppableId,
+                           draggableDroppableId,
+                         )
+                         && ! ghost.targetingOriginalDroppable =>
+                     let geometry = draggable.geometry |. Option.getExn;
+                     let scroll = state.scroll^ |. Option.getExn;
+
+                     let shiftedDraggableRect =
+                       Geometry.shiftExternalSibling(
+                         ghost.dimensions,
+                         geometry,
+                         scroll,
+                         droppable.scrollable,
+                         draggable.shift,
+                       );
+                     let isAbove =
+                       ghost.currentRect.page
+                       |. Geometry.isAboveAdjusted(
+                            shiftedDraggableRect.page,
+                            ghost.direction,
+                          );
+                     switch (draggable.animating, draggable.shift, isAbove) {
+                     | (true, _, _) => (draggables, animate)
+                     | (false, Some(Omega), true) => (draggables, animate)
+                     | (false, _, true) => (
+                         draggables
+                         |. Map.set(
+                              id,
+                              {
+                                ...draggable,
+                                shift: Some(Omega),
+                                animating: true,
+                              },
+                            ),
+                         [id, ...animate],
+                       )
+                     | (false, Some(Alpha), false) => (draggables, animate)
+                     | (false, _, false) => (
+                         draggables
+                         |. Map.set(
+                              id,
+                              {
+                                ...draggable,
+                                shift: Some(Alpha),
+                                animating: true,
+                              },
+                            ),
+                         [id, ...animate],
+                       )
+                     };
+                   | _ => (
+                       draggables |. Map.set(id, {...draggable, shift: None}),
                        animate,
                      )
-                   /* This one is in the middle of transition, ignoring */
-                   | (_, _, _) when draggable.animating => (
-                       draggables,
-                       animate,
-                     )
-                   /* Ghost is above but initially was below: since it's already Omega - ignoring */
-                   | (Some(Omega), true, false) => (draggables, animate)
-                   /* Ghost is above but initially was below: adding to animating list since it's going to be animated on the next render */
-                   | (_, true, false) => (
-                       draggables
-                       |. Map.set(
-                            id,
-                            {
-                              ...draggable,
-                              shift: Some(Omega),
-                              animating: true,
-                            },
-                          ),
-                       [id, ...animate],
-                     )
-                   /* Ghost is below but initially was above: since it's already Alpha - ignoring */
-                   | (Some(Alpha), false, true) => (draggables, animate)
-                   /* Ghost is below but initially was above: adding to animating list since it's going to be animated on the next render */
-                   | (_, false, true) => (
-                       draggables
-                       |. Map.set(
-                            id,
-                            {
-                              ...draggable,
-                              shift: Some(Alpha),
-                              animating: true,
-                            },
-                          ),
-                       [id, ...animate],
-                     )
-                   /* If we got here, draggable should go to original position: if it was shifted — animating it */
-                   | (Some(_), _, _) => (
-                       draggables
-                       |. Map.set(
-                            id,
-                            {...draggable, shift: None, animating: true},
-                          ),
-                       [id, ...animate],
-                     )
-                   /* Draggable is in original position, no updates required */
-                   | (None, _, _) => (draggables, animate)
-                   };
-
-                 | (Some(targetDroppableId), draggableDroppableId)
-                     when
-                       Cfg.Droppable.eq(
-                         targetDroppableId,
-                         draggableDroppableId,
-                       )
-                       && ! ghost.targetingOriginalDroppable =>
-                   let droppable =
-                     state.droppables^ |. Map.getExn(targetDroppableId);
-                   let geometry = draggable.geometry |. Option.getExn;
-                   let scroll = state.scroll^ |. Option.getExn;
-
-                   let shiftedDraggableRect =
-                     Geometry.shiftExternalSibling(
-                       ghost.dimensions,
-                       geometry,
-                       scroll,
-                       droppable.scrollable,
-                       draggable.shift,
-                     );
-                   let isAbove =
-                     ghost.currentRect.page
-                     |. Geometry.isAboveAdjusted(
-                          shiftedDraggableRect.page,
-                          ghost.direction,
-                        );
-                   switch (draggable.animating, draggable.shift, isAbove) {
-                   | (true, _, _) => (draggables, animate)
-                   | (false, Some(Omega), true) => (draggables, animate)
-                   | (false, _, true) => (
-                       draggables
-                       |. Map.set(
-                            id,
-                            {
-                              ...draggable,
-                              shift: Some(Omega),
-                              animating: true,
-                            },
-                          ),
-                       [id, ...animate],
-                     )
-                   | (false, Some(Alpha), false) => (draggables, animate)
-                   | (false, _, false) => (
-                       draggables
-                       |. Map.set(
-                            id,
-                            {
-                              ...draggable,
-                              shift: Some(Alpha),
-                              animating: true,
-                            },
-                          ),
-                       [id, ...animate],
-                     )
-                   };
-                 | _ => (
-                     draggables |. Map.set(id, {...draggable, shift: None}),
-                     animate,
-                   )
-                 }
-               );
+                   }
+                 );
+            };
 
           ReasonReact.UpdateWithSideEffects(
             {
