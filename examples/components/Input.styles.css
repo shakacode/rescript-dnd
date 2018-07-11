@@ -1,0 +1,14 @@
+.input {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 4px;
+  width: 100px;
+  font-size: var(--font-size);
+  font-family: var(--font-family);
+}
+
+@media (max-width: 1024px) {
+  .input {
+    padding: 4px 6px;
+  }
+}

@@ -53,11 +53,7 @@ let make = _ => {
           switch (state.route) {
           | VerticalList =>
             <Example layout=Vertical showMobileNav>
-              <VerticalListExample n=7 key="7" />
-            </Example>
-          | VerticalListMediumDataset =>
-            <Example layout=Vertical showMobileNav>
-              <VerticalListExample n=200 key="200" />
+              <VerticalListExample />
             </Example>
           | NestedVerticalLists =>
             <Example layout=Vertical showMobileNav>

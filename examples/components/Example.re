@@ -19,7 +19,7 @@ let make = (~layout, ~showMobileNav, children) => {
           },
         ])
       )>
-      <div className="example-header-mobile">
+      <div className="example-navbar-mobile">
         <Control onClick=showMobileNav> <MenuIcon /> </Control>
         <h1> ("re-dnd" |> ReasonReact.string) </h1>
         <a href="https://github.com/alexfedoseev/re-dnd"> <GithubIcon /> </a>

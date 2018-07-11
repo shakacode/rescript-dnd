@@ -21,11 +21,6 @@ let make = (~route, ~mobileNavShown, ~hideMobileNav, _) => {
         ("Vertical list" |> ReasonReact.string)
       </Link>
       <Link
-        path="vertical-list-medium-dataset"
-        active=(route === Routes.VerticalListMediumDataset)>
-        ("Vertical list (medium dataset)" |> ReasonReact.string)
-      </Link>
-      <Link
         path="nested-vertical-lists"
         active=(route === Routes.NestedVerticalLists)>
         ("Nested vertical list" |> ReasonReact.string)

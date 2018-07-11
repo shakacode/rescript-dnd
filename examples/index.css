@@ -7,3 +7,5 @@
 @import "./components/Nav.styles.css";
 @import "./components/Main.styles.css";
 @import "./components/Example.styles.css";
+@import "./components/Input.styles.css";
+@import "./components/Label.styles.css";
