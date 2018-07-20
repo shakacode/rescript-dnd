@@ -537,21 +537,31 @@ module Make = (Cfg: Config) => {
               children',
             )
           )
-          <div
-            style=(
-              ReactDOMRe.Style.make(
-                ~boxSizing="border-box",
-                ~marginTop=Style.(ghost.margins.top |. px),
-                ~marginBottom=Style.(ghost.margins.bottom |. px),
-                ~marginLeft=Style.(ghost.margins.left |. px),
-                ~marginRight=Style.(ghost.margins.right |. px),
-                ~width=Style.(0 |. px),
-                ~height=Style.(ghost.dimensions.height |. px),
-                ~transition=Style.transition("all"),
-                (),
+          {
+            let (width, height) =
+              switch (ghost.axis) {
+              | X => Style.(ghost.dimensions.width |. px, 0 |. px)
+              | Y => Style.(0 |. px, ghost.dimensions.height |. px)
+              };
+
+            <div
+              style=(
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~width,
+                  ~minWidth=width,
+                  ~height,
+                  ~minHeight=height,
+                  ~marginTop=Style.(ghost.margins.top |. px),
+                  ~marginBottom=Style.(ghost.margins.bottom |. px),
+                  ~marginLeft=Style.(ghost.margins.left |. px),
+                  ~marginRight=Style.(ghost.margins.right |. px),
+                  ~transition=Style.transition("all"),
+                  (),
+                )
               )
-            )
-          />
+            />;
+          }
         </Fragment>
 
       | Dropping(ghost) when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
@@ -606,21 +616,31 @@ module Make = (Cfg: Config) => {
               children',
             )
           )
-          <div
-            style=(
-              ReactDOMRe.Style.make(
-                ~boxSizing="border-box",
-                ~marginTop=Style.(ghost.margins.top |. px),
-                ~marginBottom=Style.(ghost.margins.bottom |. px),
-                ~marginLeft=Style.(ghost.margins.left |. px),
-                ~marginRight=Style.(ghost.margins.right |. px),
-                ~width=Style.(0 |. px),
-                ~height=Style.(ghost.dimensions.height |. px),
-                ~transition=Style.transition("all"),
-                (),
+          {
+            let (width, height) =
+              switch (ghost.axis) {
+              | X => Style.(ghost.dimensions.width |. px, 0 |. px)
+              | Y => Style.(0 |. px, ghost.dimensions.height |. px)
+              };
+
+            <div
+              style=(
+                ReactDOMRe.Style.make(
+                  ~boxSizing="border-box",
+                  ~width,
+                  ~minWidth=width,
+                  ~height,
+                  ~minHeight=height,
+                  ~marginTop=Style.(ghost.margins.top |. px),
+                  ~marginBottom=Style.(ghost.margins.bottom |. px),
+                  ~marginLeft=Style.(ghost.margins.left |. px),
+                  ~marginRight=Style.(ghost.margins.right |. px),
+                  ~transition=Style.transition("all"),
+                  (),
+                )
               )
-            )
-          />
+            />;
+          }
         </Fragment>
 
       | Dragging(ghost, _)
@@ -638,14 +658,26 @@ module Make = (Cfg: Config) => {
                   ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
-                    Style.translate(
-                      0,
-                      - (
-                        ghost.dimensions.height
-                        + ghost.margins.top
-                        + ghost.margins.bottom
-                      ),
-                    ),
+                    switch (ghost.axis) {
+                    | X =>
+                      Style.translate(
+                        - (
+                          ghost.dimensions.width
+                          + ghost.margins.left
+                          + ghost.margins.right
+                        ),
+                        0,
+                      )
+                    | Y =>
+                      Style.translate(
+                        0,
+                        - (
+                          ghost.dimensions.height
+                          + ghost.margins.top
+                          + ghost.margins.bottom
+                        ),
+                      )
+                    },
                   (),
                 )
                 |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
@@ -669,12 +701,22 @@ module Make = (Cfg: Config) => {
                   ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
-                    Style.translate(
-                      0,
-                      ghost.dimensions.height
-                      + ghost.margins.top
-                      + ghost.margins.bottom,
-                    ),
+                    switch (ghost.axis) {
+                    | X =>
+                      Style.translate(
+                        ghost.dimensions.width
+                        + ghost.margins.left
+                        + ghost.margins.right,
+                        0,
+                      )
+                    | Y =>
+                      Style.translate(
+                        0,
+                        ghost.dimensions.height
+                        + ghost.margins.top
+                        + ghost.margins.bottom,
+                      )
+                    },
                   (),
                 )
                 |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
@@ -720,12 +762,22 @@ module Make = (Cfg: Config) => {
                   ~userSelect="none",
                   ~transition=Style.transition("transform"),
                   ~transform=
-                    Style.translate(
-                      0,
-                      ghost.dimensions.height
-                      + ghost.margins.top
-                      + ghost.margins.bottom,
-                    ),
+                    switch (ghost.axis) {
+                    | X =>
+                      Style.translate(
+                        ghost.dimensions.width
+                        + ghost.margins.left
+                        + ghost.margins.right,
+                        0,
+                      )
+                    | Y =>
+                      Style.translate(
+                        0,
+                        ghost.dimensions.height
+                        + ghost.margins.top
+                        + ghost.margins.bottom,
+                      )
+                    },
                   (),
                 )
                 |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),

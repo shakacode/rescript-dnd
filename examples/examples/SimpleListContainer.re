@@ -36,7 +36,7 @@ type action =
 
 let component = ReasonReact.reducerComponent(__MODULE__);
 
-let make = (~n, _) => {
+let make = (~n, ~layout, _) => {
   ...component,
   initialState: () => {
     todosIndex: Array.range(1, n),
@@ -75,6 +75,14 @@ let make = (~n, _) => {
            dnd =>
              <Screen.Droppable
                id=TodosDroppable
+               axis=(
+                 switch (layout) {
+                 | Example.Horizontal => X
+                 | Example.Vertical => Y
+                 | Example.CardBoard =>
+                   failwith("Don't use CardBoard layout with SimpleList")
+                 }
+               )
                context=dnd.context
                className=(
                  (~draggingOver) =>

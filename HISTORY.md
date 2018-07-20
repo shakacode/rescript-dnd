@@ -1,5 +1,9 @@
 # History
 
+## 0.6.0
+**Features**
+* Horizontal lists support.
+
 ## 0.5.0
 **Features**
 * Scrollable containers support.

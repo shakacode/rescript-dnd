@@ -1,32 +1,71 @@
+/* TODO: Refactor this mess */
+
 .example {
   display: flex;
-  margin: 20px 0;
 }
 
-.example.vertical {
+.example.vertical,
+.example.horizontal,
+.example.card-board {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: flex-start;
+}
+
+.example.vertical {
+  margin: 20px 0;
   width: 100%;
   min-width: 500px;
   max-width: 800px;
 }
 
+.example.horizontal {
+  margin: 20px;
+}
+
+.example.card-board {
+  width: calc(100vw - 300px);
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
 @media (max-width: 1024px) {
-  .example.vertical {
+  .example.vertical,
+  .example.horizontal {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
   }
+
+  .example.card-board {
+    margin: 20px 0;
+    width: 100vw;
+  }
 }
 
-.example-wrapper {
+.vertical .example-wrapper,
+.horizontal .example-wrapper {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+}
+
+.card-board .example-wrapper {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .horizontal .example-wrapper {
+    width: 95%;
+  }
 }
 
 .example-navbar-mobile {
@@ -41,6 +80,7 @@
     justify-content: space-between;
     margin-bottom: 30px;
     width: 90%;
+    min-height: 30px;
   }
 
   .example-navbar-mobile h1 {
@@ -60,9 +100,18 @@
   flex-flow: row nowrap;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0;
+  margin-bottom: 10px;
   width: 100%;
   min-height: 40px;
+}
+
+.vertical .example-wrapper,
+.horizontal .example-wrapper {
+  margin: 10px 0;
+}
+
+.card-board .example-header {
+  margin: 30px 60px 0;
 }
 
 @media (max-width: 600px) {
@@ -75,6 +124,12 @@
 @media (max-width: 1024px) {
   .example-header {
     width: 95%;
+  }
+
+  .card-board .example-header {
+    margin: 0 14px;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
   }
 }
 
@@ -95,13 +150,32 @@
   }
 }
 
-.todo-lists {
+.vertical .todo-lists,
+.horizontal .todo-lists {
   display: flex;
   position: relative;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+}
+
+.card-board .todo-lists {
+  display: flex;
+  position: relative;
+  flex-flow: row nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-left: -14px;
+  margin-right: -14px;
+  padding: 0 60px;
+}
+
+@media (max-width: 1024px) {
+  .card-board .todo-lists {
+    margin: 0;
+    padding: 0;
+  }
 }
 
 .todo-list {
@@ -124,26 +198,55 @@
   }
 }
 
-.todos {
-  display: flex;
+.card-board .todo-list {
+  margin: 14px;
+}
+
+.vertical .todos,
+.horizontal .todos,
+.card-board .todos {
+  display: inline-flex;
   position: relative;
-  flex-flow: column nowrap;
+  flex-wrap: nowrap;
   transition: background-color 200ms ease-in-out;
-  padding: 24px 30px 30px;
-  width: 100%;
   border: 1px dashed #ccc;
   border-radius: 6px;
   background-color: var(--background-color);
 }
 
+.vertical .todos,
+.horizontal .todos {
+  padding: 24px 30px 30px;
+}
+
+.vertical .todos {
+  flex-direction: column;
+  width: 100%;
+}
+
+.horizontal .todos {
+  flex-direction: row;
+}
+
+.card-board .todos {
+  flex-direction: column;
+  min-width: calc(200px + 20px + 20px);
+  padding: 14px 20px 20px;
+}
+
 @media (max-width: 1024px) {
+  .vertical .todos,
+  .horizontal .todos {
+    margin: 0 auto;
+    width: 95%;
+  }
+
   .todo-list .todos {
     width: 100%;
   }
 
-  .todos {
-    margin: 0 auto;
-    width: 95%;
+  .horizontal .scrollable-container .todos {
+    width: auto;
   }
 }
 
@@ -177,13 +280,31 @@
   background-color: #f1f1f1;
 }
 
-.todo {
+.vertical .todo,
+.horizontal .todo,
+.card-board .todo {
   display: flex;
-  padding: 10px 16px;
   border: 1px solid var(--background-color);
   border-radius: 4px;
   background-color: #fff;
   cursor: grab;
+}
+
+.vertical .todo {
+  padding: 10px 16px;
+}
+
+.horizontal .todo {
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+}
+
+.card-board .todo {
+  width: 200px;
+  min-height: 120px;
+  padding: 10px 16px;
 }
 
 @media (max-width: 1024px) {
@@ -193,16 +314,35 @@
   }
 }
 
-.scrollable-container {
+.horizontal .scrollable-container,
+.vertical .scrollable-container {
   display: block;
+}
+
+.vertical .scrollable-container {
   width: 100%;
   height: 80vh;
   overflow-y: auto;
 }
 
+.horizontal .scrollable-container {
+  width: 800px;
+  height: auto;
+  overflow-x: auto;
+}
+
 @media (max-width: 1024px) {
   .scrollable-container {
     height: 70vh;
+  }
+
+  .vertical .scrollable-container {
+    width: 100%;
+    text-align: center;
+  }
+
+  .horizontal .scrollable-container {
+    width: 90vw;
   }
 }
 

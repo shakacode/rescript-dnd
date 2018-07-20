@@ -63,6 +63,7 @@ module Make = (Cfg: Config) => {
   let make =
       (
         ~id as droppableId: Cfg.Droppable.t,
+        ~axis: Axis.t,
         ~accept: option(Cfg.Draggable.t => bool)=?,
         ~context: Context.t(Cfg.Draggable.t, Cfg.Droppable.t),
         ~className: option((~draggingOver: bool) => string)=?,
@@ -86,6 +87,7 @@ module Make = (Cfg: Config) => {
             self =>
               context.registerDroppable({
                 id: droppableId,
+                axis,
                 accept,
                 getGeometryAndScrollable: () =>
                   self |> Handlers.getGeometryAndScrollable,
@@ -128,12 +130,22 @@ module Make = (Cfg: Config) => {
                     Cfg.Droppable.eq,
                   )
                   && ! ghost.targetingOriginalDroppable =>
+              let (width, height) =
+                switch (ghost.axis) {
+                | X => Style.(ghost.dimensions.width |. px, 0 |. px)
+                | Y => Style.(0 |. px, ghost.dimensions.height |. px)
+                };
+
               children
               |. Array.concat([|
                    <div
                      style=(
                        ReactDOMRe.Style.make(
                          ~boxSizing="border-box",
+                         ~width,
+                         ~minWidth=width,
+                         ~height,
+                         ~minHeight=height,
                          ~marginTop=Style.(ghost.margins.top |. px),
                          ~marginBottom=Style.(ghost.margins.bottom |. px),
                          ~marginLeft=Style.(ghost.margins.left |. px),
@@ -142,14 +154,12 @@ module Make = (Cfg: Config) => {
                          ~borderBottom=Style.(ghost.borders.bottom |. px),
                          ~borderLeft=Style.(ghost.borders.left |. px),
                          ~borderRight=Style.(ghost.borders.right |. px),
-                         ~width=Style.(0 |. px),
-                         ~height=Style.(ghost.dimensions.height |. px),
                          ~transition=Style.transition("all"),
                          (),
                        )
                      )
                    />,
-                 |])
+                 |]);
             | _ =>
               children
               |. Array.concat([|

@@ -1,6 +1,6 @@
 let component = ReasonReact.statelessComponent(__MODULE__);
 
-let make = _ => {
+let make = (~layout, _) => {
   ...component,
   render: _ =>
     <ItemsAmountContainer startWith=50>
@@ -9,7 +9,18 @@ let make = _ => {
              <div className="example-wrapper">
                <div className="example-header">
                  <div className="example-header-title">
-                   ("Scrollable container" |> ReasonReact.string)
+                   (
+                     switch (layout) {
+                     | Example.Vertical =>
+                       "Vertical scrollable container" |> ReasonReact.string
+                     | Example.Horizontal =>
+                       "Horizontal scrollable container" |> ReasonReact.string
+                     | Example.CardBoard =>
+                       failwith(
+                         "Don't use CardBoard layout with ScrollableContainer",
+                       )
+                     }
+                   )
                  </div>
                  <div className="example-header-toolbar">
                    <Label htmlFor="input-amount">
@@ -28,9 +39,10 @@ let make = _ => {
                  </div>
                </div>
                <div className="scrollable-container">
-                 <VerticalListContainer
+                 <SimpleListContainer
                    key=(amount |> string_of_int)
                    n=amount
+                   layout
                  />
                </div>
              </div>

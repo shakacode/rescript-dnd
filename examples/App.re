@@ -42,7 +42,7 @@ let make = _ => {
     let showMobileNav = _ => ShowMobileNav |> send;
     let hideMobileNav = _ => HideMobileNav |> send;
 
-    <Layout>
+    <Container>
       <Nav
         route=state.route
         mobileNavShown=state.mobileNavShown
@@ -53,19 +53,37 @@ let make = _ => {
           switch (state.route) {
           | VerticalList =>
             <Example layout=Vertical showMobileNav>
-              <VerticalListExample />
+              <SimpleListExample key="VerticalList" layout=Vertical />
+            </Example>
+          | HorizontalList =>
+            <Example layout=Horizontal showMobileNav>
+              <SimpleListExample key="HorizontalList" layout=Horizontal />
+            </Example>
+          | VerticalScrollableContainer =>
+            <Example layout=Vertical showMobileNav>
+              <ScrollableContainerExample
+                key="VerticalContainer"
+                layout=Vertical
+              />
+            </Example>
+          | HorizontalScrollableContainer =>
+            <Example layout=Horizontal showMobileNav>
+              <ScrollableContainerExample
+                key="HorizontalContainer"
+                layout=Horizontal
+              />
+            </Example>
+          | CardBoard =>
+            <Example layout=CardBoard showMobileNav>
+              <CardBoardExample />
             </Example>
           | NestedVerticalLists =>
             <Example layout=Vertical showMobileNav>
               <NestedVerticalListsExample />
             </Example>
-          | ScrollableContainer =>
-            <Example layout=Vertical showMobileNav>
-              <ScrollableContainerExample />
-            </Example>
           }
         )
       </Main>
-    </Layout>;
+    </Container>;
   },
 };

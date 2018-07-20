@@ -17,9 +17,9 @@ module Window = {
       |> Element.asHtmlElement
       |> Option.getExn;
 
-    Dimensions.{
-      width: element |> HtmlElement.scrollWidth,
-      height: element |> HtmlElement.scrollHeight,
+    Distance.{
+      x: element |> HtmlElement.scrollWidth,
+      y: element |> HtmlElement.scrollHeight,
     };
   };
 };
@@ -48,9 +48,9 @@ module Element = {
     };
 
   let getMaxScroll = element =>
-    Dimensions.{
-      width: Webapi.Dom.(element |> HtmlElement.scrollWidth),
-      height: Webapi.Dom.(element |> HtmlElement.scrollHeight),
+    Distance.{
+      x: Webapi.Dom.(element |> HtmlElement.scrollWidth),
+      y: Webapi.Dom.(element |> HtmlElement.scrollHeight),
     };
 
   let rec getClosestScrollable = (element: Dom.htmlElement) =>

@@ -3,7 +3,7 @@
 @import "./components/Link.styles.css";
 @import "./components/Control.styles.css";
 
-@import "./components/Layout.styles.css";
+@import "./components/Container.styles.css";
 @import "./components/Nav.styles.css";
 @import "./components/Main.styles.css";
 @import "./components/Example.styles.css";

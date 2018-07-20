@@ -14,6 +14,7 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 
 ## Features
 * Vertical lists
+* Horizontal lists
 * Multiple drop targets
 * Mouse & Touch interactions
 * Conditional drag & drop
@@ -22,7 +23,6 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 * Auto-scroll when dragging at container's edge
 
 ### TODO
-- [ ] Horizontal lists
 - [ ] Keyboard interactions
 - [ ] Ignore form elements (opt-out)
 - [ ] Drop-zones
@@ -103,6 +103,7 @@ let make = _ => {
            dnd =>
              <Screen.Droppable
                id=TodoList
+               axis=Y
                context=dnd.context
                className=(
                  (~draggingOver) =>

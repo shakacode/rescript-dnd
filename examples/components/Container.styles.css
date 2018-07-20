@@ -1,4 +1,4 @@
-.layout {
+.container {
   display: flex;
   flex-flow: row nowrap;
   width: 100%;

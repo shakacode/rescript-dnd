@@ -12,6 +12,13 @@ module Delta = {
   };
 };
 
+module Distance = {
+  type t = {
+    x: int,
+    y: int,
+  };
+};
+
 module Dimensions = {
   type t = {
     width: int,
@@ -69,14 +76,34 @@ module Scroll = {
     initial: Point.t,
     current: Point.t,
     delta: Delta.t,
-    max: Dimensions.t,
+    max: Distance.t,
   };
+};
+
+module CanScroll = {
+  type t = {
+    x: bool,
+    y: bool,
+  };
+};
+
+module Axis = {
+  type t =
+    | X
+    | Y;
 };
 
 module Direction = {
   type t =
     | Alpha
     | Omega;
+};
+
+module AxisDirection = {
+  type t = {
+    x: Direction.t,
+    y: Direction.t,
+  };
 };
 
 module RelativityBag = {
@@ -128,6 +155,7 @@ module DraggableBag = {
 module DroppableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'droppableId,
+    axis: Axis.t,
     geometry: option(Geometry.t),
     scrollable: option(ScrollableElement.t),
     accept: option('draggableId => bool),
@@ -137,6 +165,7 @@ module DroppableBag = {
 
   type registrationPayload('draggableId, 'droppableId) = {
     id: 'droppableId,
+    axis: Axis.t,
     accept: option('draggableId => bool),
     getGeometryAndScrollable:
       unit => (Geometry.t, option(ScrollableElement.t)),
@@ -150,6 +179,7 @@ module Ghost = {
     originalDroppable: 'droppableId,
     targetDroppable: option('droppableId),
     targetingOriginalDroppable: bool,
+    axis: Axis.t,
     direction: option(Direction.t),
     dimensions: Dimensions.t,
     margins: Margins.t,
