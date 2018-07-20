@@ -1,6 +1,6 @@
 let component = ReasonReact.statelessComponent(__MODULE__);
 
-let make = _ => {
+let make = (~layout, _) => {
   ...component,
   render: _ =>
     <ItemsAmountContainer startWith=7>
@@ -9,7 +9,16 @@ let make = _ => {
              <div className="example-wrapper">
                <div className="example-header">
                  <div className="example-header-title">
-                   ("Vertical list" |> ReasonReact.string)
+                   (
+                     switch (layout) {
+                     | Example.Vertical =>
+                       "Vertical list" |> ReasonReact.string
+                     | Example.Horizontal =>
+                       "Horizontal list" |> ReasonReact.string
+                     | Example.CardBoard =>
+                       failwith("Don't use CardBoard layout with SimpleList")
+                     }
+                   )
                  </div>
                  <div className="example-header-toolbar">
                    <Label htmlFor="input-amount">
@@ -27,7 +36,11 @@ let make = _ => {
                    />
                  </div>
                </div>
-               <VerticalListContainer key=(amount |> string_of_int) n=amount />
+               <SimpleListContainer
+                 key=(amount |> string_of_int)
+                 n=amount
+                 layout
+               />
              </div>
          )
     </ItemsAmountContainer>,

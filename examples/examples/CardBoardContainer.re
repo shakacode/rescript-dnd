@@ -57,19 +57,39 @@ let component = ReasonReact.reducerComponent(__MODULE__);
 let make = _ => {
   ...component,
   initialState: () => {
-    todoListsIndex: Array.range(1, 2),
+    todoListsIndex: Array.range(1, 7),
     todoListsMap:
       Map.Int.empty
       |. Map.Int.set(
            1,
-           TodoList.{id: 1, name: "First list", todos: Array.range(1, 5)},
+           TodoList.{id: 1, name: "List #1", todos: Array.range(1, 4)},
          )
       |. Map.Int.set(
            2,
-           TodoList.{id: 2, name: "Second list", todos: Array.range(6, 10)},
+           TodoList.{id: 2, name: "List #2", todos: Array.range(5, 11)},
+         )
+      |. Map.Int.set(
+           3,
+           TodoList.{id: 3, name: "List #3", todos: Array.range(12, 14)},
+         )
+      |. Map.Int.set(
+           4,
+           TodoList.{id: 4, name: "List #4", todos: Array.range(15, 23)},
+         )
+      |. Map.Int.set(
+           5,
+           TodoList.{id: 5, name: "List #5", todos: Array.range(24, 28)},
+         )
+      |. Map.Int.set(
+           6,
+           TodoList.{id: 6, name: "List #6", todos: Array.range(29, 35)},
+         )
+      |. Map.Int.set(
+           7,
+           TodoList.{id: 7, name: "List #7", todos: Array.range(36, 40)},
          ),
     todosMap:
-      Array.range(1, 10)
+      Array.range(1, 40)
       |. Array.reduceU(Map.Int.empty, (. map, id) =>
            map
            |. Map.Int.set(
@@ -173,7 +193,7 @@ let make = _ => {
            dnd =>
              <Screen.Droppable
                id=TodoListsDroppable
-               axis=Y
+               axis=X
                accept=(
                         fun
                         | Todo(_) => false

@@ -20,15 +20,26 @@ let make = (~route, ~mobileNavShown, ~hideMobileNav, _) => {
       <Link path="vertical-list" active=(route === Routes.VerticalList)>
         ("Vertical list" |> ReasonReact.string)
       </Link>
+      <Link path="horizontal-list" active=(route === Routes.HorizontalList)>
+        ("Horizontal list" |> ReasonReact.string)
+      </Link>
+      <Link
+        path="vertical-scrollable-container"
+        active=(route === Routes.VerticalScrollableContainer)>
+        ("Vertical scrollable container" |> ReasonReact.string)
+      </Link>
+      <Link
+        path="horizontal-scrollable-container"
+        active=(route === Routes.HorizontalScrollableContainer)>
+        ("Horizontal scrollable container" |> ReasonReact.string)
+      </Link>
+      <Link path="card-board" active=(route === Routes.CardBoard)>
+        ("Card board" |> ReasonReact.string)
+      </Link>
       <Link
         path="nested-vertical-lists"
         active=(route === Routes.NestedVerticalLists)>
         ("Nested vertical list" |> ReasonReact.string)
-      </Link>
-      <Link
-        path="scrollable-container"
-        active=(route === Routes.ScrollableContainer)>
-        ("Scrollable container" |> ReasonReact.string)
       </Link>
     </nav>,
 };

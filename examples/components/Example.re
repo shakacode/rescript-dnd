@@ -2,7 +2,8 @@ open Dnd__React;
 
 type layout =
   | Vertical
-  | Horizontal;
+  | Horizontal
+  | CardBoard;
 
 let component = ReasonReact.statelessComponent(__MODULE__);
 
@@ -16,6 +17,7 @@ let make = (~layout, ~showMobileNav, children) => {
           switch (layout) {
           | Vertical => "vertical"
           | Horizontal => "horizontal"
+          | CardBoard => "card-board"
           },
         ])
       )>
