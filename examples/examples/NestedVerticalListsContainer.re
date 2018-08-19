@@ -57,19 +57,23 @@ let component = ReasonReact.reducerComponent(__MODULE__);
 let make = _ => {
   ...component,
   initialState: () => {
-    todoListsIndex: Array.range(1, 2),
+    todoListsIndex: Array.range(1, 3),
     todoListsMap:
       Map.Int.empty
       |. Map.Int.set(
            1,
-           TodoList.{id: 1, name: "First list", todos: Array.range(1, 5)},
+           TodoList.{id: 1, name: "List #1", todos: Array.range(1, 3)},
          )
       |. Map.Int.set(
            2,
-           TodoList.{id: 2, name: "Second list", todos: Array.range(6, 10)},
+           TodoList.{id: 2, name: "List #2", todos: Array.range(4, 6)},
+         )
+      |. Map.Int.set(
+           3,
+           TodoList.{id: 3, name: "List #3", todos: Array.range(7, 9)},
          ),
     todosMap:
-      Array.range(1, 10)
+      Array.range(1, 9)
       |. Array.reduceU(Map.Int.empty, (. map, id) =>
            map
            |. Map.Int.set(
@@ -183,19 +187,21 @@ let make = _ => {
                className=((~draggingOver as _) => "todo-lists")>
                (
                  state.todoListsIndex
-                 |. Array.mapU((. listId) => {
+                 |. Array.mapWithIndexU((. index, listId) => {
                       let list = state.todoListsMap |. Map.Int.getExn(listId);
 
                       <Screen.Draggable
                         id=(TodoList(list.id))
                         key=(list.id |. string_of_int)
                         droppableId=TodoListsDroppable
+                        index
                         context=dnd.context
                         className=(
-                          (~dragging) =>
+                          (~dragging, ~moving) =>
                             Cn.make([
                               "todo-list",
                               "dragging" |> Cn.ifTrue(dragging),
+                              "moving" |> Cn.ifTrue(moving),
                             ])
                         )>
                         ...(
@@ -222,6 +228,7 @@ let make = _ => {
                                      <Control
                                        className="drag-handle"
                                        style=handle.style
+                                       onKeyDown=handle.onKeyDown
                                        onMouseDown=handle.onMouseDown
                                        onTouchStart=handle.onTouchStart>
                                        <DragHandleIcon />
@@ -232,7 +239,7 @@ let make = _ => {
                                    </div>
                                    (
                                      list.todos
-                                     |. Array.mapU((. id) => {
+                                     |. Array.mapWithIndexU((. index, id) => {
                                           let todo =
                                             state.todosMap
                                             |. Map.Int.getExn(id);
@@ -243,13 +250,16 @@ let make = _ => {
                                             droppableId=(
                                               TodosDroppable(list.id)
                                             )
+                                            index
                                             context=dnd.context
                                             className=(
-                                              (~dragging) =>
+                                              (~dragging, ~moving) =>
                                                 Cn.make([
                                                   "todo",
                                                   "dragging"
                                                   |> Cn.ifTrue(dragging),
+                                                  "moving"
+                                                  |> Cn.ifTrue(moving),
                                                 ])
                                             )>
                                             ...(

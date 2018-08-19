@@ -7,6 +7,8 @@ let make =
       ~className="",
       ~style: option(ReactDOMRe.Style.t)=?,
       ~onClick: option(ReactEventRe.Mouse.t => unit)=?,
+      ~onKeyUp: option(ReactEventRe.Keyboard.t => unit)=?,
+      ~onKeyDown: option(ReactEventRe.Keyboard.t => unit)=?,
       ~onMouseDown: option(ReactEventRe.Mouse.t => unit)=?,
       ~onTouchStart: option(ReactEventRe.Touch.t => unit)=?,
       children,
@@ -18,6 +20,8 @@ let make =
       className=(Cn.make(["control", className]))
       ?style
       ?onClick
+      ?onKeyUp
+      ?onKeyDown
       ?onMouseDown
       ?onTouchStart>
       <Fragment> ...children </Fragment>

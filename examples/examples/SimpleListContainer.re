@@ -90,19 +90,21 @@ let make = (~n, ~layout, _) => {
                )>
                (
                  state.todosIndex
-                 |. Array.mapU((. id) => {
+                 |. Array.mapWithIndexU((. index, id) => {
                       let todo = state.todosMap |. Map.Int.getExn(id);
 
                       <Screen.Draggable
                         id=(Todo(todo.id))
                         key=(todo.id |. string_of_int)
                         droppableId=TodosDroppable
+                        index
                         context=dnd.context
                         className=(
-                          (~dragging) =>
+                          (~dragging, ~moving) =>
                             Cn.make([
                               "todo",
                               "dragging" |> Cn.ifTrue(dragging),
+                              "moving" |> Cn.ifTrue(moving),
                             ])
                         )>
                         ...(Children(todo.todo |> ReasonReact.string))

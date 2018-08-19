@@ -93,6 +93,14 @@ module Axis = {
     | Y;
 };
 
+module Arrow = {
+  type t =
+    | Up
+    | Down
+    | Left
+    | Right;
+};
+
 module Direction = {
   type t =
     | Alpha
@@ -139,14 +147,17 @@ module DraggableBag = {
   type t('draggableId, 'droppableId) = {
     id: 'draggableId,
     droppableId: 'droppableId,
-    geometry: option(Geometry.t),
+    originalIndex: int,
+    targetIndex: int,
     shift: Shift.t,
+    geometry: option(Geometry.t),
     animating: bool,
     getGeometry: unit => Geometry.t,
   };
 
   type registrationPayload('draggableId, 'droppableId) = {
     id: 'draggableId,
+    index: int,
     droppableId: 'droppableId,
     getGeometry: unit => Geometry.t,
   };
@@ -192,6 +203,26 @@ module Ghost = {
   };
 };
 
+module Pawn = {
+  type t('draggableId, 'droppableId) = {
+    element: Dom.htmlElement,
+    draggableId: 'draggableId,
+    originalDroppable: 'droppableId,
+    targetDroppable: 'droppableId,
+    targetingOriginalDroppable: bool,
+    axis: Axis.t,
+    originalIndex: int,
+    dimensions: Dimensions.t,
+    margins: Margins.t,
+    borders: Borders.t,
+    delta: Delta.t,
+    departurePoint: RelativityBag.t(Point.t),
+    currentPoint: RelativityBag.t(Point.t),
+    departureRect: RelativityBag.t(Rect.t),
+    currentRect: RelativityBag.t(Rect.t),
+  };
+};
+
 module Subscriptions = {
   type t = {
     install: unit => unit,
@@ -203,7 +234,9 @@ module Status = {
   type t('draggableId, 'droppableId) =
     | StandBy
     | Dragging(Ghost.t('draggableId, 'droppableId), Subscriptions.t)
-    | Dropping(Ghost.t('draggableId, 'droppableId));
+    | Dropping(Ghost.t('draggableId, 'droppableId))
+    | Moving(Pawn.t('draggableId, 'droppableId), Subscriptions.t)
+    | CancelingMove(Pawn.t('draggableId, 'droppableId));
 };
 
 module Context = {
@@ -218,7 +251,7 @@ module Context = {
     disposeDraggable: 'draggableId => unit,
     disposeDroppable: 'droppableId => unit,
     getDraggableShift: 'draggableId => Shift.t,
-    initDrag:
+    startDragging:
       (
         ~draggableId: 'draggableId,
         ~droppableId: 'droppableId,
@@ -231,6 +264,17 @@ module Context = {
     updateGhostPosition: RelativityBag.t(Point.t) => unit,
     drop: unit => unit,
     cancelDrag: unit => unit,
+    enterMoveMode:
+      (
+        ~draggableId: 'draggableId,
+        ~droppableId: 'droppableId,
+        ~element: Dom.htmlElement,
+        ~subscriptions: Subscriptions.t
+      ) =>
+      unit,
+    updatePawnPosition: Arrow.t => unit,
+    commitMove: unit => unit,
+    cancelMove: unit => unit,
   };
 };
 
@@ -252,7 +296,7 @@ module DropResult = {
     | NoChanges;
 
   type trait =
-    | Ghost
+    | Shifter
     | Item(Shift.t);
 
   type draggableIntermediateResult('draggableId) = {

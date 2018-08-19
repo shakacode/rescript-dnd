@@ -99,6 +99,24 @@ let getViewport = () => {
   };
 };
 
+let getElementCenterRelToViewport = (rect: DomRect.t) => {
+  let top = rect |. DomRect.top;
+  let bottom = rect |. DomRect.bottom;
+  let left = rect |. DomRect.left;
+  let right = rect |. DomRect.right;
+
+  Point.{x: left + (right - left) / 2, y: top + (bottom - top) / 2};
+};
+
+let getElementCenterRelToPage = (rect: DomRect.t, scroll: Point.t) => {
+  let top = scroll.y + (rect |. DomRect.top);
+  let bottom = scroll.y + (rect |. DomRect.bottom);
+  let left = scroll.x + (rect |. DomRect.left);
+  let right = scroll.x + (rect |. DomRect.right);
+
+  Point.{x: left + (right - left) / 2, y: top + (bottom - top) / 2};
+};
+
 let shiftRects = (delta: Delta.t, rect: RelativityBag.t(Rect.t)) =>
   RelativityBag.{
     page:

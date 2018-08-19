@@ -1,6 +1,8 @@
 {
-  "path": {
-    "bsb": "./node_modules/.bin/bsb",
-    "bsc": "./node_modules/.bin/bsc"
+  "server": {
+    "tool": "rls"
+  },
+  "interfaceGenerator": {
+    "bsc": "./node_modules/bs-platform/lib/bsc.exe"
   }
 }

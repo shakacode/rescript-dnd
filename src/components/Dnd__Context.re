@@ -1,3 +1,16 @@
+/* TODO: Abstract same-axis movements */
+/* TODO: Implement and abstract cross-axis movements */
+/* TODO: Update indexes on drag */
+/* TODO: Refactor dropping result reducer: use indexes */
+/* TODO: Implement move finishing: should use same abstraction as on drop handler */
+/* TODO: Handle scroll on move */
+/* TODO: Handle manual scroll */
+/* TODO: Abstract Draggable nodes (or parts like styles) */
+/* TODO: Handle dragHandle styling */
+/* FIXME: Fix case when moving first & last draggable back to original droppable */
+/* FIXME: Fix movements when arrow is pressed */
+/* FIXME: Handle drag start in move mode */
+
 open Dnd__Config;
 open Dnd__Types;
 
@@ -59,13 +72,29 @@ module Make = (Cfg: Config) => {
         Subscriptions.t,
       )
     | UpdateGhostPosition(RelativityBag.t(Point.t))
-    | UpdateScrollPosition
-    | RecalculateLayout(Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t))
-    | ResetAnimations(list(Cfg.Draggable.t))
-    | PrepareDrop
+    | UpdateScrollPositionOnDrag
+    | RecalculateLayoutOnDrag(Ghost.t(Cfg.Draggable.t, Cfg.Droppable.t))
+    | ResetAnimationsOnDrag(list(Cfg.Draggable.t))
+    | PrepareDrop(unit => unit)
     | StartDropping
     | FinishDropping(DropResult.t(Cfg.Draggable.t, Cfg.Droppable.t))
     | CancelDrag
+    | PrepareMoveMode(
+        Cfg.Draggable.t,
+        Cfg.Droppable.t,
+        Dom.htmlElement,
+        Subscriptions.t,
+      )
+    | EnterMoveMode(
+        Pawn.t(Cfg.Draggable.t, Cfg.Droppable.t),
+        Subscriptions.t,
+      )
+    | UpdatePawnPosition(Arrow.t)
+    | UpdateScrollPositionOnMove
+    | PrepareMoveModeExit(unit => unit)
+    | CommitMove
+    | CancelMove
+    | ExitMoveMode(DropResult.t(Cfg.Draggable.t, Cfg.Droppable.t))
     | Reset;
 
   module Handlers = {
@@ -87,14 +116,18 @@ module Make = (Cfg: Config) => {
                {
                  id: draggable.id,
                  droppableId: draggable.droppableId,
-                 geometry: None,
+                 originalIndex: draggable.index,
+                 targetIndex: draggable.index,
                  shift: None,
+                 geometry: None,
                  animating: false,
                  getGeometry: draggable.getGeometry,
                },
              )
       | Dragging(_, _)
-      | Dropping(_) => ()
+      | Dropping(_)
+      | Moving(_, _)
+      | CancelingMove(_) => ()
       };
 
     let registerDroppable =
@@ -122,7 +155,9 @@ module Make = (Cfg: Config) => {
                },
              )
       | Dragging(_, _)
-      | Dropping(_) => ()
+      | Dropping(_)
+      | Moving(_, _)
+      | CancelingMove(_) => ()
       };
 
     let disposeDraggable = (draggableId, {ReasonReact.state}) =>
@@ -411,17 +446,19 @@ module Make = (Cfg: Config) => {
                         },
                       };
 
-                      RecalculateLayout(nextGhost) |> send;
+                      RecalculateLayoutOnDrag(nextGhost) |> send;
                     }),
                   );
               }
             ),
           )
         | Dropping(_)
+        | Moving(_, _)
+        | CancelingMove(_)
         | StandBy => ReasonReact.NoUpdate
         }
 
-      | UpdateScrollPosition =>
+      | UpdateScrollPositionOnDrag =>
         ReasonReact.SideEffects(
           (
             ({state, send}) =>
@@ -656,7 +693,7 @@ module Make = (Cfg: Config) => {
                       state.scheduledLayoutRecalculationFrameId :=
                         Some(
                           Webapi.requestCancellableAnimationFrame(_ =>
-                            RecalculateLayout(ghost) |> send
+                            RecalculateLayoutOnDrag(ghost) |> send
                           ),
                         );
                     });
@@ -665,12 +702,14 @@ module Make = (Cfg: Config) => {
                 };
 
               | Dropping(_)
+              | Moving(_, _)
+              | CancelingMove(_)
               | StandBy => ()
               }
           ),
         )
 
-      | RecalculateLayout(ghost) =>
+      | RecalculateLayoutOnDrag(ghost) =>
         switch (state.status) {
         | Dragging(_, subscriptions) =>
           let (draggables, animate) =
@@ -848,9 +887,9 @@ module Make = (Cfg: Config) => {
             },
             (
               ({send}) => {
-                UpdateScrollPosition |> send;
+                UpdateScrollPositionOnDrag |> send;
                 Js.Global.setTimeout(
-                  () => ResetAnimations(animate) |> send,
+                  () => ResetAnimationsOnDrag(animate) |> send,
                   Style.(animationDuration + resetAnimationsFactor),
                 )
                 |> ignore;
@@ -858,10 +897,12 @@ module Make = (Cfg: Config) => {
             ),
           );
         | Dropping(_)
+        | Moving(_, _)
+        | CancelingMove(_)
         | StandBy => ReasonReact.NoUpdate
         }
 
-      | ResetAnimations(draggableIds) =>
+      | ResetAnimationsOnDrag(draggableIds) =>
         switch (draggableIds) {
         | [] => ReasonReact.NoUpdate
         | _ as ids =>
@@ -886,31 +927,39 @@ module Make = (Cfg: Config) => {
           )
         }
 
-      | PrepareDrop =>
+      | PrepareDrop(drop) =>
         ReasonReact.SideEffects(
           (
-            ({state, send}) => {
-              switch (state.scheduledLayoutRecalculationFrameId^) {
-              | Some(frameId) =>
-                frameId |> Webapi.cancelAnimationFrame;
-                state.scheduledLayoutRecalculationFrameId := None;
-              | None => ()
-              };
-              switch (state.scheduledWindowScrollFrameId^) {
-              | Some(frameId) =>
-                frameId |> Webapi.cancelAnimationFrame;
-                state.scheduledWindowScrollFrameId := None;
-              | None => ()
-              };
-              switch (state.scheduledScrollableElementScrollFrameId^) {
-              | Some(frameId) =>
-                frameId |> Webapi.cancelAnimationFrame;
-                state.scheduledScrollableElementScrollFrameId := None;
-              | None => ()
-              };
+            ({state}) =>
+              switch (state.status) {
+              | Dragging(_, subscriptions) =>
+                subscriptions.drop();
 
-              StartDropping |> send;
-            }
+                switch (state.scheduledLayoutRecalculationFrameId^) {
+                | Some(frameId) =>
+                  frameId |> Webapi.cancelAnimationFrame;
+                  state.scheduledLayoutRecalculationFrameId := None;
+                | None => ()
+                };
+
+                switch (state.scheduledWindowScrollFrameId^) {
+                | Some(frameId) =>
+                  frameId |> Webapi.cancelAnimationFrame;
+                  state.scheduledWindowScrollFrameId := None;
+                | None => ()
+                };
+
+                switch (state.scheduledScrollableElementScrollFrameId^) {
+                | Some(frameId) =>
+                  frameId |> Webapi.cancelAnimationFrame;
+                  state.scheduledScrollableElementScrollFrameId := None;
+                | None => ()
+                };
+
+                drop();
+
+              | _ => ()
+              }
           ),
         )
 
@@ -974,7 +1023,7 @@ module Make = (Cfg: Config) => {
                          |. Array.concat([|
                               DropResult.{
                                 id,
-                                trait: Ghost,
+                                trait: Shifter,
                                 rect: ghost.currentRect,
                                 margins: geometry.margins,
                               },
@@ -1002,21 +1051,21 @@ module Make = (Cfg: Config) => {
                    )
                 |. SortArray.stableSortBy((d1, d2) =>
                      switch (d1.trait, d2.trait, ghost.axis) {
-                     | (Ghost, Item(Some(Alpha)), _) => 1
-                     | (Ghost, Item(Some(Omega)), _) => (-1)
-                     | (Ghost, Item(None), X) =>
+                     | (Shifter, Item(Some(Alpha)), _) => 1
+                     | (Shifter, Item(Some(Omega)), _) => (-1)
+                     | (Shifter, Item(None), X) =>
                        ghost.departureRect.page.left
                        - (d2.rect.page.left + scrollableDelta.x)
-                     | (Ghost, Item(None), Y) =>
+                     | (Shifter, Item(None), Y) =>
                        ghost.departureRect.page.top
                        - (d2.rect.page.top + scrollableDelta.y)
-                     | (Item(Some(Alpha)), Ghost, _) => (-1)
-                     | (Item(Some(Omega)), Ghost, _) => 1
-                     | (Item(None), Ghost, X) =>
+                     | (Item(Some(Alpha)), Shifter, _) => (-1)
+                     | (Item(Some(Omega)), Shifter, _) => 1
+                     | (Item(None), Shifter, X) =>
                        d1.rect.page.left
                        + scrollableDelta.x
                        - ghost.departureRect.page.left
-                     | (Item(None), Ghost, Y) =>
+                     | (Item(None), Shifter, Y) =>
                        d1.rect.page.top
                        + scrollableDelta.y
                        - ghost.departureRect.page.top
@@ -1024,7 +1073,7 @@ module Make = (Cfg: Config) => {
                        d1.rect.page.left - d2.rect.page.left
                      | (Item(_), Item(_), Y) =>
                        d1.rect.page.top - d2.rect.page.top
-                     | (Ghost, Ghost, _) => 0 /* impossible */
+                     | (Shifter, Shifter, _) => 0 /* impossible */
                      }
                    );
 
@@ -1033,8 +1082,8 @@ module Make = (Cfg: Config) => {
                 |> Js.Array.findIndex(item =>
                      DropResult.(
                        switch (item.trait) {
-                       | Ghost => true
                        | Item(_) => false
+                       | Shifter => true
                        }
                      )
                    );
@@ -1171,7 +1220,7 @@ module Make = (Cfg: Config) => {
                          |. Array.concat([|
                               DropResult.{
                                 id,
-                                trait: Ghost,
+                                trait: Shifter,
                                 rect: ghost.currentRect,
                                 margins: geometry.margins,
                               },
@@ -1199,17 +1248,17 @@ module Make = (Cfg: Config) => {
                    )
                 |. SortArray.stableSortBy((d1, d2) =>
                      switch (d1.trait, d2.trait, ghost.axis) {
-                     | (Ghost, Item(Some(Alpha)), _) => 1
-                     | (Ghost, Item(Some(Omega)), _) => (-1)
-                     | (Ghost, Item(None), _) => 1
-                     | (Item(Some(Alpha)), Ghost, _) => (-1)
-                     | (Item(Some(Omega)), Ghost, _) => 1
-                     | (Item(None), Ghost, _) => (-1)
+                     | (Shifter, Item(Some(Alpha)), _) => 1
+                     | (Shifter, Item(Some(Omega)), _) => (-1)
+                     | (Shifter, Item(None), _) => 1
+                     | (Item(Some(Alpha)), Shifter, _) => (-1)
+                     | (Item(Some(Omega)), Shifter, _) => 1
+                     | (Item(None), Shifter, _) => (-1)
                      | (Item(_), Item(_), X) =>
                        d1.rect.page.left - d2.rect.page.left
                      | (Item(_), Item(_), Y) =>
                        d1.rect.page.top - d2.rect.page.top
-                     | (Ghost, Ghost, _) => 0 /* impossible */
+                     | (Shifter, Shifter, _) => 0 /* impossible */
                      }
                    );
 
@@ -1218,8 +1267,8 @@ module Make = (Cfg: Config) => {
                 |> Js.Array.findIndex(item =>
                      DropResult.(
                        switch (item.trait) {
-                       | Ghost => true
                        | Item(_) => false
+                       | Shifter => true
                        }
                      )
                    );
@@ -1434,6 +1483,8 @@ module Make = (Cfg: Config) => {
           );
 
         | Dropping(_)
+        | Moving(_, _)
+        | CancelingMove(_)
         | StandBy => ReasonReact.NoUpdate
         }
 
@@ -1443,7 +1494,7 @@ module Make = (Cfg: Config) => {
           let droppable =
             state.droppables^ |. Map.getExn(ghost.originalDroppable);
 
-          let ghost =
+          let nextGhost =
             switch (droppable) {
             | {scrollable: Some(scrollable)} => {
                 ...ghost,
@@ -1468,7 +1519,7 @@ module Make = (Cfg: Config) => {
           ReasonReact.UpdateWithSideEffects(
             {
               ...state,
-              status: Dropping(ghost),
+              status: Dropping(nextGhost),
               draggables: ref(draggables),
             },
             (
@@ -1482,6 +1533,8 @@ module Make = (Cfg: Config) => {
           );
 
         | Dropping(_)
+        | Moving(_, _)
+        | CancelingMove(_)
         | StandBy => ReasonReact.NoUpdate
         }
 
@@ -1494,6 +1547,1283 @@ module Make = (Cfg: Config) => {
             }
           ),
         )
+
+      | PrepareMoveMode(draggableId, droppableId, element, subscriptions) =>
+        ReasonReact.SideEffects(
+          (
+            ({state, send}) => {
+              open Webapi.Dom;
+
+              let draggable = state.draggables^ |. Map.getExn(draggableId);
+              let droppable = state.droppables^ |. Map.getExn(droppableId);
+
+              let maxScroll = Scrollable.Window.getMaxScroll();
+              let scrollPosition = Scrollable.Window.getScrollPosition();
+
+              let rect = element |. HtmlElement.getBoundingClientRect;
+              let style =
+                element
+                |. Html.castHtmlElementToElement
+                |. Window.getComputedStyle(window);
+
+              let viewportRect = rect |> Geometry.getViewportRect;
+              let pageRect =
+                scrollPosition
+                |> Geometry.getPageRectFromViewportRect(viewportRect);
+              let currentRect =
+                RelativityBag.{page: pageRect, viewport: viewportRect};
+
+              let currentPoint =
+                RelativityBag.{
+                  viewport: rect |. Geometry.getElementCenterRelToViewport,
+                  page:
+                    rect |. Geometry.getElementCenterRelToPage(scrollPosition),
+                };
+
+              let pawn =
+                Pawn.{
+                  element,
+                  draggableId,
+                  originalDroppable: droppableId,
+                  targetDroppable: droppableId,
+                  targetingOriginalDroppable: true,
+                  axis: droppable.axis,
+                  originalIndex: draggable.originalIndex,
+                  dimensions: rect |. Geometry.getDimensions,
+                  margins: style |. Geometry.getMargins,
+                  borders: style |. Geometry.getBorders,
+                  departurePoint: currentPoint,
+                  currentPoint,
+                  departureRect: currentRect,
+                  currentRect,
+                  delta: {
+                    x: 0,
+                    y: 0,
+                  },
+                };
+
+              state.draggables :=
+                state.draggables^
+                |. Map.map(draggable =>
+                     {...draggable, geometry: Some(draggable.getGeometry())}
+                   );
+
+              state.droppables :=
+                state.droppables^
+                |. Map.map(droppable => {
+                     let (geometry, scrollable) =
+                       droppable.getGeometryAndScrollable();
+                     {...droppable, geometry: Some(geometry), scrollable};
+                   });
+
+              state.viewport := Some(Geometry.getViewport());
+
+              state.scroll :=
+                Some(
+                  Scroll.{
+                    max: maxScroll,
+                    initial: scrollPosition,
+                    current: scrollPosition,
+                    delta: {
+                      x: 0,
+                      y: 0,
+                    },
+                  },
+                );
+
+              EnterMoveMode(pawn, subscriptions) |> send;
+            }
+          ),
+        )
+
+      | EnterMoveMode(pawn, subscriptions) =>
+        ReasonReact.UpdateWithSideEffects(
+          {...state, status: Moving(pawn, subscriptions)},
+          (_ => subscriptions.install()),
+        )
+
+      | UpdatePawnPosition(arrow) =>
+        switch (state.status) {
+        | Moving(pawn, subscriptions) =>
+          let droppable =
+            state.droppables^ |. Map.getExn(pawn.targetDroppable);
+
+          let sortedDraggables =
+            state.draggables^
+            |. Map.keep((_, draggable) =>
+                 Cfg.Droppable.eq(draggable.droppableId, droppable.id)
+                 || Cfg.Draggable.eq(draggable.id, pawn.draggableId)
+               )
+            |. Map.valuesToArray
+            |. SortArray.stableSortBy((d1, d2) =>
+                 if (d1.targetIndex > d2.targetIndex) {
+                   1;
+                 } else if (d1.targetIndex < d2.targetIndex) {
+                   (-1);
+                 } else {
+                   0;
+                 }
+               );
+
+          let pawnIndex =
+            sortedDraggables
+            |> Js.Array.findIndex(
+                 (
+                   draggable: DraggableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
+                 ) =>
+                 Cfg.Draggable.eq(draggable.id, pawn.draggableId)
+               );
+
+          switch (arrow, pawn.axis) {
+          | (Arrow.Up, Axis.X) => ReasonReact.NoUpdate
+          | (Arrow.Down, Axis.X) => ReasonReact.NoUpdate
+
+          | (Arrow.Left, Axis.X) =>
+            switch (sortedDraggables |. Array.get(pawnIndex - 1)) {
+            | Some(draggable) =>
+              let draggableWidth =
+                Option.getExn(draggable.geometry).dimensions.width;
+
+              let nextPoint =
+                RelativityBag.{
+                  viewport:
+                    Point.{
+                      x: pawn.currentPoint.viewport.x - draggableWidth,
+                      y: pawn.currentPoint.viewport.y,
+                    },
+                  page:
+                    Point.{
+                      x: pawn.currentPoint.page.x - draggableWidth,
+                      y: pawn.currentPoint.page.y,
+                    },
+                };
+
+              let nextDelta =
+                Delta.{
+                  x: nextPoint.page.x - pawn.departurePoint.page.x,
+                  y: pawn.delta.y,
+                };
+
+              let nextPawn = {
+                ...pawn,
+                currentPoint: nextPoint,
+                delta: nextDelta,
+              };
+
+              let nextDraggables =
+                state.draggables^
+                |. Map.update(pawn.draggableId, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex - 1,
+                          }
+                        )
+                   )
+                |. Map.update(draggable.id, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex + 1,
+                            shift:
+                              if (pawn.targetingOriginalDroppable) {
+                                if (draggable.originalIndex
+                                    < pawn.originalIndex) {
+                                  Some(Omega);
+                                } else {
+                                  None;
+                                };
+                              } else {
+                                Some(Omega);
+                              },
+                          }
+                        )
+                   );
+
+              ReasonReact.Update({
+                ...state,
+                status: Moving(nextPawn, subscriptions),
+                draggables: ref(nextDraggables),
+              });
+
+            | None =>
+              let sortedDroppables =
+                state.droppables^
+                |. Map.keep((_, droppable) =>
+                     switch (droppable.accept) {
+                     | Some(accept) => pawn.draggableId |> accept
+                     | None => true
+                     }
+                   )
+                |. Map.valuesToArray
+                |. SortArray.stableSortBy((d1, d2) => {
+                     let v1 = Option.getExn(d1.geometry).rect.page.left;
+                     let v2 = Option.getExn(d2.geometry).rect.page.left;
+
+                     if (v1 > v2) {
+                       1;
+                     } else if (v1 < v2) {
+                       (-1);
+                     } else {
+                       0;
+                     };
+                   });
+
+              let currentDroppableIndex =
+                sortedDroppables
+                |> Js.Array.findIndex(
+                     (
+                       droppable:
+                         DroppableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
+                     ) =>
+                     Cfg.Droppable.eq(droppable.id, pawn.targetDroppable)
+                   );
+
+              let currentDroppableGeometry =
+                Array.getExn(sortedDroppables, currentDroppableIndex).geometry
+                |. Option.getExn;
+
+              switch (
+                sortedDroppables |. Array.get(currentDroppableIndex - 1)
+              ) {
+              | None => ReasonReact.NoUpdate
+              | Some(droppable)
+                  when
+                    currentDroppableGeometry.rect.page.left
+                    === Option.getExn(droppable.geometry).rect.page.left => ReasonReact.NoUpdate
+              | Some(droppable) =>
+                let targetingOriginalDroppable =
+                  Cfg.Droppable.eq(droppable.id, pawn.originalDroppable);
+
+                let sortedDraggables =
+                  state.draggables^
+                  |. Map.keep((_, draggable) =>
+                       Cfg.Droppable.eq(draggable.droppableId, droppable.id)
+                     )
+                  |. Map.valuesToArray
+                  |. SortArray.stableSortBy((d1, d2) =>
+                       if (d1.targetIndex > d2.targetIndex) {
+                         1;
+                       } else if (d1.targetIndex < d2.targetIndex) {
+                         (-1);
+                       } else {
+                         0;
+                       }
+                     );
+
+                let numberOfDraggables = sortedDraggables |. Array.length;
+
+                let nextPoint =
+                  switch (
+                    sortedDraggables |. Array.get(numberOfDraggables - 1)
+                  ) {
+                  | Some(draggable) =>
+                    let draggableGeometry =
+                      draggable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x:
+                            draggableGeometry.rect.viewport.right
+                            - pawn.dimensions.width
+                            / 2
+                            + (
+                              targetingOriginalDroppable ?
+                                0 : pawn.dimensions.width
+                            ),
+                          y: pawn.currentPoint.viewport.y,
+                        },
+                      page:
+                        Point.{
+                          x:
+                            draggableGeometry.rect.page.right
+                            - pawn.dimensions.width
+                            / 2
+                            + (
+                              targetingOriginalDroppable ?
+                                0 : pawn.dimensions.width
+                            ),
+                          y: pawn.currentPoint.page.y,
+                        },
+                    };
+
+                  | None =>
+                    let droppableGeometry =
+                      droppable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x:
+                            droppableGeometry.rect.viewport.right
+                            - droppableGeometry.borders.right
+                            - droppableGeometry.paddings.right
+                            - pawn.dimensions.width
+                            / 2
+                            + pawn.dimensions.width,
+                          y: pawn.currentPoint.viewport.y,
+                        },
+                      page:
+                        Point.{
+                          y:
+                            droppableGeometry.rect.page.right
+                            - droppableGeometry.borders.right
+                            - droppableGeometry.paddings.right
+                            - pawn.dimensions.width
+                            / 2
+                            + pawn.dimensions.width,
+                          x: pawn.currentPoint.page.x,
+                        },
+                    };
+                  };
+
+                let nextDelta =
+                  Delta.{
+                    x: nextPoint.page.x - pawn.departurePoint.page.x,
+                    y: pawn.delta.y,
+                  };
+
+                let nextPawn = {
+                  ...pawn,
+                  targetDroppable: droppable.id,
+                  targetingOriginalDroppable,
+                  currentPoint: nextPoint,
+                  delta: nextDelta,
+                };
+
+                let nextDraggables =
+                  state.draggables^
+                  |. Map.map(draggable =>
+                       if (Cfg.Draggable.eq(draggable.id, pawn.draggableId)) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             nextPawn.targetingOriginalDroppable ?
+                               numberOfDraggables - 1 : numberOfDraggables,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             draggable.originalIndex > pawn.originalIndex ?
+                               draggable.originalIndex - 1 :
+                               draggable.originalIndex,
+                           shift:
+                             draggable.originalIndex > pawn.originalIndex ?
+                               Some(Alpha) : None,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && ! nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: Some(Alpha),
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    pawn.targetDroppable,
+                                  )) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: None,
+                         };
+                       } else {
+                         draggable;
+                       }
+                     );
+
+                ReasonReact.Update({
+                  ...state,
+                  status: Moving(nextPawn, subscriptions),
+                  draggables: ref(nextDraggables),
+                });
+              };
+            }
+
+          | (Arrow.Right, Axis.X) =>
+            switch (sortedDraggables |. Array.get(pawnIndex + 1)) {
+            | Some(draggable) =>
+              let draggableWidth =
+                Option.getExn(draggable.geometry).dimensions.width;
+
+              let nextPoint =
+                RelativityBag.{
+                  viewport:
+                    Point.{
+                      x: pawn.currentPoint.viewport.x + draggableWidth,
+                      y: pawn.currentPoint.viewport.y,
+                    },
+                  page:
+                    Point.{
+                      x: pawn.currentPoint.page.x + draggableWidth,
+                      y: pawn.currentPoint.page.y,
+                    },
+                };
+
+              let nextDelta =
+                Delta.{
+                  x: nextPoint.page.x - pawn.departurePoint.page.x,
+                  y: pawn.delta.y,
+                };
+
+              let nextPawn = {
+                ...pawn,
+                currentPoint: nextPoint,
+                delta: nextDelta,
+              };
+
+              let nextDraggables =
+                state.draggables^
+                |. Map.update(pawn.draggableId, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex + 1,
+                          }
+                        )
+                   )
+                |. Map.update(draggable.id, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex - 1,
+                            shift:
+                              if (pawn.targetingOriginalDroppable) {
+                                if (draggable.originalIndex
+                                    > pawn.originalIndex) {
+                                  Some(Alpha);
+                                } else {
+                                  None;
+                                };
+                              } else {
+                                Some(Alpha);
+                              },
+                          }
+                        )
+                   );
+
+              ReasonReact.Update({
+                ...state,
+                status: Moving(nextPawn, subscriptions),
+                draggables: ref(nextDraggables),
+              });
+
+            | None =>
+              let sortedDroppables =
+                state.droppables^
+                |. Map.keep((_, droppable) =>
+                     switch (droppable.accept) {
+                     | Some(accept) => pawn.draggableId |> accept
+                     | None => true
+                     }
+                   )
+                |. Map.valuesToArray
+                |. SortArray.stableSortBy((d1, d2) => {
+                     let v1 = Option.getExn(d1.geometry).rect.page.left;
+                     let v2 = Option.getExn(d2.geometry).rect.page.left;
+
+                     if (v1 > v2) {
+                       1;
+                     } else if (v1 < v2) {
+                       (-1);
+                     } else {
+                       0;
+                     };
+                   });
+
+              let currentDroppableIndex =
+                sortedDroppables
+                |> Js.Array.findIndex(
+                     (
+                       droppable:
+                         DroppableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
+                     ) =>
+                     Cfg.Droppable.eq(droppable.id, pawn.targetDroppable)
+                   );
+
+              let currentDroppableGeometry =
+                Array.getExn(sortedDroppables, currentDroppableIndex).geometry
+                |. Option.getExn;
+
+              switch (
+                sortedDroppables |. Array.get(currentDroppableIndex + 1)
+              ) {
+              | None => ReasonReact.NoUpdate
+              | Some(droppable)
+                  when
+                    currentDroppableGeometry.rect.page.left
+                    === Option.getExn(droppable.geometry).rect.page.left => ReasonReact.NoUpdate
+              | Some(droppable) =>
+                let sortedDraggables =
+                  state.draggables^
+                  |. Map.keep((_, draggable) =>
+                       Cfg.Droppable.eq(draggable.droppableId, droppable.id)
+                     )
+                  |. Map.valuesToArray
+                  |. SortArray.stableSortBy((d1, d2) =>
+                       if (d1.targetIndex > d2.targetIndex) {
+                         1;
+                       } else if (d1.targetIndex < d2.targetIndex) {
+                         (-1);
+                       } else {
+                         0;
+                       }
+                     );
+
+                let nextPoint =
+                  switch (sortedDraggables |. Array.get(0)) {
+                  | Some(draggable) =>
+                    let draggableGeometry =
+                      draggable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x:
+                            draggableGeometry.rect.viewport.left
+                            + pawn.dimensions.width
+                            / 2,
+                          y: pawn.currentPoint.viewport.y,
+                        },
+                      page:
+                        Point.{
+                          x:
+                            draggableGeometry.rect.page.left
+                            + pawn.dimensions.width
+                            / 2,
+                          y: pawn.currentPoint.page.y,
+                        },
+                    };
+
+                  | None =>
+                    let droppableGeometry =
+                      droppable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x:
+                            droppableGeometry.rect.viewport.right
+                            - droppableGeometry.borders.right
+                            - droppableGeometry.paddings.right
+                            - pawn.dimensions.width
+                            / 2
+                            + pawn.dimensions.width,
+                          y: pawn.currentPoint.viewport.y,
+                        },
+                      page:
+                        Point.{
+                          x:
+                            droppableGeometry.rect.page.right
+                            - droppableGeometry.borders.right
+                            - droppableGeometry.paddings.right
+                            - pawn.dimensions.width
+                            / 2
+                            + pawn.dimensions.width,
+                          y: pawn.currentPoint.page.y,
+                        },
+                    };
+                  };
+
+                let nextDelta =
+                  Delta.{
+                    x: nextPoint.page.x - pawn.departurePoint.page.x,
+                    y: pawn.delta.y,
+                  };
+
+                let nextPawn = {
+                  ...pawn,
+                  targetDroppable: droppable.id,
+                  targetingOriginalDroppable:
+                    Cfg.Droppable.eq(droppable.id, pawn.originalDroppable),
+                  currentPoint: nextPoint,
+                  delta: nextDelta,
+                };
+
+                let nextDraggables =
+                  state.draggables^
+                  |. Map.map(draggable =>
+                       if (Cfg.Draggable.eq(draggable.id, pawn.draggableId)) {
+                         {...draggable, targetIndex: 0};
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             draggable.originalIndex < pawn.originalIndex ?
+                               draggable.originalIndex + 1 :
+                               draggable.originalIndex,
+                           shift:
+                             draggable.originalIndex < pawn.originalIndex ?
+                               Some(Omega) : None,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && ! nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex + 1,
+                           shift: Some(Omega),
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    pawn.targetDroppable,
+                                  )) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: None,
+                         };
+                       } else {
+                         draggable;
+                       }
+                     );
+
+                ReasonReact.Update({
+                  ...state,
+                  status: Moving(nextPawn, subscriptions),
+                  draggables: ref(nextDraggables),
+                });
+              };
+            }
+
+          | (Arrow.Up, Axis.Y) =>
+            switch (sortedDraggables |. Array.get(pawnIndex - 1)) {
+            | Some(draggable) =>
+              let draggableHeight =
+                Option.getExn(draggable.geometry).dimensions.height;
+
+              let nextPoint =
+                RelativityBag.{
+                  viewport:
+                    Point.{
+                      x: pawn.currentPoint.viewport.x,
+                      y: pawn.currentPoint.viewport.y - draggableHeight,
+                    },
+                  page:
+                    Point.{
+                      x: pawn.currentPoint.page.x,
+                      y: pawn.currentPoint.page.y - draggableHeight,
+                    },
+                };
+
+              let nextDelta =
+                Delta.{
+                  x: pawn.delta.x,
+                  y: nextPoint.page.y - pawn.departurePoint.page.y,
+                };
+
+              let nextPawn = {
+                ...pawn,
+                currentPoint: nextPoint,
+                delta: nextDelta,
+              };
+
+              let nextDraggables =
+                state.draggables^
+                |. Map.update(pawn.draggableId, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex - 1,
+                          }
+                        )
+                   )
+                |. Map.update(draggable.id, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex + 1,
+                            shift:
+                              if (pawn.targetingOriginalDroppable) {
+                                if (draggable.originalIndex
+                                    < pawn.originalIndex) {
+                                  Some(Omega);
+                                } else {
+                                  None;
+                                };
+                              } else {
+                                Some(Omega);
+                              },
+                          }
+                        )
+                   );
+
+              ReasonReact.Update({
+                ...state,
+                status: Moving(nextPawn, subscriptions),
+                draggables: ref(nextDraggables),
+              });
+
+            | None =>
+              let sortedDroppables =
+                state.droppables^
+                |. Map.keep((_, droppable) =>
+                     switch (droppable.accept) {
+                     | Some(accept) => pawn.draggableId |> accept
+                     | None => true
+                     }
+                   )
+                |. Map.valuesToArray
+                |. SortArray.stableSortBy((d1, d2) => {
+                     let v1 = Option.getExn(d1.geometry).rect.page.top;
+                     let v2 = Option.getExn(d2.geometry).rect.page.top;
+
+                     if (v1 > v2) {
+                       1;
+                     } else if (v1 < v2) {
+                       (-1);
+                     } else {
+                       0;
+                     };
+                   });
+
+              let currentDroppableIndex =
+                sortedDroppables
+                |> Js.Array.findIndex(
+                     (
+                       droppable:
+                         DroppableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
+                     ) =>
+                     Cfg.Droppable.eq(droppable.id, pawn.targetDroppable)
+                   );
+
+              let currentDroppableGeometry =
+                Array.getExn(sortedDroppables, currentDroppableIndex).geometry
+                |. Option.getExn;
+
+              switch (
+                sortedDroppables |. Array.get(currentDroppableIndex - 1)
+              ) {
+              | None => ReasonReact.NoUpdate
+              | Some(droppable)
+                  when
+                    currentDroppableGeometry.rect.page.top
+                    === Option.getExn(droppable.geometry).rect.page.top => ReasonReact.NoUpdate
+              | Some(droppable) =>
+                let targetingOriginalDroppable =
+                  Cfg.Droppable.eq(droppable.id, pawn.originalDroppable);
+
+                let sortedDraggables =
+                  state.draggables^
+                  |. Map.keep((_, draggable) =>
+                       Cfg.Droppable.eq(draggable.droppableId, droppable.id)
+                     )
+                  |. Map.valuesToArray
+                  |. SortArray.stableSortBy((d1, d2) =>
+                       if (d1.targetIndex > d2.targetIndex) {
+                         1;
+                       } else if (d1.targetIndex < d2.targetIndex) {
+                         (-1);
+                       } else {
+                         0;
+                       }
+                     );
+
+                let numberOfDraggables = sortedDraggables |. Array.length;
+
+                let nextPoint =
+                  switch (
+                    sortedDraggables |. Array.get(numberOfDraggables - 1)
+                  ) {
+                  | Some(draggable) =>
+                    let draggableGeometry =
+                      draggable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x: pawn.currentPoint.viewport.x,
+                          y:
+                            draggableGeometry.rect.viewport.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + (
+                              targetingOriginalDroppable ?
+                                0 : pawn.dimensions.height
+                            ),
+                        },
+                      page:
+                        Point.{
+                          x: pawn.currentPoint.page.x,
+                          y:
+                            draggableGeometry.rect.page.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + (
+                              targetingOriginalDroppable ?
+                                0 : pawn.dimensions.height
+                            ),
+                        },
+                    };
+
+                  | None =>
+                    let droppableGeometry =
+                      droppable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x: pawn.currentPoint.viewport.x,
+                          y:
+                            droppableGeometry.rect.viewport.bottom
+                            - droppableGeometry.borders.bottom
+                            - droppableGeometry.paddings.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + pawn.dimensions.height,
+                        },
+                      page:
+                        Point.{
+                          x: pawn.currentPoint.page.x,
+                          y:
+                            droppableGeometry.rect.page.bottom
+                            - droppableGeometry.borders.bottom
+                            - droppableGeometry.paddings.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + pawn.dimensions.height,
+                        },
+                    };
+                  };
+
+                let nextDelta =
+                  Delta.{
+                    x: pawn.delta.x,
+                    y: nextPoint.page.y - pawn.departurePoint.page.y,
+                  };
+
+                let nextPawn = {
+                  ...pawn,
+                  targetDroppable: droppable.id,
+                  targetingOriginalDroppable,
+                  currentPoint: nextPoint,
+                  delta: nextDelta,
+                };
+
+                let nextDraggables =
+                  state.draggables^
+                  |. Map.map(draggable =>
+                       if (Cfg.Draggable.eq(draggable.id, pawn.draggableId)) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             nextPawn.targetingOriginalDroppable ?
+                               numberOfDraggables - 1 : numberOfDraggables,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             draggable.originalIndex > pawn.originalIndex ?
+                               draggable.originalIndex - 1 :
+                               draggable.originalIndex,
+                           shift:
+                             draggable.originalIndex > pawn.originalIndex ?
+                               Some(Alpha) : None,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && ! nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: Some(Alpha),
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    pawn.targetDroppable,
+                                  )) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: None,
+                         };
+                       } else {
+                         draggable;
+                       }
+                     );
+
+                ReasonReact.Update({
+                  ...state,
+                  status: Moving(nextPawn, subscriptions),
+                  draggables: ref(nextDraggables),
+                });
+              };
+            }
+
+          | (Arrow.Down, Axis.Y) =>
+            switch (sortedDraggables |. Array.get(pawnIndex + 1)) {
+            | Some(draggable) =>
+              let draggableHeight =
+                Option.getExn(draggable.geometry).dimensions.height;
+
+              let nextPoint =
+                RelativityBag.{
+                  viewport:
+                    Point.{
+                      x: pawn.currentPoint.viewport.x,
+                      y: pawn.currentPoint.viewport.y + draggableHeight,
+                    },
+                  page:
+                    Point.{
+                      x: pawn.currentPoint.page.x,
+                      y: pawn.currentPoint.page.y + draggableHeight,
+                    },
+                };
+
+              let nextDelta =
+                Delta.{
+                  x: pawn.delta.x,
+                  y: nextPoint.page.y - pawn.departurePoint.page.y,
+                };
+
+              let nextPawn = {
+                ...pawn,
+                currentPoint: nextPoint,
+                delta: nextDelta,
+              };
+
+              let nextDraggables =
+                state.draggables^
+                |. Map.update(pawn.draggableId, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex + 1,
+                          }
+                        )
+                   )
+                |. Map.update(draggable.id, draggable =>
+                     draggable
+                     |. Option.map(draggable =>
+                          {
+                            ...draggable,
+                            targetIndex: draggable.targetIndex - 1,
+                            shift:
+                              if (pawn.targetingOriginalDroppable) {
+                                if (draggable.originalIndex
+                                    > pawn.originalIndex) {
+                                  Some(Alpha);
+                                } else {
+                                  None;
+                                };
+                              } else {
+                                Some(Alpha);
+                              },
+                          }
+                        )
+                   );
+
+              ReasonReact.Update({
+                ...state,
+                status: Moving(nextPawn, subscriptions),
+                draggables: ref(nextDraggables),
+              });
+
+            | None =>
+              let sortedDroppables =
+                state.droppables^
+                |. Map.keep((_, droppable) =>
+                     switch (droppable.accept) {
+                     | Some(accept) => pawn.draggableId |> accept
+                     | None => true
+                     }
+                   )
+                |. Map.valuesToArray
+                |. SortArray.stableSortBy((d1, d2) => {
+                     let v1 = Option.getExn(d1.geometry).rect.page.top;
+                     let v2 = Option.getExn(d2.geometry).rect.page.top;
+
+                     if (v1 > v2) {
+                       1;
+                     } else if (v1 < v2) {
+                       (-1);
+                     } else {
+                       0;
+                     };
+                   });
+
+              let currentDroppableIndex =
+                sortedDroppables
+                |> Js.Array.findIndex(
+                     (
+                       droppable:
+                         DroppableBag.t(Cfg.Draggable.t, Cfg.Droppable.t),
+                     ) =>
+                     Cfg.Droppable.eq(droppable.id, pawn.targetDroppable)
+                   );
+
+              let currentDroppableGeometry =
+                Array.getExn(sortedDroppables, currentDroppableIndex).geometry
+                |. Option.getExn;
+
+              switch (
+                sortedDroppables |. Array.get(currentDroppableIndex + 1)
+              ) {
+              | None => ReasonReact.NoUpdate
+              | Some(droppable)
+                  when
+                    currentDroppableGeometry.rect.page.top
+                    === Option.getExn(droppable.geometry).rect.page.top => ReasonReact.NoUpdate
+              | Some(droppable) =>
+                let sortedDraggables =
+                  state.draggables^
+                  |. Map.keep((_, draggable) =>
+                       Cfg.Droppable.eq(draggable.droppableId, droppable.id)
+                     )
+                  |. Map.valuesToArray
+                  |. SortArray.stableSortBy((d1, d2) =>
+                       if (d1.targetIndex > d2.targetIndex) {
+                         1;
+                       } else if (d1.targetIndex < d2.targetIndex) {
+                         (-1);
+                       } else {
+                         0;
+                       }
+                     );
+
+                let nextPoint =
+                  switch (sortedDraggables |. Array.get(0)) {
+                  | Some(draggable) =>
+                    let draggableGeometry =
+                      draggable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x: pawn.currentPoint.viewport.x,
+                          y:
+                            draggableGeometry.rect.viewport.top
+                            + pawn.dimensions.height
+                            / 2,
+                        },
+                      page:
+                        Point.{
+                          x: pawn.currentPoint.page.x,
+                          y:
+                            draggableGeometry.rect.page.top
+                            + pawn.dimensions.height
+                            / 2,
+                        },
+                    };
+
+                  | None =>
+                    let droppableGeometry =
+                      droppable.geometry |. Option.getExn;
+
+                    RelativityBag.{
+                      viewport:
+                        Point.{
+                          x: pawn.currentPoint.viewport.x,
+                          y:
+                            droppableGeometry.rect.viewport.bottom
+                            - droppableGeometry.borders.bottom
+                            - droppableGeometry.paddings.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + pawn.dimensions.height,
+                        },
+                      page:
+                        Point.{
+                          x: pawn.currentPoint.page.x,
+                          y:
+                            droppableGeometry.rect.page.bottom
+                            - droppableGeometry.borders.bottom
+                            - droppableGeometry.paddings.bottom
+                            - pawn.dimensions.height
+                            / 2
+                            + pawn.dimensions.height,
+                        },
+                    };
+                  };
+
+                let nextDelta =
+                  Delta.{
+                    x: pawn.delta.x,
+                    y: nextPoint.page.y - pawn.departurePoint.page.y,
+                  };
+
+                let nextPawn = {
+                  ...pawn,
+                  targetDroppable: droppable.id,
+                  targetingOriginalDroppable:
+                    Cfg.Droppable.eq(droppable.id, pawn.originalDroppable),
+                  currentPoint: nextPoint,
+                  delta: nextDelta,
+                };
+
+                let nextDraggables =
+                  state.draggables^
+                  |. Map.map(draggable =>
+                       if (Cfg.Draggable.eq(draggable.id, pawn.draggableId)) {
+                         {...draggable, targetIndex: 0};
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex:
+                             draggable.originalIndex < pawn.originalIndex ?
+                               draggable.originalIndex + 1 :
+                               draggable.originalIndex,
+                           shift:
+                             draggable.originalIndex < pawn.originalIndex ?
+                               Some(Omega) : None,
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    nextPawn.targetDroppable,
+                                  )
+                                  && ! nextPawn.targetingOriginalDroppable) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex + 1,
+                           shift: Some(Omega),
+                         };
+                       } else if (Cfg.Droppable.eq(
+                                    draggable.droppableId,
+                                    pawn.targetDroppable,
+                                  )) {
+                         {
+                           ...draggable,
+                           targetIndex: draggable.originalIndex,
+                           shift: None,
+                         };
+                       } else {
+                         draggable;
+                       }
+                     );
+
+                ReasonReact.Update({
+                  ...state,
+                  status: Moving(nextPawn, subscriptions),
+                  draggables: ref(nextDraggables),
+                });
+              };
+            }
+
+          | (Arrow.Left, Axis.Y) => ReasonReact.NoUpdate
+          | (Arrow.Right, Axis.Y) => ReasonReact.NoUpdate
+          };
+
+        | _ => ReasonReact.NoUpdate
+        }
+
+      | UpdateScrollPositionOnMove => ReasonReact.NoUpdate
+
+      | PrepareMoveModeExit(exit) =>
+        switch (state.status) {
+        | Moving(_, _) =>
+          ReasonReact.SideEffects(
+            (
+              ({state}) =>
+                switch (state.status) {
+                | Moving(_, subscriptions) =>
+                  subscriptions.drop();
+                  exit();
+                | _ => ()
+                }
+            ),
+          )
+        | _ => ReasonReact.NoUpdate
+        }
+
+      | CommitMove => ReasonReact.NoUpdate
+
+      | CancelMove =>
+        switch (state.status) {
+        | Moving(pawn, _) =>
+          let droppable =
+            state.droppables^ |. Map.getExn(pawn.originalDroppable);
+
+          let nextPawn =
+            switch (droppable) {
+            | {scrollable: Some(scrollable)} => {
+                ...pawn,
+                delta: {
+                  x: 0 - scrollable.scroll.delta.x,
+                  y: 0 - scrollable.scroll.delta.y,
+                },
+              }
+            | {scrollable: None} => {
+                ...pawn,
+                delta: {
+                  x: 0,
+                  y: 0,
+                },
+              }
+            };
+
+          let draggables =
+            state.draggables^
+            |. Map.map(draggable => {...draggable, shift: None});
+
+          ReasonReact.UpdateWithSideEffects(
+            {
+              ...state,
+              status: CancelingMove(nextPawn),
+              draggables: ref(draggables),
+            },
+            (
+              ({send}) =>
+                Js.Global.setTimeout(
+                  () => ExitMoveMode(NoChanges) |> send,
+                  Style.(animationDuration + finishDropFactor),
+                )
+                |> ignore
+            ),
+          );
+
+        | Dragging(_)
+        | Dropping(_)
+        | CancelingMove(_)
+        | StandBy => ReasonReact.NoUpdate
+        }
+
+      | ExitMoveMode(result) =>
+        switch (state.status) {
+        | Moving(_, _)
+        | CancelingMove(_) =>
+          ReasonReact.SideEffects(
+            (
+              ({send}) => {
+                result |> onDrop;
+                Reset |> send;
+              }
+            ),
+          )
+        | _ => ReasonReact.NoUpdate
+        }
 
       | Reset =>
         ReasonReact.Update({...state, status: StandBy, scroll: ref(None)})
@@ -1508,6 +2838,7 @@ module Make = (Cfg: Config) => {
               switch (state.status) {
               | Dragging(ghost, _)
               | Dropping(ghost) => ghost.targetDroppable
+              | Moving(pawn, _) => Some(pawn.targetDroppable)
               | _ => None
               },
             registerDraggable: Handlers.registerDraggable |> handle,
@@ -1516,7 +2847,7 @@ module Make = (Cfg: Config) => {
             disposeDroppable: Handlers.disposeDroppable |> handle,
             getDraggableShift: draggableId =>
               Map.getExn(state.draggables^, draggableId).shift,
-            initDrag:
+            startDragging:
               (
                 ~draggableId,
                 ~droppableId,
@@ -1535,8 +2866,22 @@ module Make = (Cfg: Config) => {
               )
               |> send,
             updateGhostPosition: point => UpdateGhostPosition(point) |> send,
-            drop: () => PrepareDrop |> send,
-            cancelDrag: () => CancelDrag |> send,
+            drop: () => PrepareDrop(() => StartDropping |> send) |> send,
+            cancelDrag: () => PrepareDrop(() => CancelDrag |> send) |> send,
+            enterMoveMode:
+              (~draggableId, ~droppableId, ~element, ~subscriptions) =>
+              PrepareMoveMode(
+                draggableId,
+                droppableId,
+                element,
+                subscriptions,
+              )
+              |> send,
+            updatePawnPosition: arrow => UpdatePawnPosition(arrow) |> send,
+            commitMove: () =>
+              PrepareMoveModeExit(() => CommitMove |> send) |> send,
+            cancelMove: () =>
+              PrepareMoveModeExit(() => CancelMove |> send) |> send,
           },
         },
       ),

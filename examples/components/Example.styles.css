@@ -265,8 +265,6 @@
   justify-content: flex-start;
   margin-right: 10px;
   cursor: grab;
-
-  /* FIXME: Part of keyboard interactions feature */
   outline: none;
 }
 
@@ -284,10 +282,20 @@
 .horizontal .todo,
 .card-board .todo {
   display: flex;
+  transition-property: background-color, box-shadow;
+  transition-duration: 100ms;
+  transition-timing-function: ease-in-out;
   border: 1px solid var(--background-color);
   border-radius: 4px;
   background-color: #fff;
+  outline: none;
   cursor: grab;
+}
+
+.vertical .todo:focus,
+.horizontal .todo:focus,
+.card-board .todo:focus {
+  border-color: var(--selected-item-color);
 }
 
 .vertical .todo {
@@ -305,6 +313,15 @@
   width: 200px;
   min-height: 120px;
   padding: 10px 16px;
+}
+
+.todo.moving {
+  background-color: #dee7ef;
+}
+
+.todo.moving:focus {
+  box-shadow: 0 0 0 3px var(--selected-item-color);
+  z-index: 1;
 }
 
 @media (max-width: 1024px) {

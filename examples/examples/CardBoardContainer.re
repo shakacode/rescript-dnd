@@ -203,19 +203,21 @@ let make = _ => {
                className=((~draggingOver as _) => "todo-lists")>
                (
                  state.todoListsIndex
-                 |. Array.mapU((. listId) => {
+                 |. Array.mapWithIndexU((. index, listId) => {
                       let list = state.todoListsMap |. Map.Int.getExn(listId);
 
                       <Screen.Draggable
                         id=(TodoList(list.id))
                         key=(list.id |. string_of_int)
                         droppableId=TodoListsDroppable
+                        index
                         context=dnd.context
                         className=(
-                          (~dragging) =>
+                          (~dragging, ~moving) =>
                             Cn.make([
                               "todo-list",
                               "dragging" |> Cn.ifTrue(dragging),
+                              "moving" |> Cn.ifTrue(moving),
                             ])
                         )>
                         ...(
@@ -242,6 +244,7 @@ let make = _ => {
                                      <Control
                                        className="drag-handle"
                                        style=handle.style
+                                       onKeyDown=handle.onKeyDown
                                        onMouseDown=handle.onMouseDown
                                        onTouchStart=handle.onTouchStart>
                                        <DragHandleIcon />
@@ -252,7 +255,7 @@ let make = _ => {
                                    </div>
                                    (
                                      list.todos
-                                     |. Array.mapU((. id) => {
+                                     |. Array.mapWithIndexU((. index, id) => {
                                           let todo =
                                             state.todosMap
                                             |. Map.Int.getExn(id);
@@ -263,13 +266,16 @@ let make = _ => {
                                             droppableId=(
                                               TodosDroppable(list.id)
                                             )
+                                            index
                                             context=dnd.context
                                             className=(
-                                              (~dragging) =>
+                                              (~dragging, ~moving) =>
                                                 Cn.make([
                                                   "todo",
                                                   "dragging"
                                                   |> Cn.ifTrue(dragging),
+                                                  "moving"
+                                                  |> Cn.ifTrue(moving),
                                                 ])
                                             )>
                                             ...(
