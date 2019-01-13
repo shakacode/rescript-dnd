@@ -1,73 +1,73 @@
 module Point = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Delta = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Distance = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Dimensions = {
   type t = {
-    width: int,
-    height: int,
+    width: float,
+    height: float,
   };
 };
 
 module Rect = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Margins = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Borders = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Paddings = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Offset = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 

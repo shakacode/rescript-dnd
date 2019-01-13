@@ -17,10 +17,14 @@
     "react-jsx": 2
   },
   "refmt": 3,
-  "bsc-flags": ["-bs-super-errors", "-w -45", "-open Belt"],
+  "bsc-flags": ["-open Belt"],
   "package-specs": {
     "module": "commonjs",
     "in-source": true
   },
-  "suffix": ".bs.js"
+  "suffix": ".bs.js",
+  "warnings": {
+    "error": "+5",
+    "number": "-45-44"
+  }
 }

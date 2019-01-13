@@ -1,5 +1,6 @@
-let component = ReasonReact.statelessComponent(__MODULE__);
+open Dnd__React;
 
+let component = React.statelessComponent(__MODULE__);
 let make = _ => {
   ...component,
   render: _ =>
@@ -7,7 +8,7 @@ let make = _ => {
       className="close-icon"
       viewBox="0 0 32 32"
       xmlns="http://www.w3.org/2000/svg">
-      <title> ("Close" |> ReasonReact.string) </title>
+      <title> "Close"->React.string </title>
       <path
         d="M27.914 6.914l-2.828-2.828-9.086 9.086-9.086-9.086-2.828 2.828 9.086 9.086-9.086 9.086 2.828 2.828 9.086-9.086 9.086 9.086 2.828-2.828-9.086-9.086z"
       />

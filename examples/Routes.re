@@ -1,3 +1,5 @@
+open Dnd__React;
+
 type route =
   | VerticalList
   | HorizontalList
@@ -7,7 +9,7 @@ type route =
   | NestedVerticalLists;
 
 let getRoute = url =>
-  ReasonReact.Router.(
+  React.Router.(
     switch (url.hash) {
     | "vertical-list" => VerticalList
     | "horizontal-list" => HorizontalList

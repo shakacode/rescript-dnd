@@ -1,6 +1,7 @@
 open Dnd__React;
-open Dnd__Config;
 open Dnd__Types;
+open Dnd__Units;
+open Dnd__Config;
 
 module Html = Dnd__Html;
 module Events = Dnd__Events;
@@ -22,22 +23,22 @@ module Make = (Cfg: Config) => {
     | RegisterDraggable;
 
   module Helpers = {
-    let getGeometry = ({ReasonReact.state}) => {
-      let element = state.element^ |> Option.getExn;
+    let getGeometry = ({React.state}) => {
+      let element = (state.element^)->Option.getExn;
 
       Geometry.getGeometry(
-        element |> Webapi.Dom.HtmlElement.getBoundingClientRect,
-        element |> Style.getComputedStyle,
+        element->Webapi.Dom.HtmlElement.getBoundingClientRect,
+        element->Style.getComputedStyle,
         Scrollable.Window.getScrollPosition(),
       );
     };
   };
 
   module MouseInteractions = {
-    let rec onMouseDown = (event, {ReasonReact.state, handle}) =>
+    let rec onMouseDown = (event, {React.state, handle}) =>
       switch (state.context.status, state.element^) {
       | (StandBy, Some(element))
-          when Events.Mouse.(event |. leftClick && ! (event |. modifier)) =>
+          when Events.Mouse.(event->leftClick && !event->modifier) =>
         /*
          * We don't want to prevent text selection by initiating drag start
          * if user wants to select chunk of a text.
@@ -51,20 +52,20 @@ module Make = (Cfg: Config) => {
          * we can't capture it right here right now but we can capture it
          * on the very first mouse move after mouse down.
          */
-        let moveThreshold = 1;
+        let moveThreshold = 1.;
         let selectionOnStart: ref(option(bool)) = ref(None);
 
         let start =
           RelativityBag.{
             page:
               Point.{
-                x: ReactEventRe.(event |. Mouse.pageX),
-                y: ReactEventRe.(event |. Mouse.pageY),
+                x: ReactEvent.(event->Mouse.pageX->Float.fromInt),
+                y: ReactEvent.(event->Mouse.pageY->Float.fromInt),
               },
             viewport:
               Point.{
-                x: ReactEventRe.(event |. Mouse.clientX),
-                y: ReactEventRe.(event |. Mouse.clientY),
+                x: ReactEvent.(event->Mouse.clientX->Float.fromInt),
+                y: ReactEvent.(event->Mouse.clientY->Float.fromInt),
               },
           };
 
@@ -73,29 +74,30 @@ module Make = (Cfg: Config) => {
             RelativityBag.{
               page:
                 Point.{
-                  x: Webapi.Dom.(event |. MouseEvent.pageX),
-                  y: Webapi.Dom.(event |. MouseEvent.pageY),
+                  x: Webapi.Dom.(event->MouseEvent.pageX->Float.fromInt),
+                  y: Webapi.Dom.(event->MouseEvent.pageY->Float.fromInt),
                 },
               viewport:
                 Point.{
-                  x: Webapi.Dom.(event |. MouseEvent.clientX),
-                  y: Webapi.Dom.(event |. MouseEvent.clientY),
+                  x: Webapi.Dom.(event->MouseEvent.clientX->Float.fromInt),
+                  y: Webapi.Dom.(event->MouseEvent.clientY->Float.fromInt),
                 },
             };
 
           let moved =
-            Js.Math.abs_int(start.page.x - current.page.x) > moveThreshold
-            || Js.Math.abs_int(start.page.y - current.page.y) > moveThreshold;
+            Js.Math.abs_float(start.page.x -. current.page.x) > moveThreshold
+            || Js.Math.abs_float(start.page.y -. current.page.y)
+            > moveThreshold;
 
           selectionOnStart :=
-            selectionOnStart^
-            |. Option.getWithDefault(! Selection.selectionCollapsed())
-            |. Some;
+            (selectionOnStart^)
+            ->Option.getWithDefault(!Selection.selectionCollapsed())
+            ->Some;
 
           let selecting =
             switch (
               selectionOnStart^,
-              current |. Selection.pointWithinSelection,
+              current->Selection.pointWithinSelection,
             ) {
             | (Some(false), _)
             | (Some(true), false) => false
@@ -103,31 +105,31 @@ module Make = (Cfg: Config) => {
             | (Some(true), true) => true
             };
 
-          if (moved && ! selecting) {
+          if (moved && !selecting) {
             dropInitialSubscriptions();
             Selection.clearSelection();
 
-            let onMouseMove = onMouseMove |. handle;
-            let onMouseUp = onMouseUp |. handle;
-            let onKeyDown = onKeyDown |. handle;
-            let onResize = onResize |. handle;
-            let onVisibilityChange = onVisibilityChange |. handle;
+            let onMouseMove = onMouseMove->handle;
+            let onMouseUp = onMouseUp->handle;
+            let onKeyDown = onKeyDown->handle;
+            let onResize = onResize->handle;
+            let onVisibilityChange = onVisibilityChange->handle;
 
             let subscriptions =
               Subscriptions.{
                 install: () => {
-                  Events.subscribeToMouseMove(onMouseMove);
-                  Events.subscribeToMouseUp(onMouseUp);
-                  Events.subscribeToKeyDown(onKeyDown);
-                  Events.subscribeToResize(onResize);
-                  Events.subscribeToVisibilityChange(onVisibilityChange);
+                  onMouseMove->Events.subscribeToMouseMove;
+                  onMouseUp->Events.subscribeToMouseUp;
+                  onKeyDown->Events.subscribeToKeyDown;
+                  onResize->Events.subscribeToResize;
+                  onVisibilityChange->Events.subscribeToVisibilityChange;
                 },
                 drop: () => {
-                  Events.unsubscribeFromMouseMove(onMouseMove);
-                  Events.unsubscribeFromMouseUp(onMouseUp);
-                  Events.unsubscribeFromKeyDown(onKeyDown);
-                  Events.unsubscribeFromResize(onResize);
-                  Events.unsubscribeFromVisibilityChange(onVisibilityChange);
+                  onMouseMove->Events.unsubscribeFromMouseMove;
+                  onMouseUp->Events.unsubscribeFromMouseUp;
+                  onKeyDown->Events.unsubscribeFromKeyDown;
+                  onResize->Events.unsubscribeFromResize;
+                  onVisibilityChange->Events.unsubscribeFromVisibilityChange;
                 },
               };
 
@@ -159,27 +161,27 @@ module Make = (Cfg: Config) => {
       | (CancelingMove(_), _)
       | (StandBy, _) => ()
       }
-    and onMouseMove = (event, {ReasonReact.state}) =>
+    and onMouseMove = (event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        Webapi.Dom.(event |. MouseEvent.preventDefault);
+        Webapi.Dom.(event->MouseEvent.preventDefault);
 
         let point =
           RelativityBag.{
             page:
               Point.{
-                x: Webapi.Dom.(event |. MouseEvent.pageX),
-                y: Webapi.Dom.(event |. MouseEvent.pageY),
+                x: Webapi.Dom.(event->MouseEvent.pageX->Float.fromInt),
+                y: Webapi.Dom.(event->MouseEvent.pageY->Float.fromInt),
               },
             viewport:
               Point.{
-                x: Webapi.Dom.(event |. MouseEvent.clientX),
-                y: Webapi.Dom.(event |. MouseEvent.clientY),
+                x: Webapi.Dom.(event->MouseEvent.clientX->Float.fromInt),
+                y: Webapi.Dom.(event->MouseEvent.clientY->Float.fromInt),
               },
           };
 
-        point |> state.context.updateGhostPosition;
+        state.context.updateGhostPosition(point);
 
       | Dragging(_, _)
       | Dropping(_)
@@ -187,7 +189,7 @@ module Make = (Cfg: Config) => {
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onMouseUp = (_event, {ReasonReact.state}) =>
+    and onMouseUp = (_event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
@@ -200,9 +202,9 @@ module Make = (Cfg: Config) => {
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onKeyDown = (event, {ReasonReact.state}) =>
-      switch (state.context.status, event |> Events.Keyboard.Dom.key) {
-      | (Dragging(ghost, _), Events.Keyboard.Key.Esc)
+    and onKeyDown = (event, {React.state}) =>
+      switch (state.context.status, event->Events.Keyboard.Dom.key) {
+      | (Dragging(ghost, _), Esc)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
         state.context.cancelDrag()
 
@@ -212,7 +214,7 @@ module Make = (Cfg: Config) => {
       | (CancelingMove(_), _)
       | (StandBy, _) => ()
       }
-    and onResize = (_event, {ReasonReact.state}) =>
+    and onResize = (_event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
@@ -224,7 +226,7 @@ module Make = (Cfg: Config) => {
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onVisibilityChange = (_event, {ReasonReact.state}) =>
+    and onVisibilityChange = (_event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
@@ -239,15 +241,15 @@ module Make = (Cfg: Config) => {
   };
 
   module TouchInteractions = {
-    let rec onTouchStart = (event, {ReasonReact.state, handle}) => {
+    let rec onTouchStart = (event, {React.state, handle}) => {
       let touch =
         event
-        |. ReactEventRe.Touch.touches
-        |. Events.Touch.castReactTouchListToTouchArray
-        |. Array.get(0);
+        ->ReactEvent.Touch.touches
+        ->Events.Touch.castReactTouchListToTouchArray
+        ->Array.getUnsafe(0);
 
-      switch (state.context.status, state.element^, touch) {
-      | (StandBy, Some(element), Some(touch)) =>
+      switch (state.context.status, state.element^) {
+      | (StandBy, Some(element)) =>
         let delay = 200;
 
         let start =
@@ -256,7 +258,7 @@ module Make = (Cfg: Config) => {
             viewport: Point.{x: touch##clientX, y: touch##clientY},
           };
 
-        let timeoutId: ref(option(Js.Global.timeoutId)) = ref(None);
+        let timeoutId: ref(option(Js.Global.timeoutId)) = None->ref;
 
         let rec startDragging = () =>
           Js.Global.setTimeout(
@@ -264,31 +266,27 @@ module Make = (Cfg: Config) => {
               dropInitialSubscriptions();
               Selection.clearSelection();
 
-              let onTouchMove = onTouchMove |. handle;
-              let onTouchEnd = onTouchEnd |. handle;
-              let onContextMenu = onContextMenu |. handle;
-              let onOrientationChange = onOrientationChange |. handle;
-              let onVisibilityChange = onVisibilityChange |. handle;
+              let onTouchMove = onTouchMove->handle;
+              let onTouchEnd = onTouchEnd->handle;
+              let onContextMenu = onContextMenu->handle;
+              let onOrientationChange = onOrientationChange->handle;
+              let onVisibilityChange = onVisibilityChange->handle;
 
               let subscriptions =
                 Subscriptions.{
                   install: () => {
-                    Events.subscribeToTouchMove(onTouchMove);
-                    Events.subscribeToTouchEnd(onTouchEnd);
-                    Events.subscribeToContextMenu(onContextMenu);
-                    Events.subscribeToOrientationChange(onOrientationChange);
-                    Events.subscribeToVisibilityChange(onVisibilityChange);
+                    onTouchMove->Events.subscribeToTouchMove;
+                    onTouchEnd->Events.subscribeToTouchEnd;
+                    onContextMenu->Events.subscribeToContextMenu;
+                    onOrientationChange->Events.subscribeToOrientationChange;
+                    onVisibilityChange->Events.subscribeToVisibilityChange;
                   },
                   drop: () => {
-                    Events.unsubscribeFromTouchMove(onTouchMove);
-                    Events.unsubscribeFromTouchEnd(onTouchEnd);
-                    Events.unsubscribeFromContextMenu(onContextMenu);
-                    Events.unsubscribeFromOrientationChange(
-                      onOrientationChange,
-                    );
-                    Events.unsubscribeFromVisibilityChange(
-                      onVisibilityChange,
-                    );
+                    onTouchMove->Events.unsubscribeFromTouchMove;
+                    onTouchEnd->Events.unsubscribeFromTouchEnd;
+                    onContextMenu->Events.unsubscribeFromContextMenu;
+                    onOrientationChange->Events.unsubscribeFromOrientationChange;
+                    onVisibilityChange->Events.unsubscribeFromVisibilityChange;
                   },
                 };
 
@@ -305,45 +303,45 @@ module Make = (Cfg: Config) => {
           )
         and cancelDrag = () =>
           switch (timeoutId^) {
-          | Some(timeoutId) => timeoutId |> Js.Global.clearTimeout
+          | Some(timeoutId) => timeoutId->Js.Global.clearTimeout
           | None => ()
           }
         and onInitialTouchMove = _ => cancelDrag()
         and onInitialTouchEnd = _ => cancelDrag()
         and onInitialDrag = _ => cancelDrag()
         and dropInitialSubscriptions = () => {
-          Events.unsubscribeFromTouchMove(onInitialTouchMove);
-          Events.unsubscribeFromTouchEnd(onInitialTouchEnd);
-          Events.unsubscribeFromDrag(onInitialDrag);
+          onInitialTouchMove->Events.unsubscribeFromTouchMove;
+          onInitialTouchEnd->Events.unsubscribeFromTouchEnd;
+          onInitialDrag->Events.unsubscribeFromDrag;
         };
 
-        Events.subscribeToTouchMove(onInitialTouchMove);
-        Events.subscribeToTouchEnd(onInitialTouchEnd);
-        Events.subscribeToDrag(onInitialDrag);
+        onInitialTouchMove->Events.subscribeToTouchMove;
+        onInitialTouchEnd->Events.subscribeToTouchEnd;
+        onInitialDrag->Events.subscribeToDrag;
 
-        timeoutId := startDragging() |. Some;
+        timeoutId := startDragging()->Some;
 
-      | (StandBy, _, _)
-      | (Dragging(_, _), _, _)
-      | (Dropping(_), _, _)
-      | (Moving(_, _), _, _)
-      | (CancelingMove(_), _, _) => ()
+      | (StandBy, _)
+      | (Dragging(_, _), _)
+      | (Dropping(_), _)
+      | (Moving(_, _), _)
+      | (CancelingMove(_), _) => ()
       };
     }
-    and onTouchMove = (event, {ReasonReact.state}) => {
+    and onTouchMove = (event, {React.state}) => {
       open Webapi.Dom;
 
-      let event = event |. Events.Touch.castEventToTouchEvent;
+      let event = event->Events.Touch.castEventToTouchEvent;
       let touch =
         event
-        |. TouchEvent.touches
-        |. Events.Touch.castDomTouchListToTouchArray
-        |. Array.get(0);
+        ->TouchEvent.touches
+        ->Events.Touch.castDomTouchListToTouchArray
+        ->Array.getUnsafe(0);
 
-      switch (state.context.status, state.element^, touch) {
-      | (Dragging(ghost, _), Some(_), Some(touch))
+      switch (state.context.status, state.element^) {
+      | (Dragging(ghost, _), Some(_))
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        event |. TouchEvent.preventDefault;
+        event->TouchEvent.preventDefault;
 
         let point =
           RelativityBag.{
@@ -351,20 +349,20 @@ module Make = (Cfg: Config) => {
             viewport: Point.{x: touch##clientX, y: touch##clientY},
           };
 
-        point |> state.context.updateGhostPosition;
+        state.context.updateGhostPosition(point);
 
-      | (Dragging(_, _), _, _)
-      | (Dropping(_), _, _)
-      | (Moving(_, _), _, _)
-      | (CancelingMove(_), _, _)
-      | (StandBy, _, _) => ()
+      | (Dragging(_, _), _)
+      | (Dropping(_), _)
+      | (Moving(_, _), _)
+      | (CancelingMove(_), _)
+      | (StandBy, _) => ()
       };
     }
-    and onTouchEnd = (event, {ReasonReact.state}) =>
+    and onTouchEnd = (event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        event |> Webapi.Dom.Event.preventDefault;
+        event->Webapi.Dom.Event.preventDefault;
         state.context.drop();
 
       | Dragging(_, _)
@@ -373,18 +371,18 @@ module Make = (Cfg: Config) => {
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onContextMenu = (event, {ReasonReact.state}) =>
+    and onContextMenu = (event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
-        event |> Webapi.Dom.Event.preventDefault
+        event->Webapi.Dom.Event.preventDefault
       | Dragging(_, _)
       | Dropping(_)
       | Moving(_, _)
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onOrientationChange = (_event, {ReasonReact.state}) =>
+    and onOrientationChange = (_event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
@@ -396,7 +394,7 @@ module Make = (Cfg: Config) => {
       | CancelingMove(_)
       | StandBy => ()
       }
-    and onVisibilityChange = (_event, {ReasonReact.state}) =>
+    and onVisibilityChange = (_event, {React.state}) =>
       switch (state.context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(state.draggableId, ghost.draggableId) =>
@@ -411,32 +409,32 @@ module Make = (Cfg: Config) => {
   };
 
   module KeyboardInteractions = {
-    let rec onKeyDown = (event, {ReasonReact.state, handle}) =>
-      switch (state.context.status, event |> Events.Keyboard.React.key) {
-      | (StandBy, Events.Keyboard.Key.Space) =>
-        event |> ReactEventRe.Keyboard.preventDefault;
+    let rec onKeyDown = (event, {React.state, handle}) =>
+      switch (state.context.status, event->Events.Keyboard.React.key) {
+      | (StandBy, Space) =>
+        event->ReactEvent.Keyboard.preventDefault;
 
         let rec onInitialKeyUp = event =>
           switch (
             state.context.status,
-            event |> Events.Keyboard.Dom.key,
+            event->Events.Keyboard.Dom.key,
             state.element^,
           ) {
-          | (StandBy, Events.Keyboard.Key.Space, Some(element)) =>
+          | (StandBy, Space, Some(element)) =>
             dropInitialSubscriptions();
 
-            let onKeyUp = onKeyUpWhileMoving |. handle;
-            let onKeyDown = onKeyDownWhileMoving |. handle;
+            let onKeyUp = onKeyUpWhileMoving->handle;
+            let onKeyDown = onKeyDownWhileMoving->handle;
 
             let subscriptions =
               Subscriptions.{
                 install: () => {
-                  Events.subscribeToKeyUp(onKeyUp);
-                  Events.subscribeToKeyDown(onKeyDown);
+                  onKeyUp->Events.subscribeToKeyUp;
+                  onKeyDown->Events.subscribeToKeyDown;
                 },
                 drop: () => {
-                  Events.unsubscribeFromKeyUp(onKeyUp);
-                  Events.unsubscribeFromKeyDown(onKeyDown);
+                  onKeyUp->Events.unsubscribeFromKeyUp;
+                  onKeyDown->Events.unsubscribeFromKeyDown;
                 },
               };
 
@@ -449,87 +447,86 @@ module Make = (Cfg: Config) => {
           | _ => dropInitialSubscriptions()
           }
         and dropInitialSubscriptions = () =>
-          Events.unsubscribeFromKeyUp(onInitialKeyUp);
+          onInitialKeyUp->Events.unsubscribeFromKeyUp;
 
-        Events.subscribeToKeyUp(onInitialKeyUp);
+        onInitialKeyUp->Events.subscribeToKeyUp;
       | _ => ()
       }
-    and onKeyDownWhileMoving = (event, {ReasonReact.state}) => {
-      let key = event |> Events.Keyboard.Dom.key;
+    and onKeyDownWhileMoving = (event, {React.state}) => {
+      let key = event->Events.Keyboard.Dom.key;
 
       switch (state.context.status, key) {
-      | (Moving(_, _), Events.Keyboard.Key.Tab)
-      | (Moving(_, _), Events.Keyboard.Key.Esc)
-      | (Moving(_, _), Events.Keyboard.Key.Space) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault
+      | (Moving(_, _), Tab)
+      | (Moving(_, _), Esc)
+      | (Moving(_, _), Space) =>
+        event->Webapi.Dom.KeyboardEvent.preventDefault
 
-      | (Moving(_, _), Events.Keyboard.Key.ArrowUp)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowDown)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowLeft)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowRight) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault;
+      | (Moving(_, _), ArrowUp)
+      | (Moving(_, _), ArrowDown)
+      | (Moving(_, _), ArrowLeft)
+      | (Moving(_, _), ArrowRight) =>
+        event->Webapi.Dom.KeyboardEvent.preventDefault;
 
         switch (state.moveIntervalId^) {
-        | Some(intervalId) => intervalId |> Js.Global.clearInterval
+        | Some(intervalId) => intervalId->Js.Global.clearInterval
         | None => ()
         };
 
         let arrow =
           switch (key) {
-          | Events.Keyboard.Key.ArrowUp => Arrow.Up
-          | Events.Keyboard.Key.ArrowDown => Arrow.Down
-          | Events.Keyboard.Key.ArrowLeft => Arrow.Left
-          | Events.Keyboard.Key.ArrowRight => Arrow.Right
+          | ArrowUp => Arrow.Up
+          | ArrowDown => Arrow.Down
+          | ArrowLeft => Arrow.Left
+          | ArrowRight => Arrow.Right
           | _ => failwith("Impossible arrow key")
           };
 
         state.moveIntervalId :=
           Some(
             Js.Global.setInterval(
-              () => arrow |> state.context.updatePawnPosition,
+              () => state.context.updatePawnPosition(arrow),
               Style.(animationDuration + finishDropFactor),
             ),
           );
       | _ => ()
       };
     }
-    and onKeyUpWhileMoving = (event, {ReasonReact.state}) => {
-      let key = event |> Events.Keyboard.Dom.key;
+    and onKeyUpWhileMoving = (event, {React.state}) => {
+      let key = event->Events.Keyboard.Dom.key;
 
       switch (state.context.status, key) {
-      | (Moving(_, _), Events.Keyboard.Key.Tab) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault
+      | (Moving(_, _), Tab) => event->Webapi.Dom.KeyboardEvent.preventDefault
 
-      | (Moving(_, _), Events.Keyboard.Key.Esc) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault;
+      | (Moving(_, _), Esc) =>
+        event->Webapi.Dom.KeyboardEvent.preventDefault;
         state.context.cancelMove();
 
-      | (Moving(_, _), Events.Keyboard.Key.Space)
-      | (Moving(_, _), Events.Keyboard.Key.Enter) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault;
+      | (Moving(_, _), Space)
+      | (Moving(_, _), Enter) =>
+        event->Webapi.Dom.KeyboardEvent.preventDefault;
         state.context.commitMove();
 
-      | (Moving(_, _), Events.Keyboard.Key.ArrowUp)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowDown)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowLeft)
-      | (Moving(_, _), Events.Keyboard.Key.ArrowRight) =>
-        event |> Webapi.Dom.KeyboardEvent.preventDefault;
+      | (Moving(_, _), ArrowUp)
+      | (Moving(_, _), ArrowDown)
+      | (Moving(_, _), ArrowLeft)
+      | (Moving(_, _), ArrowRight) =>
+        event->Webapi.Dom.KeyboardEvent.preventDefault;
 
         switch (state.moveIntervalId^) {
-        | Some(intervalId) => intervalId |> Js.Global.clearInterval
+        | Some(intervalId) => intervalId->Js.Global.clearInterval
         | None => ()
         };
 
         let arrow =
           switch (key) {
-          | Events.Keyboard.Key.ArrowUp => Arrow.Up
-          | Events.Keyboard.Key.ArrowDown => Arrow.Down
-          | Events.Keyboard.Key.ArrowLeft => Arrow.Left
-          | Events.Keyboard.Key.ArrowRight => Arrow.Right
+          | ArrowUp => Arrow.Up
+          | ArrowDown => Arrow.Down
+          | ArrowLeft => Arrow.Left
+          | ArrowRight => Arrow.Right
           | _ => failwith("Impossible arrow key")
           };
 
-        arrow |> state.context.updatePawnPosition;
+        state.context.updatePawnPosition(arrow);
 
       | _ => ()
       };
@@ -537,17 +534,17 @@ module Make = (Cfg: Config) => {
   };
 
   type dragHandle = {
-    style: ReactDOMRe.Style.t,
-    onKeyDown: ReactEventRe.Keyboard.t => unit,
-    onMouseDown: ReactEventRe.Mouse.t => unit,
-    onTouchStart: ReactEventRe.Touch.t => unit,
+    style: ReactDom.Style.t,
+    onKeyDown: ReactEvent.Keyboard.t => unit,
+    onMouseDown: ReactEvent.Mouse.t => unit,
+    onTouchStart: ReactEvent.Touch.t => unit,
   };
 
   type children =
-    | Children(ReasonReact.reactElement)
-    | ChildrenWithDragHandle(dragHandle => ReasonReact.reactElement);
+    | Children(React.reactElement)
+    | ChildrenWithDragHandle(dragHandle => React.reactElement);
 
-  let component = ReasonReact.reducerComponent("DndDraggable");
+  let component = React.reducerComponent("DndDraggable");
   let make =
       (
         ~id as draggableId: Cfg.Draggable.t,
@@ -562,30 +559,30 @@ module Make = (Cfg: Config) => {
       draggableId,
       droppableId,
       context,
-      element: ref(None),
-      moveIntervalId: ref(None),
+      element: None->ref,
+      moveIntervalId: None->ref,
     },
     didMount: ({send, handle, onUnmount}) => {
-      RegisterDraggable |> send;
+      RegisterDraggable->send;
 
       /* HACK: We have to add persistent event listener due to webkit bug:
        *       https://bugs.webkit.org/show_bug.cgi?id=184250
        */
-      let preventTouchMoveInWebkit = (event, {ReasonReact.state}) =>
+      let preventTouchMoveInWebkit = (event, {React.state}) =>
         Webapi.Dom.(
           switch (state.context.status) {
           | Dragging(ghost, _)
               when
                 Cfg.Draggable.eq(state.draggableId, ghost.draggableId)
-                && ! (event |> Event.defaultPrevented) =>
-            event |. Event.preventDefault
+                && !event->Event.defaultPrevented =>
+            event->Event.preventDefault
           | _ => ()
           }
         );
-      let handler = preventTouchMoveInWebkit |> handle;
+      let handler = preventTouchMoveInWebkit->handle;
 
-      Events.subscribeToTouchMove(handler);
-      onUnmount(() => Events.unsubscribeFromTouchMove(handler));
+      handler->Events.subscribeToTouchMove;
+      onUnmount(() => handler->Events.unsubscribeFromTouchMove);
     },
     willReceiveProps: ({state}) => {
       ...state,
@@ -597,765 +594,671 @@ module Make = (Cfg: Config) => {
       switch (oldSelf.state.context.status, newSelf.state.context.status) {
       | (Dropping(_), StandBy)
       | (Moving(_, _), StandBy)
-      | (CancelingMove(_), StandBy) => RegisterDraggable |> newSelf.send
+      | (CancelingMove(_), StandBy) => RegisterDraggable->(newSelf.send)
       | _ => ()
       },
     willUnmount: _ => context.disposeDraggable(draggableId),
     reducer: (action, _) =>
       switch (action) {
       | RegisterDraggable =>
-        ReasonReact.SideEffects(
-          (
-            self =>
-              context.registerDraggable({
-                id: draggableId,
-                droppableId,
-                index,
-                getGeometry: () => self |> Helpers.getGeometry,
-              })
-          ),
+        React.SideEffects(
+          self =>
+            context.registerDraggable({
+              id: draggableId,
+              droppableId,
+              index,
+              getGeometry: () => self->Helpers.getGeometry,
+            }),
         )
       },
     render: ({state, handle}) => {
       let setElementRef = element =>
         state.element :=
           element
-          |. Js.Nullable.toOption
-          |. Option.map(Webapi.Dom.Element.unsafeAsHtmlElement);
+          ->Js.Nullable.toOption
+          ->Option.map(Webapi.Dom.Element.unsafeAsHtmlElement);
 
       let dragHandle = {
         /* TODO: className: (~dragging, ~moving) => ..., */
         style:
-          ReactDOMRe.Style.make()
-          |. ReactDOMRe.Style.unsafeAddProp(
-               "WebkitTapHighlightColor",
-               "rgba(0, 0, 0, 0)",
-             ),
-        onKeyDown: KeyboardInteractions.onKeyDown |. handle,
-        onMouseDown: MouseInteractions.onMouseDown |. handle,
-        onTouchStart: TouchInteractions.onTouchStart |. handle,
+          ReactDom.Style.make()
+          ->ReactDom.Style.unsafeAddProp(
+              "WebkitTapHighlightColor",
+              "rgba(0, 0, 0, 0)",
+            ),
+        onKeyDown: KeyboardInteractions.onKeyDown->handle,
+        onMouseDown: MouseInteractions.onMouseDown->handle,
+        onTouchStart: TouchInteractions.onTouchStart->handle,
       };
 
       let children' =
         switch (children) {
         | Children(children) => [|children|]
-        | ChildrenWithDragHandle(children) => [|dragHandle |. children|]
+        | ChildrenWithDragHandle(children) => [|dragHandle->children|]
         };
 
       switch (context.status) {
       | Dragging(ghost, _)
           when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
-        <Fragment>
-          (
-            ReasonReact.createDomElement(
-              "div",
-              ~props={
-                "ref": setElementRef,
-                "style":
-                  ReactDOMRe.Style.make(
-                    ~position="fixed",
-                    ~boxSizing="border-box",
-                    ~zIndex="10000",
-                    ~margin="0",
-                    ~overflow="visible",
-                    ~pointerEvents="none",
-                    ~userSelect="none",
-                    ~top=Style.(ghost.departureRect.page.top |. px),
-                    ~left=Style.(ghost.departureRect.page.left |. px),
-                    ~width=Style.(ghost.dimensions.width |. px),
-                    ~height=Style.(ghost.dimensions.height |. px),
-                    ~transform=
-                      Style.translate(
-                        ghost.delta.x
-                        - (
-                          switch (context.scroll) {
-                          | Some(scroll) => scroll.current.x
-                          | None => Webapi.Dom.(window |> Window.pageXOffset)
-                          }
-                        ),
-                        ghost.delta.y
-                        - (
-                          switch (context.scroll) {
-                          | Some(scroll) => scroll.current.y
-                          | None => Webapi.Dom.(window |> Window.pageYOffset)
-                          }
-                        ),
-                      ),
-                    (),
-                  )
-                  |. ReactDOMRe.Style.unsafeAddProp(
-                       "WebkitUserSelect",
-                       "none",
-                     ),
-                "className":
-                  className
-                  |. Option.map(fn => fn(~dragging=true, ~moving=false))
-                  |. Js.Nullable.fromOption,
-              },
-              children',
-            )
-          )
-          {
-            let (width, height) =
-              switch (ghost.axis) {
-              | X => Style.(ghost.dimensions.width |. px, 0 |. px)
-              | Y => Style.(0 |. px, ghost.dimensions.height |. px)
-              };
+        let (width, height) =
+          switch (ghost.axis) {
+          | X => Style.(ghost.dimensions.width->px, 0.->px)
+          | Y => Style.(0.->px, ghost.dimensions.height->px)
+          };
 
-            <div
-              style=(
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~width,
-                  ~minWidth=width,
-                  ~height,
-                  ~minHeight=height,
-                  ~marginTop=Style.(ghost.margins.top |. px),
-                  ~marginBottom=Style.(ghost.margins.bottom |. px),
-                  ~marginLeft=Style.(ghost.margins.left |. px),
-                  ~marginRight=Style.(ghost.margins.right |. px),
-                  ~transition=Style.transition("all"),
-                  (),
-                )
+        <>
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~position="fixed",
+                ~boxSizing="border-box",
+                ~zIndex="10000",
+                ~margin="0",
+                ~overflow="visible",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~top=Style.(ghost.departureRect.page.top->px),
+                ~left=Style.(ghost.departureRect.page.left->px),
+                ~width=Style.(ghost.dimensions.width->px),
+                ~height=Style.(ghost.dimensions.height->px),
+                ~transform=
+                  Style.translate(
+                    ghost.delta.x
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.x
+                      | None => Webapi.Dom.(window->Window.pageXOffset)
+                      }
+                    ),
+                    ghost.delta.y
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.y
+                      | None => Webapi.Dom.(window->Window.pageYOffset)
+                      }
+                    ),
+                  ),
+                (),
               )
-            />;
-          }
-        </Fragment>
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=true, ~moving=false))
+            }>
+            ...children'
+          </div>
+          <div
+            style={ReactDom.Style.make(
+              ~boxSizing="border-box",
+              ~width,
+              ~minWidth=width,
+              ~height,
+              ~minHeight=height,
+              ~marginTop=Style.(ghost.margins.top->px),
+              ~marginBottom=Style.(ghost.margins.bottom->px),
+              ~marginLeft=Style.(ghost.margins.left->px),
+              ~marginRight=Style.(ghost.margins.right->px),
+              ~transition=Style.transition("all"),
+              (),
+            )}
+          />
+        </>;
 
       | Dropping(ghost) when Cfg.Draggable.eq(draggableId, ghost.draggableId) =>
-        <Fragment>
-          (
-            ReasonReact.createDomElement(
-              "div",
-              ~props={
-                "ref": setElementRef,
-                "style":
-                  ReactDOMRe.Style.make(
-                    ~position="fixed",
-                    ~boxSizing="border-box",
-                    ~zIndex="10000",
-                    ~margin="0",
-                    ~overflow="visible",
-                    ~pointerEvents="none",
-                    ~userSelect="none",
-                    ~top=Style.(ghost.departureRect.page.top |. px),
-                    ~left=Style.(ghost.departureRect.page.left |. px),
-                    ~width=Style.(ghost.dimensions.width |. px),
-                    ~height=Style.(ghost.dimensions.height |. px),
-                    ~transition=Style.transition("transform"),
-                    ~transform=
-                      Style.translate(
-                        ghost.delta.x
-                        - (
-                          switch (context.scroll) {
-                          | Some(scroll) => scroll.current.x
-                          | None => Webapi.Dom.(window |> Window.pageXOffset)
-                          }
-                        ),
-                        ghost.delta.y
-                        - (
-                          switch (context.scroll) {
-                          | Some(scroll) => scroll.current.y
-                          | None => Webapi.Dom.(window |> Window.pageYOffset)
-                          }
-                        ),
-                      ),
-                    (),
-                  )
-                  |. ReactDOMRe.Style.unsafeAddProp(
-                       "WebkitUserSelect",
-                       "none",
-                     ),
-                "className":
-                  className
-                  |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                  |. Js.Nullable.fromOption,
-              },
-              children',
-            )
-          )
-          {
-            let (width, height) =
-              switch (ghost.axis) {
-              | X => Style.(ghost.dimensions.width |. px, 0 |. px)
-              | Y => Style.(0 |. px, ghost.dimensions.height |. px)
-              };
+        let (width, height) =
+          switch (ghost.axis) {
+          | X => Style.(ghost.dimensions.width->px, 0.->px)
+          | Y => Style.(0.->px, ghost.dimensions.height->px)
+          };
 
-            <div
-              style=(
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~width,
-                  ~minWidth=width,
-                  ~height,
-                  ~minHeight=height,
-                  ~marginTop=Style.(ghost.margins.top |. px),
-                  ~marginBottom=Style.(ghost.margins.bottom |. px),
-                  ~marginLeft=Style.(ghost.margins.left |. px),
-                  ~marginRight=Style.(ghost.margins.right |. px),
-                  ~transition=Style.transition("all"),
-                  (),
-                )
+        <>
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~position="fixed",
+                ~boxSizing="border-box",
+                ~zIndex="10000",
+                ~margin="0",
+                ~overflow="visible",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~top=Style.(ghost.departureRect.page.top->px),
+                ~left=Style.(ghost.departureRect.page.left->px),
+                ~width=Style.(ghost.dimensions.width->px),
+                ~height=Style.(ghost.dimensions.height->px),
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  Style.translate(
+                    ghost.delta.x
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.x
+                      | None => Webapi.Dom.(window->Window.pageXOffset)
+                      }
+                    ),
+                    ghost.delta.y
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.y
+                      | None => Webapi.Dom.(window->Window.pageYOffset)
+                      }
+                    ),
+                  ),
+                (),
               )
-            />;
-          }
-        </Fragment>
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
+          <div
+            style={ReactDom.Style.make(
+              ~boxSizing="border-box",
+              ~width,
+              ~minWidth=width,
+              ~height,
+              ~minHeight=height,
+              ~marginTop=Style.(ghost.margins.top->px),
+              ~marginBottom=Style.(ghost.margins.bottom->px),
+              ~marginLeft=Style.(ghost.margins.left->px),
+              ~marginRight=Style.(ghost.margins.right->px),
+              ~transition=Style.transition("all"),
+              (),
+            )}
+          />
+        </>;
 
       | Moving(pawn, _) when Cfg.Draggable.eq(draggableId, pawn.draggableId) =>
+        let (width, height) =
+          switch (pawn.axis) {
+          | X => Style.(pawn.dimensions.width->px, 0.->px)
+          | Y => Style.(0.->px, pawn.dimensions.height->px)
+          };
+
         switch (children) {
         | Children(_) =>
-          <Fragment>
-            (
-              ReasonReact.createDomElement(
-                "div",
-                ~props={
-                  "ref": setElementRef,
-                  "tabIndex": "0",
-                  "style":
-                    ReactDOMRe.Style.make(
-                      ~position="fixed",
-                      ~boxSizing="border-box",
-                      ~zIndex="10000",
-                      ~margin="0",
-                      ~overflow="visible",
-                      ~transition=Style.transition("transform"),
-                      ~top=Style.(pawn.departureRect.page.top |. px),
-                      ~left=Style.(pawn.departureRect.page.left |. px),
-                      ~width=Style.(pawn.dimensions.width |. px),
-                      ~height=Style.(pawn.dimensions.height |. px),
-                      ~transform=
-                        Style.translate(
-                          pawn.delta.x
-                          - (
-                            switch (context.scroll) {
-                            | Some(scroll) => scroll.current.x
-                            | None => Webapi.Dom.(window |> Window.pageXOffset)
-                            }
-                          ),
-                          pawn.delta.y
-                          - (
-                            switch (context.scroll) {
-                            | Some(scroll) => scroll.current.y
-                            | None => Webapi.Dom.(window |> Window.pageYOffset)
-                            }
-                          ),
-                        ),
-                      (),
+          <>
+            <div
+              ref=setElementRef
+              tabIndex=0
+              style={ReactDom.Style.make(
+                ~position="fixed",
+                ~boxSizing="border-box",
+                ~zIndex="10000",
+                ~margin="0",
+                ~overflow="visible",
+                ~transition=Style.transition("transform"),
+                ~top=Style.(pawn.departureRect.page.top->px),
+                ~left=Style.(pawn.departureRect.page.left->px),
+                ~width=Style.(pawn.dimensions.width->px),
+                ~height=Style.(pawn.dimensions.height->px),
+                ~transform=
+                  Style.translate(
+                    pawn.delta.x
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.x
+                      | None => Webapi.Dom.(window->Window.pageXOffset)
+                      }
                     ),
-                  "className":
-                    className
-                    |. Option.map(fn => fn(~dragging=false, ~moving=true))
-                    |. Js.Nullable.fromOption,
-                  "onMouseDown": dragHandle.onMouseDown,
-                  "onTouchStart": dragHandle.onTouchStart,
-                },
-                children',
-              )
-            )
-            {
-              let (width, height) =
-                switch (pawn.axis) {
-                | X => Style.(pawn.dimensions.width |. px, 0 |. px)
-                | Y => Style.(0 |. px, pawn.dimensions.height |. px)
-                };
-
-              <div
-                style=(
-                  ReactDOMRe.Style.make(
-                    ~boxSizing="border-box",
-                    ~width,
-                    ~minWidth=width,
-                    ~height,
-                    ~minHeight=height,
-                    ~marginTop=Style.(pawn.margins.top |. px),
-                    ~marginBottom=Style.(pawn.margins.bottom |. px),
-                    ~marginLeft=Style.(pawn.margins.left |. px),
-                    ~marginRight=Style.(pawn.margins.right |. px),
-                    ~transition=Style.transition("all"),
-                    (),
-                  )
-                )
-              />;
-            }
-          </Fragment>
+                    pawn.delta.y
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.y
+                      | None => Webapi.Dom.(window->Window.pageYOffset)
+                      }
+                    ),
+                  ),
+                (),
+              )}
+              className=?{
+                className->Option.map(fn => fn(~dragging=false, ~moving=true))
+              }
+              onMouseDown={dragHandle.onMouseDown}
+              onTouchStart={dragHandle.onTouchStart}>
+              ...children'
+            </div>
+            <div
+              style={ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~width,
+                ~minWidth=width,
+                ~height,
+                ~minHeight=height,
+                ~marginTop=Style.(pawn.margins.top->px),
+                ~marginBottom=Style.(pawn.margins.bottom->px),
+                ~marginLeft=Style.(pawn.margins.left->px),
+                ~marginRight=Style.(pawn.margins.right->px),
+                ~transition=Style.transition("all"),
+                (),
+              )}
+            />
+          </>
 
         | ChildrenWithDragHandle(_) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
-        }
+          <div
+            ref=setElementRef
+            style={ReactDom.Style.make(~boxSizing="border-box", ())}
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
+        };
 
       | CancelingMove(pawn)
           when Cfg.Draggable.eq(draggableId, pawn.draggableId) =>
+        let (width, height) =
+          switch (pawn.axis) {
+          | X => Style.(pawn.dimensions.width->px, 0.->px)
+          | Y => Style.(0.->px, pawn.dimensions.height->px)
+          };
+
         switch (children) {
         | Children(_) =>
-          <Fragment>
-            (
-              ReasonReact.createDomElement(
-                "div",
-                ~props={
-                  "ref": setElementRef,
-                  "tabIndex": "0",
-                  "style":
-                    ReactDOMRe.Style.make(
-                      ~position="fixed",
-                      ~boxSizing="border-box",
-                      ~zIndex="10000",
-                      ~margin="0",
-                      ~overflow="visible",
-                      ~transition=Style.transition("transform"),
-                      ~top=Style.(pawn.departureRect.page.top |. px),
-                      ~left=Style.(pawn.departureRect.page.left |. px),
-                      ~width=Style.(pawn.dimensions.width |. px),
-                      ~height=Style.(pawn.dimensions.height |. px),
-                      ~transform=
-                        Style.translate(
-                          pawn.delta.x
-                          - (
-                            switch (context.scroll) {
-                            | Some(scroll) => scroll.current.x
-                            | None => Webapi.Dom.(window |> Window.pageXOffset)
-                            }
-                          ),
-                          pawn.delta.y
-                          - (
-                            switch (context.scroll) {
-                            | Some(scroll) => scroll.current.y
-                            | None => Webapi.Dom.(window |> Window.pageYOffset)
-                            }
-                          ),
-                        ),
-                      (),
+          <>
+            <div
+              ref=setElementRef
+              tabIndex=0
+              style={ReactDom.Style.make(
+                ~position="fixed",
+                ~boxSizing="border-box",
+                ~zIndex="10000",
+                ~margin="0",
+                ~overflow="visible",
+                ~transition=Style.transition("transform"),
+                ~top=Style.(pawn.departureRect.page.top->px),
+                ~left=Style.(pawn.departureRect.page.left->px),
+                ~width=Style.(pawn.dimensions.width->px),
+                ~height=Style.(pawn.dimensions.height->px),
+                ~transform=
+                  Style.translate(
+                    pawn.delta.x
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.x
+                      | None => Webapi.Dom.(window->Window.pageXOffset)
+                      }
                     ),
-                  "className":
-                    className
-                    |. Option.map(fn => fn(~dragging=false, ~moving=true))
-                    |. Js.Nullable.fromOption,
-                },
-                children',
-              )
-            )
-            {
-              let (width, height) =
-                switch (pawn.axis) {
-                | X => Style.(pawn.dimensions.width |. px, 0 |. px)
-                | Y => Style.(0 |. px, pawn.dimensions.height |. px)
-                };
-
-              <div
-                style=(
-                  ReactDOMRe.Style.make(
-                    ~boxSizing="border-box",
-                    ~width,
-                    ~minWidth=width,
-                    ~height,
-                    ~minHeight=height,
-                    ~marginTop=Style.(pawn.margins.top |. px),
-                    ~marginBottom=Style.(pawn.margins.bottom |. px),
-                    ~marginLeft=Style.(pawn.margins.left |. px),
-                    ~marginRight=Style.(pawn.margins.right |. px),
-                    ~transition=Style.transition("all"),
-                    (),
-                  )
-                )
-              />;
-            }
-          </Fragment>
+                    pawn.delta.y
+                    -. (
+                      switch (context.scroll) {
+                      | Some(scroll) => scroll.current.y
+                      | None => Webapi.Dom.(window->Window.pageYOffset)
+                      }
+                    ),
+                  ),
+                (),
+              )}
+              className=?{
+                className->Option.map(fn => fn(~dragging=false, ~moving=true))
+              }>
+              ...children'
+            </div>
+            <div
+              style={ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~width,
+                ~minWidth=width,
+                ~height,
+                ~minHeight=height,
+                ~marginTop=Style.(pawn.margins.top->px),
+                ~marginBottom=Style.(pawn.margins.bottom->px),
+                ~marginLeft=Style.(pawn.margins.left->px),
+                ~marginRight=Style.(pawn.margins.right->px),
+                ~transition=Style.transition("all"),
+                (),
+              )}
+            />
+          </>
 
         | ChildrenWithDragHandle(_) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
-        }
+          <div
+            ref=setElementRef
+            style={ReactDom.Style.make(~boxSizing="border-box", ())}
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
+        };
 
       | Dragging(ghost, _)
       | Dropping(ghost) =>
-        switch (draggableId |. context.getDraggableShift) {
+        switch (draggableId->(context.getDraggableShift)) {
         | Some(Alpha) when ghost.targetingOriginalDroppable =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (ghost.axis) {
-                    | X =>
-                      Style.translate(
-                        - (
-                          ghost.dimensions.width
-                          + ghost.margins.left
-                          + ghost.margins.right
-                        ),
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        - (
-                          ghost.dimensions.height
-                          + ghost.margins.top
-                          + ghost.margins.bottom
-                        ),
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (ghost.axis) {
+                  | X =>
+                    Style.translate(
+                      -. (
+                        ghost.dimensions.width
+                        +. ghost.margins.left
+                        +. ghost.margins.right
+                      ),
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      -. (
+                        ghost.dimensions.height
+                        +. ghost.margins.top
+                        +. ghost.margins.bottom
+                      ),
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Omega) when ghost.targetingOriginalDroppable =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (ghost.axis) {
-                    | X =>
-                      Style.translate(
-                        ghost.dimensions.width
-                        + ghost.margins.left
-                        + ghost.margins.right,
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        ghost.dimensions.height
-                        + ghost.margins.top
-                        + ghost.margins.bottom,
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (ghost.axis) {
+                  | X =>
+                    Style.translate(
+                      ghost.dimensions.width
+                      +. ghost.margins.left
+                      +. ghost.margins.right,
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      ghost.dimensions.height
+                      +. ghost.margins.top
+                      +. ghost.margins.bottom,
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Alpha) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Omega) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (ghost.axis) {
-                    | X =>
-                      Style.translate(
-                        ghost.dimensions.width
-                        + ghost.margins.left
-                        + ghost.margins.right,
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        ghost.dimensions.height
-                        + ghost.margins.top
-                        + ghost.margins.bottom,
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (ghost.axis) {
+                  | X =>
+                    Style.translate(
+                      ghost.dimensions.width
+                      +. ghost.margins.left
+                      +. ghost.margins.right,
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      ghost.dimensions.height
+                      +. ghost.margins.top
+                      +. ghost.margins.bottom,
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | None =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
         }
 
       | Moving(pawn, _)
       | CancelingMove(pawn) =>
-        switch (draggableId |. context.getDraggableShift) {
+        switch (draggableId->(context.getDraggableShift)) {
         | Some(Alpha) when pawn.targetingOriginalDroppable =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (pawn.axis) {
-                    | X =>
-                      Style.translate(
-                        - (
-                          pawn.dimensions.width
-                          + pawn.margins.left
-                          + pawn.margins.right
-                        ),
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        - (
-                          pawn.dimensions.height
-                          + pawn.margins.top
-                          + pawn.margins.bottom
-                        ),
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (pawn.axis) {
+                  | X =>
+                    Style.translate(
+                      -. (
+                        pawn.dimensions.width
+                        +. pawn.margins.left
+                        +. pawn.margins.right
+                      ),
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      -. (
+                        pawn.dimensions.height
+                        +. pawn.margins.top
+                        +. pawn.margins.bottom
+                      ),
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Omega) when pawn.targetingOriginalDroppable =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (pawn.axis) {
-                    | X =>
-                      Style.translate(
-                        pawn.dimensions.width
-                        + pawn.margins.left
-                        + pawn.margins.right,
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        pawn.dimensions.height
-                        + pawn.margins.top
-                        + pawn.margins.bottom,
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (pawn.axis) {
+                  | X =>
+                    Style.translate(
+                      pawn.dimensions.width
+                      +. pawn.margins.left
+                      +. pawn.margins.right,
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      pawn.dimensions.height
+                      +. pawn.margins.top
+                      +. pawn.margins.bottom,
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Alpha) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | Some(Omega) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  ~transform=
-                    switch (pawn.axis) {
-                    | X =>
-                      Style.translate(
-                        pawn.dimensions.width
-                        + pawn.margins.left
-                        + pawn.margins.right,
-                        0,
-                      )
-                    | Y =>
-                      Style.translate(
-                        0,
-                        pawn.dimensions.height
-                        + pawn.margins.top
-                        + pawn.margins.bottom,
-                      )
-                    },
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                ~transform=
+                  switch (pawn.axis) {
+                  | X =>
+                    Style.translate(
+                      pawn.dimensions.width
+                      +. pawn.margins.left
+                      +. pawn.margins.right,
+                      0.,
+                    )
+                  | Y =>
+                    Style.translate(
+                      0.,
+                      pawn.dimensions.height
+                      +. pawn.margins.top
+                      +. pawn.margins.bottom,
+                    )
+                  },
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
 
         | None =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style":
-                ReactDOMRe.Style.make(
-                  ~boxSizing="border-box",
-                  ~pointerEvents="none",
-                  ~userSelect="none",
-                  ~transition=Style.transition("transform"),
-                  (),
-                )
-                |. ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none"),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={
+              ReactDom.Style.make(
+                ~boxSizing="border-box",
+                ~pointerEvents="none",
+                ~userSelect="none",
+                ~transition=Style.transition("transform"),
+                (),
+              )
+              ->ReactDom.Style.unsafeAddProp("WebkitUserSelect", "none")
+            }
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
         }
 
       | StandBy =>
         switch (children) {
         | Children(_) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "tabIndex": "0",
-              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-              "onKeyDown": dragHandle.onKeyDown,
-              "onMouseDown": dragHandle.onMouseDown,
-              "onTouchStart": dragHandle.onTouchStart,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            tabIndex=0
+            style={ReactDom.Style.make(~boxSizing="border-box", ())}
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }
+            onKeyDown={dragHandle.onKeyDown}
+            onMouseDown={dragHandle.onMouseDown}
+            onTouchStart={dragHandle.onTouchStart}>
+            ...children'
+          </div>
         | ChildrenWithDragHandle(_) =>
-          ReasonReact.createDomElement(
-            "div",
-            ~props={
-              "ref": setElementRef,
-              "style": ReactDOMRe.Style.make(~boxSizing="border-box", ()),
-              "className":
-                className
-                |. Option.map(fn => fn(~dragging=false, ~moving=false))
-                |. Js.Nullable.fromOption,
-            },
-            children',
-          )
+          <div
+            ref=setElementRef
+            style={ReactDom.Style.make(~boxSizing="border-box", ())}
+            className=?{
+              className->Option.map(fn => fn(~dragging=false, ~moving=false))
+            }>
+            ...children'
+          </div>
         }
       };
     },

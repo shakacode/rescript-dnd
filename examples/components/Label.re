@@ -1,11 +1,7 @@
-let component = ReasonReact.statelessComponent(__MODULE__);
+open Dnd__React;
 
+let component = React.statelessComponent(__MODULE__);
 let make = (~htmlFor, children) => {
   ...component,
-  render: _ =>
-    ReasonReact.createDomElement(
-      "label",
-      ~props={"htmlFor": htmlFor, "className": "label"},
-      children,
-    ),
+  render: _ => <label htmlFor className="label"> ...children </label>,
 };

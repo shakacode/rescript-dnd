@@ -1,5 +1,6 @@
-let component = ReasonReact.statelessComponent(__MODULE__);
+open Dnd__React;
 
+let component = React.statelessComponent(__MODULE__);
 let make = (~id, ~value, ~onChange, _) => {
   ...component,
   render: _ =>
@@ -7,10 +8,6 @@ let make = (~id, ~value, ~onChange, _) => {
       id
       className="input"
       value
-      onChange=(
-        event =>
-          ReactDOMRe.domElementToObj(event |> ReactEventRe.Form.target)##value
-          |> onChange
-      )
+      onChange={event => event->ReactEvent.Form.target##value->onChange}
     />,
 };
