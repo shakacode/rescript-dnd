@@ -20,9 +20,9 @@ Drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-react/).
 
 ```shell
 # yarn
-yarn add re-dnd
+yarn add re-dnd@next
 # or npm
-npm install --save re-dnd
+npm install --save re-dnd@next
 ```
 
 Then add it to `bsconfig.json`:
