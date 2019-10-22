@@ -11,13 +11,14 @@
       "subdirs": true
     }
   ],
-  "bs-dependencies": ["reason-react", "bs-webapi"],
+  "bs-dependencies": ["reason-react", "bs-webapi", "bs-log"],
   "bs-dev-dependencies": ["re-classnames"],
   "reason": {
-    "react-jsx": 2
+    "react-jsx": 3
   },
   "refmt": 3,
   "bsc-flags": ["-bs-super-errors", "-w -45", "-open Belt"],
+  "ppx-flags": ["bs-log/ppx"],
   "package-specs": {
     "module": "commonjs",
     "in-source": true

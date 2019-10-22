@@ -290,6 +290,13 @@
   cursor: grab;
 }
 
+.vertical .todo:focus,
+.horizontal .todo:focus,
+.card-board .todo:focus {
+  outline: none;
+  background-color: #e6f3ff; /* TODO: Use selection instead of focus to indicate active item(s) */
+}
+
 .vertical .todo {
   padding: 10px 16px;
 }

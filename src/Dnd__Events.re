@@ -42,6 +42,11 @@ let unsubscribeFromResize = handler =>
     window,
   );
 
+let subscribeToKeyUp = handler =>
+  Window.addKeyUpEventListenerWithOptions(handler, addOptions, window);
+let unsubscribeFromKeyUp = handler =>
+  Window.removeKeyUpEventListenerWithOptions(handler, removeOptions, window);
+
 let subscribeToKeyDown = handler =>
   Window.addKeyDownEventListenerWithOptions(handler, addOptions, window);
 let unsubscribeFromKeyDown = handler =>
@@ -122,29 +127,59 @@ let unsubscribeFromVisibilityChange = handler =>
   );
 
 module Mouse = {
-  let leftClick = event => event |. ReactEventRe.Mouse.button === 0;
+  let leftClick = event => event->ReactEvent.Mouse.button === 0;
 
   let modifier = event =>
-    ReactEventRe.Mouse.(
-      altKey(event) || ctrlKey(event) || metaKey(event) || shiftKey(event)
+    ReactEvent.Mouse.(
+      event->altKey || event->ctrlKey || event->metaKey || event->shiftKey
     );
 };
 
 module Keyboard = {
-  let isDomKey = (key, event) => event |> KeyboardEvent.key === key;
-  let isReactKey = (key, event) => event |> ReactEventRe.Keyboard.key === key;
+  module Key = {
+    type t =
+      | Esc
+      | Tab
+      | Space
+      | Enter
+      | ArrowUp
+      | ArrowDown
+      | ArrowLeft
+      | ArrowRight
+      | Other;
 
-  let escKey = "Escape";
-  let isDomEscKey = event => event |> isDomKey(escKey);
-  let isReactEscKey = event => event |> isReactKey(escKey);
-  let onDomEscKey = (handler, event) =>
-    if (event |> isDomEscKey) {
-      handler();
-    };
-  let onReactEscKey = (handler, event) =>
-    if (event |> isReactEscKey) {
-      handler();
-    };
+    let fromString =
+      fun
+      | "Escape" => Esc
+      | "Tab" => Tab
+      | " " => Space
+      | "Enter" => Enter
+      | "ArrowUp" => ArrowUp
+      | "ArrowDown" => ArrowDown
+      | "ArrowLeft" => ArrowLeft
+      | "ArrowRight" => ArrowRight
+      | _ => Other;
+  };
+
+  module Dom = {
+    let key = event => event->KeyboardEvent.key->Key.fromString;
+
+    let isEscKey = event =>
+      switch (event->key) {
+      | Space => true
+      | _ => false
+      };
+
+    let onEscKey = (fn, event) =>
+      switch (event->key) {
+      | Space => fn()
+      | _ => ()
+      };
+  };
+
+  module React = {
+    let key = event => event->ReactEvent.Keyboard.key->Key.fromString;
+  };
 };
 
 module Touch = {
@@ -152,20 +187,20 @@ module Touch = {
     type t = {
       .
       "identifier": string,
-      "clientX": int,
-      "clientY": int,
-      "screenX": int,
-      "screenY": int,
-      "pageX": int,
-      "pageY": int,
+      "clientX": float,
+      "clientY": float,
+      "screenX": float,
+      "screenY": float,
+      "pageX": float,
+      "pageY": float,
       "target": Dom.element,
     };
   };
 
-  external castDomTouchListToTouchArray :
+  external castDomTouchListToTouchArray:
     TouchEvent.touchList => array(Touch.t) =
     "%identity";
-  external castReactTouchListToTouchArray : Js.t({..}) => array(Touch.t) =
+  external castReactTouchListToTouchArray: Js.t({..}) => array(Touch.t) =
     "%identity";
-  external castEventToTouchEvent : Dom.event => Dom.touchEvent = "%identity";
+  external castEventToTouchEvent: Dom.event => Dom.touchEvent = "%identity";
 };

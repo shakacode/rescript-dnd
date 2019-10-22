@@ -1,16 +1,9 @@
-let component = ReasonReact.statelessComponent(__MODULE__);
-
-let make = (~id, ~value, ~onChange, _) => {
-  ...component,
-  render: _ =>
-    <input
-      id
-      className="input"
-      value
-      onChange=(
-        event =>
-          ReactDOMRe.domElementToObj(event |> ReactEventRe.Form.target)##value
-          |> onChange
-      )
-    />,
+[@react.component]
+let make = (~id, ~value, ~onChange) => {
+  <input
+    id
+    className="input"
+    value
+    onChange={event => event->ReactEvent.Form.target##value->onChange}
+  />;
 };

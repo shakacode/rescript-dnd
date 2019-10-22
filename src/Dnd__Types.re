@@ -1,73 +1,73 @@
 module Point = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Delta = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Distance = {
   type t = {
-    x: int,
-    y: int,
+    x: float,
+    y: float,
   };
 };
 
 module Dimensions = {
   type t = {
-    width: int,
-    height: int,
+    width: float,
+    height: float,
   };
 };
 
 module Rect = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Margins = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Borders = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Paddings = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
 module Offset = {
   type t = {
-    top: int,
-    bottom: int,
-    left: int,
-    right: int,
+    top: float,
+    bottom: float,
+    left: float,
+    right: float,
   };
 };
 
@@ -91,6 +91,14 @@ module Axis = {
   type t =
     | X
     | Y;
+};
+
+module Arrow = {
+  type t =
+    | Up
+    | Down
+    | Left
+    | Right;
 };
 
 module Direction = {
@@ -135,52 +143,82 @@ module ScrollableElement = {
   };
 };
 
-module DraggableBag = {
-  type t('draggableId, 'droppableId) = {
-    id: 'draggableId,
-    droppableId: 'droppableId,
-    geometry: option(Geometry.t),
+module ItemBag = {
+  type t('itemId, 'containerId) = {
+    id: 'itemId,
+    containerId: 'containerId,
+    originalIndex: int,
+    targetIndex: int,
+    element: Dom.htmlElement,
     shift: Shift.t,
+    geometry: option(Geometry.t),
     animating: bool,
     getGeometry: unit => Geometry.t,
   };
 
-  type registrationPayload('draggableId, 'droppableId) = {
-    id: 'draggableId,
-    droppableId: 'droppableId,
+  type registrationPayload('itemId, 'containerId) = {
+    id: 'itemId,
+    containerId: 'containerId,
+    index: int,
+    element: Dom.htmlElement,
     getGeometry: unit => Geometry.t,
   };
 };
 
-module DroppableBag = {
-  type t('draggableId, 'droppableId) = {
-    id: 'droppableId,
+module ContainerBag = {
+  type t('itemId, 'containerId) = {
+    id: 'containerId,
     axis: Axis.t,
+    lockAxis: bool,
+    element: Dom.htmlElement,
     geometry: option(Geometry.t),
     scrollable: option(ScrollableElement.t),
-    accept: option('draggableId => bool),
+    accept: option('itemId => bool),
     getGeometryAndScrollable:
       unit => (Geometry.t, option(ScrollableElement.t)),
   };
 
-  type registrationPayload('draggableId, 'droppableId) = {
-    id: 'droppableId,
+  type registrationPayload('itemId, 'containerId) = {
+    id: 'containerId,
     axis: Axis.t,
-    accept: option('draggableId => bool),
+    lockAxis: bool,
+    element: Dom.htmlElement,
+    accept: option('itemId => bool),
     getGeometryAndScrollable:
       unit => (Geometry.t, option(ScrollableElement.t)),
   };
 };
 
 module Ghost = {
-  type t('draggableId, 'droppableId) = {
+  type t('itemId, 'containerId) = {
     element: Dom.htmlElement,
-    draggableId: 'draggableId,
-    originalDroppable: 'droppableId,
-    targetDroppable: option('droppableId),
-    targetingOriginalDroppable: bool,
+    itemId: 'itemId,
+    originalContainer: 'containerId,
+    targetContainer: option('containerId),
+    targetingOriginalContainer: bool,
     axis: Axis.t,
+    lockAxis: bool,
     direction: option(Direction.t),
+    dimensions: Dimensions.t,
+    margins: Margins.t,
+    borders: Borders.t,
+    delta: Delta.t,
+    departurePoint: RelativityBag.t(Point.t),
+    currentPoint: RelativityBag.t(Point.t),
+    departureRect: RelativityBag.t(Rect.t),
+    currentRect: RelativityBag.t(Rect.t),
+  };
+};
+
+module Pawn = {
+  type t('itemId, 'containerId) = {
+    element: Dom.htmlElement,
+    itemId: 'itemId,
+    originalContainer: 'containerId,
+    targetContainer: 'containerId,
+    targetingOriginalContainer: bool,
+    axis: Axis.t,
+    originalIndex: int,
     dimensions: Dimensions.t,
     margins: Margins.t,
     borders: Borders.t,
@@ -199,66 +237,29 @@ module Subscriptions = {
   };
 };
 
+module ReorderResult = {
+  type t('itemId, 'containerId) =
+    | SameContainer('itemId, placement('itemId))
+    | NewContainer('itemId, 'containerId, placement('itemId))
+
+  and placement('itemId) =
+    | Before('itemId)
+    | Last;
+};
+
 module Status = {
-  type t('draggableId, 'droppableId) =
+  type t('itemId, 'containerId) =
     | StandBy
-    | Dragging(Ghost.t('draggableId, 'droppableId), Subscriptions.t)
-    | Dropping(Ghost.t('draggableId, 'droppableId));
-};
-
-module Context = {
-  type t('draggableId, 'droppableId) = {
-    status: Status.t('draggableId, 'droppableId),
-    target: option('droppableId),
-    scroll: option(Scroll.t),
-    registerDraggable:
-      DraggableBag.registrationPayload('draggableId, 'droppableId) => unit,
-    registerDroppable:
-      DroppableBag.registrationPayload('draggableId, 'droppableId) => unit,
-    disposeDraggable: 'draggableId => unit,
-    disposeDroppable: 'droppableId => unit,
-    getDraggableShift: 'draggableId => Shift.t,
-    initDrag:
-      (
-        ~draggableId: 'draggableId,
-        ~droppableId: 'droppableId,
-        ~start: RelativityBag.t(Point.t),
-        ~current: RelativityBag.t(Point.t),
-        ~element: Dom.htmlElement,
-        ~subscriptions: Subscriptions.t
-      ) =>
-      unit,
-    updateGhostPosition: RelativityBag.t(Point.t) => unit,
-    drop: unit => unit,
-    cancelDrag: unit => unit,
-  };
-};
-
-module Payload = {
-  type t('draggableId, 'droppableId) = {
-    context: Context.t('draggableId, 'droppableId),
-  };
-};
-
-module DropResult = {
-  type droppables('droppableId) = {
-    prev: 'droppableId,
-    next: 'droppableId,
-  };
-
-  type t('draggableId, 'droppableId) =
-    | SameTarget('draggableId, 'droppableId, array('draggableId))
-    | NewTarget('draggableId, droppables('droppableId), array('draggableId))
-    | NoChanges;
-
-  type trait =
-    | Ghost
-    | Item(Shift.t);
-
-  type draggableIntermediateResult('draggableId) = {
-    id: 'draggableId,
-    trait,
-    rect: RelativityBag.t(Rect.t),
-    margins: Margins.t,
-  };
+    | Collecting(
+        'itemId,
+        'containerId,
+        RelativityBag.t(Point.t),
+        RelativityBag.t(Point.t),
+        [ | `Mouse | `Touch],
+      )
+    | Dragging(Ghost.t('itemId, 'containerId), Subscriptions.t)
+    | Dropping(
+        Ghost.t('itemId, 'containerId),
+        option(ReorderResult.t('itemId, 'containerId)),
+      );
 };

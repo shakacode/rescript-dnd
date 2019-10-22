@@ -1,4 +1,4 @@
-type route =
+type t =
   | VerticalList
   | HorizontalList
   | VerticalScrollableContainer
@@ -6,8 +6,8 @@ type route =
   | CardBoard
   | NestedVerticalLists;
 
-let getRoute = url =>
-  ReasonReact.Router.(
+let fromUrl = url =>
+  ReasonReactRouter.(
     switch (url.hash) {
     | "vertical-list" => VerticalList
     | "horizontal-list" => HorizontalList

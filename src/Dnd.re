@@ -1,10 +1,22 @@
-open Dnd__Types;
+include Dnd__Types;
+include Dnd__Config;
 
-type result('draggableId, 'droppableId) =
-  DropResult.t('draggableId, 'droppableId);
+type result('itemId, 'containerId) =
+  option(ReorderResult.t('itemId, 'containerId));
 
-module Make = (Config: Dnd__Config.Config) => {
-  module Context = Dnd__Context.Make(Config);
-  module Draggable = Dnd__Draggable.Make(Config);
-  module Droppable = Dnd__Droppable.Make(Config);
+module Make = (Item: DndEntry, Container: DndEntry) => {
+  module DndContext = Dnd__DndContext.Make(Item, Container);
+  module DndManager = Dnd__DndManager.Make(DndContext);
+  module DraggableItem = Dnd__DraggableItem.Make(DndContext);
+  module DroppableContainer = Dnd__DroppableContainer.Make(DndContext);
+};
+
+module MakeSingletonContainer = (()) => {
+  type t;
+  external id: unit => t = "%identity";
+  let eq = (_, _) => true;
+};
+
+module Selection = {
+  module Make = Dnd__SelectionManager.Make;
 };
