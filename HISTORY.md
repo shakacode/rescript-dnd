@@ -1,5 +1,8 @@
 # History
 
+## 1.0.0
+* Full rewrite using hooks api.
+
 ## 0.6.0
 **Features**
 * Horizontal lists support.
