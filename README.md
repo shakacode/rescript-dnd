@@ -4,7 +4,7 @@
 [![build status](https://img.shields.io/travis/alexfedoseev/re-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/re-dnd)
 [![license](https://img.shields.io/npm/l/re-dnd.svg?style=flat-square)](https://www.npmjs.com/package/re-dnd)
 
-Drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-react/).
+Drag & drop for [`reason-react`](https://reasonml.github.io/reason-react/).
 
 ## Features
 * Vertical lists
@@ -33,17 +33,20 @@ Then add it to `bsconfig.json`:
 ]
 ```
 
+## Docs
+* [Getting Started](./docs/01-GettingStartedGuide.md)
+* [Advanced guide: Safer identifiers and multiple containers](./docs/02-SaferIdentifiersAndMultipleContainersGuide.md)
+* [Api](./docs/03-Api.md)
+
 ## Examples
-* Demo: [`live`](https://re-dnd.now.sh) | [`sources`](./examples)
-* Production app: [`Minima`](https://minima.app)
+* Demos: [`live`](https://re-dnd.now.sh) | [`sources`](./examples)
+* @Production: [`Minima`](https://minima.app)
 
 ## State
+🚧 The library is not feature-complete and some features/apis might be missing.<br>
+🎙 Let us know if you miss anything via [creating an issue](issues/new).<br>
+🌎 We're using it in production BTW.
 
-<pre align="center">
-🚧 === The library is not feature-complete and some features/apis might be missing === 🚧
-🚧 ===                     Documentation is lacking as well                        === 🚧
-🌎 ===                   * But we're using it in production *                      === 🌎
-</pre>
 
 ### Features we'd like to add at some point
 - [ ] Keyboard interactions
