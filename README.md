@@ -4,13 +4,7 @@
 [![build status](https://img.shields.io/travis/alexfedoseev/re-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/re-dnd)
 [![license](https://img.shields.io/npm/l/re-dnd.svg?style=flat-square)](https://www.npmjs.com/package/re-dnd)
 
-Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-react/).
-
-<pre align="center">
-🚧 === The library is in active development and not production ready yet === 🚧
-🚧 ===               Breaking changes are highly expected                === 🚧
-</pre>
-
+Drag & drop for [`reason-react`](https://reasonml.github.io/reason-react/).
 
 ## Features
 * Vertical lists
@@ -22,20 +16,13 @@ Reasonable drag-n-drop for [`reason-react`](https://reasonml.github.io/reason-re
 * Scrollable containers
 * Auto-scroll when dragging at container's edge
 
-### TODO
-- [ ] Keyboard interactions
-- [ ] Ignore form elements (opt-out)
-- [ ] Drop-zones
-- [ ] Multi-select
-- [ ] Perf optimizations
-
 ## Installation
 
 ```shell
 # yarn
-yarn add re-dnd
+yarn add re-dnd@next
 # or npm
-npm install --save re-dnd
+npm install --save re-dnd@next
 ```
 
 Then add it to `bsconfig.json`:
@@ -46,98 +33,29 @@ Then add it to `bsconfig.json`:
 ]
 ```
 
+## Docs
+* [Getting Started](./docs/01-GettingStartedGuide.md)
+* [Advanced guide: Safer identifiers and multiple containers](./docs/02-SaferIdentifiersAndMultipleContainersGuide.md)
+* [Api](./docs/03-Api.md)
+
 ## Examples
+* Demos: [`live`](https://re-dnd.now.sh) | [`sources`](./examples)
+* @Production: [`Minima`](https://minima.app)
 
-Live: [`re-dnd.now.sh`](https://re-dnd.now.sh)  
-Src: [`./examples`](./examples)
+## State
+🚧 The library is not feature-complete and some features/apis might be missing.<br>
+🎙 Let us know if you miss anything via [creating an issue](issues/new).<br>
+🌎 We're using it in production BTW.
 
-Quickie:
 
-```reason
-module Cfg = {
-  module Draggable = {
-    type t =
-      | Todo(int);
-
-    let eq = (d1, d2) =>
-      switch (d1, d2) {
-      | (Todo(id1), Todo(id2)) => id1 === id2
-      };
-  };
-
-  module Droppable = {
-    type t =
-      | TodoList;
-
-    let eq = (_, _) => true;
-  };
-};
-
-module Screen = Dnd.Make(Cfg);
-
-type state = {
-  todos: array(Todo.t),
-};
-
-type action =
-  | Reorder(Dnd.result(Cfg.Draggable.t, Cfg.Droppable.t));
-
-let component = ReasonReact.reducerComponent(__MODULE__);
-
-let make = _ => {
-  ...component,
-  initialState: () => {todos: /* initial data */},
-  reducer: (action, state) =>
-    switch (action) {
-    | Reorder(result) =>
-      switch (result) {
-      | SameTarget(Todo(id), TodoList, todos) =>
-        ReasonReact.Update({...state, todos: /* update logic */})
-      | NewTarget(_, _, _)
-      | NoChanges => ReasonReact.NoUpdate
-      }
-    },
-  render: ({state, send}) =>
-    <Screen.Context onDrop=(result => Reorder(result) |> send)>
-      ...(
-           dnd =>
-             <Screen.Droppable
-               id=TodoList
-               axis=Y
-               context=dnd.context
-               className=(
-                 (~draggingOver) =>
-                   Cn.make(["todos", "active" |> Cn.ifTrue(draggingOver)])
-               )>
-               (
-                 state.todos
-                 |. Array.map(todo =>
-                      <Screen.Draggable
-                        id=(Todo(todo.id))
-                        key=(todo.id |. string_of_int)
-                        droppableId=TodoList
-                        context=dnd.context
-                        className=(
-                          (~dragging) =>
-                            Cn.make([
-                              "todo",
-                              "dragging" |> Cn.ifTrue(dragging),
-                            ])
-                        )>
-                        ...(Children(todo.todo |> ReasonReact.string))
-                      </Screen.Draggable>
-                    )
-                 |. ReasonReact.array
-               )
-             </Screen.Droppable>
-         )
-    </Screen.Context>,
-};
-```
+### Features we'd like to add at some point
+- [ ] Keyboard interactions
+- [ ] Ignore form elements (opt-out)
+- [ ] Drop-zones
+- [ ] Multi-select
 
 ## Thanks
 * To [`react-beautiful-dnd`](https://github.com/atlassian/react-beautiful-dnd) for inspiration
 
 ## License
-
 MIT.

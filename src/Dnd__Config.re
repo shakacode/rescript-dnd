@@ -1,4 +1,9 @@
-module type Config = {
-  module Draggable: {type t; let eq: (t, t) => bool;};
-  module Droppable: {type t; let eq: (t, t) => bool;};
+module type SelectableItem = {
+  type t;
+  let cmp: (t, t) => int;
+};
+
+module type DndEntry = {
+  type t;
+  let eq: (t, t) => bool;
 };
