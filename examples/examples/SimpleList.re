@@ -70,7 +70,11 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
 
   let (state, dispatch) = reducer->React.useReducer(initialState);
 
-  <Todos.DndManager onReorder={result => ReorderTodos(result)->dispatch}>
+  <Todos.DndManager
+    onDragStart={() => [%log.debug "AppHook"; ("Event", "DragStart")]}
+    onDropStart={() => [%log.debug "AppHook"; ("Event", "DropStart")]}
+    onDropEnd={() => [%log.debug "AppHook"; ("Event", "DropEnd")]}
+    onReorder={result => ReorderTodos(result)->dispatch}>
     <Todos.DroppableContainer
       id={Todos.Container.id()}
       axis

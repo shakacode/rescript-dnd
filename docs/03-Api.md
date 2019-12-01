@@ -23,6 +23,9 @@ React component that manages drag & drop state.
 
 ```reason
 let make: (
+  ~onDragStart: option(unit => unit)=?,
+  ~onDropStart: option(unit => unit)=?,
+  ~onDropEnd: option(unit => unit)=?,
   ~onReorder: option(result(Item.t, Container.t)) => unit,
   ~children: React.element,
 ) => React.element;

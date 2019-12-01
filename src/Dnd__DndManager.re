@@ -291,9 +291,18 @@ module Make = (Context: Context.T) => {
     };
   };
 
+  let invokeHook = (fn: option(unit => unit)) =>
+    switch (fn) {
+    | Some(fn) => fn()
+    | None => ()
+    };
+
   [@react.component]
   let make =
       (
+        ~onDragStart: option(unit => unit)=?,
+        ~onDropStart: option(unit => unit)=?,
+        ~onDropEnd: option(unit => unit)=?,
         ~onReorder: option(ReorderResult.t(Item.t, Container.t)) => unit,
         ~children,
       ) => {
@@ -1125,8 +1134,10 @@ module Make = (Context: Context.T) => {
           None;
         | (Collecting(_), Dragging(_, subscriptions)) =>
           subscriptions.install();
+          onDragStart->invokeHook;
           None;
         | (Dragging(_, _), Dropping(_, result)) =>
+          onDropStart->invokeHook;
           Js.Global.setTimeout(
             () => {
               result->onReorder;
@@ -1149,6 +1160,7 @@ module Make = (Context: Context.T) => {
           );
           scroll->React.Ref.setCurrent(None);
           viewport->React.Ref.setCurrent(None);
+          onDropEnd->invokeHook;
           None;
         | _ => None
         },
