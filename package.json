@@ -7,10 +7,11 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
-    "prestart": "yarn run clean:bs && yarn run build:bs",
+    "prestart": "yarn run build:bs:dev",
     "build": "parcel build examples/index.html",
-    "prebuild": "yarn run clean && yarn run build:bs",
+    "prebuild": "yarn run build:bs",
     "build:bs": "BS_LOG=off bsb -clean-world -make-world",
+    "build:bs:dev": "BS_LOG=* bsb -clean-world -make-world",
     "watch:bs": "BS_LOG=* bsb -clean-world -make-world -w",
     "clean": "yarn run clean:bs && yarn run clean:dist",
     "clean:bs": "bsb -clean-world",
