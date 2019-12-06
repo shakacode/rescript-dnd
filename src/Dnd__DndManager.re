@@ -291,18 +291,22 @@ module Make = (Context: Context.T) => {
     };
   };
 
-  let invokeHook = (fn: option(unit => unit)) =>
-    switch (fn) {
-    | Some(fn) => fn()
-    | None => ()
-    };
+  module Hook = {
+    type t = (~itemId: Item.t) => unit;
+
+    let invoke = (fn: option(t), ~itemId) =>
+      switch (fn) {
+      | Some(fn) => fn(~itemId)
+      | None => ()
+      };
+  };
 
   [@react.component]
   let make =
       (
-        ~onDragStart: option(unit => unit)=?,
-        ~onDropStart: option(unit => unit)=?,
-        ~onDropEnd: option(unit => unit)=?,
+        ~onDragStart: option(Hook.t)=?,
+        ~onDropStart: option(Hook.t)=?,
+        ~onDropEnd: option(Hook.t)=?,
         ~onReorder: option(ReorderResult.t(Item.t, Container.t)) => unit,
         ~children,
       ) => {
@@ -1132,12 +1136,12 @@ module Make = (Context: Context.T) => {
             interaction,
           );
           None;
-        | (Collecting(_), Dragging(_, subscriptions)) =>
+        | (Collecting(_), Dragging(ghost, subscriptions)) =>
           subscriptions.install();
-          onDragStart->invokeHook;
+          onDragStart->Hook.invoke(~itemId=ghost.itemId);
           None;
-        | (Dragging(_, _), Dropping(_, result)) =>
-          onDropStart->invokeHook;
+        | (Dragging(_, _), Dropping(ghost, result)) =>
+          onDropStart->Hook.invoke(~itemId=ghost.itemId);
           Js.Global.setTimeout(
             () => {
               result->onReorder;
@@ -1147,7 +1151,7 @@ module Make = (Context: Context.T) => {
           )
           ->ignore;
           None;
-        | (Dropping(_), StandBy) =>
+        | (Dropping(ghost, _), StandBy) =>
           focusTargetToRestore
           ->React.Ref.current
           ->Option.map(Webapi.Dom.HtmlElement.focus)
@@ -1160,7 +1164,7 @@ module Make = (Context: Context.T) => {
           );
           scroll->React.Ref.setCurrent(None);
           viewport->React.Ref.setCurrent(None);
-          onDropEnd->invokeHook;
+          onDropEnd->Hook.invoke(~itemId=ghost.itemId);
           None;
         | _ => None
         },
