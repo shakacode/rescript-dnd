@@ -1,6 +1,6 @@
 {
   "name": "re-dnd",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reasonable drag-n-drop for reason-react",
   "main": "src/Dnd.re",
   "author": "Alex Fedoseev <alex.fedoseev@gmail.com>",
