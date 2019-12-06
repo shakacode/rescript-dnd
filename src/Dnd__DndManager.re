@@ -291,9 +291,22 @@ module Make = (Context: Context.T) => {
     };
   };
 
+  module Hook = {
+    type t = (~itemId: Item.t) => unit;
+
+    let invoke = (fn: option(t), ~itemId) =>
+      switch (fn) {
+      | Some(fn) => fn(~itemId)
+      | None => ()
+      };
+  };
+
   [@react.component]
   let make =
       (
+        ~onDragStart: option(Hook.t)=?,
+        ~onDropStart: option(Hook.t)=?,
+        ~onDropEnd: option(Hook.t)=?,
         ~onReorder: option(ReorderResult.t(Item.t, Container.t)) => unit,
         ~children,
       ) => {
@@ -1123,10 +1136,12 @@ module Make = (Context: Context.T) => {
             interaction,
           );
           None;
-        | (Collecting(_), Dragging(_, subscriptions)) =>
+        | (Collecting(_), Dragging(ghost, subscriptions)) =>
           subscriptions.install();
+          onDragStart->Hook.invoke(~itemId=ghost.itemId);
           None;
-        | (Dragging(_, _), Dropping(_, result)) =>
+        | (Dragging(_, _), Dropping(ghost, result)) =>
+          onDropStart->Hook.invoke(~itemId=ghost.itemId);
           Js.Global.setTimeout(
             () => {
               result->onReorder;
@@ -1136,7 +1151,7 @@ module Make = (Context: Context.T) => {
           )
           ->ignore;
           None;
-        | (Dropping(_), StandBy) =>
+        | (Dropping(ghost, _), StandBy) =>
           focusTargetToRestore
           ->React.Ref.current
           ->Option.map(Webapi.Dom.HtmlElement.focus)
@@ -1149,6 +1164,7 @@ module Make = (Context: Context.T) => {
           );
           scroll->React.Ref.setCurrent(None);
           viewport->React.Ref.setCurrent(None);
+          onDropEnd->Hook.invoke(~itemId=ghost.itemId);
           None;
         | _ => None
         },

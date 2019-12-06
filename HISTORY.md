@@ -1,5 +1,8 @@
 # History
 
+## 1.1.0
+* Added `onDragStart`, `onDropStart` & `onDropEnd` handlers.
+
 ## 1.0.0
 * Full rewrite using hooks api.
 
