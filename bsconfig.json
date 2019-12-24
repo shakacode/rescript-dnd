@@ -17,10 +17,12 @@
     "react-jsx": 3
   },
   "refmt": 3,
-  "bsc-flags": ["-bs-super-errors", "-w -45", "-open Belt"],
-  "ppx-flags": ["bs-log/ppx"],
+  "bsc-flags": ["-w -45", "-open Belt"],
+  "ppx-flags": [
+    ["bs-log/ppx", "--lib=re-dnd"],
+  ],
   "package-specs": {
-    "module": "commonjs",
+    "module": "es6",
     "in-source": true
   },
   "suffix": ".bs.js"

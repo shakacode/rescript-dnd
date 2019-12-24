@@ -11,8 +11,8 @@
     "build": "parcel build examples/index.html",
     "prebuild": "yarn run build:bs",
     "build:bs": "BS_LOG=off bsb -clean-world -make-world",
-    "build:bs:dev": "BS_LOG=* bsb -clean-world -make-world",
-    "watch:bs": "BS_LOG=* bsb -clean-world -make-world -w",
+    "build:bs:dev": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world",
+    "watch:bs": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world -w",
     "clean": "yarn run clean:bs && yarn run clean:dist",
     "clean:bs": "bsb -clean-world",
     "clean:dist": "rm -rf dist",
@@ -40,17 +40,13 @@
     "type": "git",
     "url": "https://github.com/alexfedoseev/re-dnd.git"
   },
-  "peerDependencies": {
-    "bs-platform": "^3.1.0",
-    "reason-react": "^0.4.1"
-  },
   "dependencies": {
-    "bs-log": "0.1.1",
-    "bs-webapi": "0.15.5"
+    "bs-log": "1.1.0",
+    "bs-webapi": "0.15.6"
   },
   "devDependencies": {
-    "autoprefixer": "9.6.5",
-    "bs-platform": "5.2.1",
+    "autoprefixer": "9.7.3",
+    "bs-platform": "7.0.1",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
     "re-classnames": "4.0.0",

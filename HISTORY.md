@@ -1,5 +1,9 @@
 # History
 
+## 1.2.0
+* `bs-platform` updated to `v7`.
+* `bs-log` updated to `v1`.
+
 ## 1.1.0
 * Added `onDragStart`, `onDropStart` & `onDropEnd` handlers.
 
