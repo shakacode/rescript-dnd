@@ -204,7 +204,8 @@ module Make = (Context: Context.T) => {
   };
 
   module MouseSubscriptions = {
-    let onMouseMove = (updatePosition, event) => {
+    let onMouseMove =
+        (updatePosition: React.ref(RelativityBag.t(Point.t) => unit), event) => {
       // [%log.debug "MouseMove"; ("", "")];
       Webapi.Dom.(event->MouseEvent.preventDefault);
 
@@ -222,36 +223,37 @@ module Make = (Context: Context.T) => {
             },
         };
 
-      updatePosition->React.Ref.current(point);
+      updatePosition.current(point);
     };
 
-    let onMouseUp = (startDropping, _event) => {
+    let onMouseUp = (startDropping: React.ref(unit => unit), _event) => {
       [%log.debug "MouseUp"; ("", "")];
-      startDropping->React.Ref.current();
+      startDropping.current();
     };
 
-    let onKeyDown = (cancelDrag, event) => {
+    let onKeyDown = (cancelDrag: React.ref(unit => unit), event) => {
       [%log.debug "KeyDown"; ("", "")];
       switch (event->Events.Keyboard.Dom.key) {
       | Esc =>
         // Stopping propagation to prevent closing modal while dragging
         event->Webapi.Dom.KeyboardEvent.stopPropagation;
-        cancelDrag->React.Ref.current();
+        cancelDrag.current();
       | _ => ()
       };
     };
 
-    let onResize = (cancelDrag, _event) => {
-      cancelDrag->React.Ref.current();
+    let onResize = (cancelDrag: React.ref(unit => unit), _event) => {
+      cancelDrag.current();
     };
 
-    let onVisibilityChange = (cancelDrag, _event) => {
-      cancelDrag->React.Ref.current();
+    let onVisibilityChange = (cancelDrag: React.ref(unit => unit), _event) => {
+      cancelDrag.current();
     };
   };
 
   module TouchSubscriptions = {
-    let onTouchMove = (updatePosition, event) => {
+    let onTouchMove =
+        (updatePosition: React.ref(RelativityBag.t(Point.t) => unit), event) => {
       let event = event->Events.Touch.castEventToTouchEvent;
       let touch =
         Webapi.Dom.(
@@ -270,24 +272,24 @@ module Make = (Context: Context.T) => {
           viewport: Point.{x: touch##clientX, y: touch##clientY},
         };
 
-      updatePosition->React.Ref.current(point);
+      updatePosition.current(point);
     };
 
-    let onTouchEnd = (startDropping, event) => {
+    let onTouchEnd = (startDropping: React.ref(unit => unit), event) => {
       event->Webapi.Dom.Event.preventDefault;
-      startDropping->React.Ref.current();
+      startDropping.current();
     };
 
     let onContextMenu = event => {
       event->Webapi.Dom.Event.preventDefault;
     };
 
-    let onOrientationChange = (cancelDrag, _event) => {
-      cancelDrag->React.Ref.current();
+    let onOrientationChange = (cancelDrag: React.ref(unit => unit), _event) => {
+      cancelDrag.current();
     };
 
-    let onVisibilityChange = (cancelDrag, _event) => {
-      cancelDrag->React.Ref.current();
+    let onVisibilityChange = (cancelDrag: React.ref(unit => unit), _event) => {
+      cancelDrag.current();
     };
   };
 
@@ -311,7 +313,7 @@ module Make = (Context: Context.T) => {
         ~children,
       ) => {
     let items:
-      React.Ref.t(
+      React.ref(
         Map.t(
           Item.t,
           ItemBag.t(Item.t, Container.t),
@@ -321,7 +323,7 @@ module Make = (Context: Context.T) => {
       React.useRef(Map.make(~id=(module ComparableItem)));
 
     let containers:
-      React.Ref.t(
+      React.ref(
         Map.t(
           Container.t,
           ContainerBag.t(Item.t, Container.t),
@@ -330,16 +332,16 @@ module Make = (Context: Context.T) => {
       ) =
       React.useRef(Map.make(~id=(module ComparableContainer)));
 
-    let scroll: React.Ref.t(option(Scroll.t)) = React.useRef(None);
-    let viewport: React.Ref.t(option(Dimensions.t)) = React.useRef(None);
+    let scroll: React.ref(option(Scroll.t)) = React.useRef(None);
+    let viewport: React.ref(option(Dimensions.t)) = React.useRef(None);
 
-    let focusTargetToRestore: React.Ref.t(option(Dom.htmlElement)) =
+    let focusTargetToRestore: React.ref(option(Dom.htmlElement)) =
       React.useRef(None);
 
-    let scheduledWindowScrollFrameId: React.Ref.t(option(Webapi.rafId)) =
+    let scheduledWindowScrollFrameId: React.ref(option(Webapi.rafId)) =
       React.useRef(None);
     let scheduledScrollableElementScrollFrameId:
-      React.Ref.t(option(Webapi.rafId)) =
+      React.ref(option(Webapi.rafId)) =
       React.useRef(None);
 
     let updateGhostPosition =
@@ -402,9 +404,7 @@ module Make = (Context: Context.T) => {
                 | None =>
                   [%log.debug "StartDropping::NoTargetContainer"; ("", "")];
                   let container =
-                    containers
-                    ->React.Ref.current
-                    ->Map.getExn(ghost.originalContainer);
+                    containers.current->Map.getExn(ghost.originalContainer);
                   let scrollableDelta =
                     switch (container) {
                     | {scrollable: Some(scrollable)} =>
@@ -431,10 +431,8 @@ module Make = (Context: Context.T) => {
                     ("ContainerId", targetContainerId)
                   ];
                   let container =
-                    containers
-                    ->React.Ref.current
-                    ->Map.getExn(targetContainerId);
-                  let scroll = scroll->React.Ref.current->Option.getExn;
+                    containers.current->Map.getExn(targetContainerId);
+                  let scroll = scroll.current->Option.getExn;
                   let scrollableDelta =
                     switch (container) {
                     | {scrollable: Some(scrollable)} =>
@@ -446,8 +444,7 @@ module Make = (Context: Context.T) => {
                     };
 
                   let items =
-                    items
-                    ->React.Ref.current
+                    items.current
                     ->Map.keep((_, item) =>
                         item.containerId->Container.eq(targetContainerId)
                         && !item.id->Item.eq(ghost.itemId)
@@ -591,10 +588,8 @@ module Make = (Context: Context.T) => {
 
                 | Some(targetContainerId) =>
                   let container =
-                    containers
-                    ->React.Ref.current
-                    ->Map.getExn(targetContainerId);
-                  let scroll = scroll->React.Ref.current->Option.getExn;
+                    containers.current->Map.getExn(targetContainerId);
+                  let scroll = scroll.current->Option.getExn;
                   let scrollableDelta =
                     switch (container) {
                     | {scrollable: Some(scrollable)} =>
@@ -606,8 +601,7 @@ module Make = (Context: Context.T) => {
                     };
 
                   let items =
-                    items
-                    ->React.Ref.current
+                    items.current
                     ->Map.keep((_, item) =>
                         item.containerId->Container.eq(targetContainerId)
                         && !item.id->Item.eq(ghost.itemId)
@@ -753,9 +747,7 @@ module Make = (Context: Context.T) => {
             switch (state.status) {
             | Dragging(ghost, _) =>
               let container =
-                containers
-                ->React.Ref.current
-                ->Map.getExn(ghost.originalContainer);
+                containers.current->Map.getExn(ghost.originalContainer);
 
               let nextGhost =
                 switch (container) {
@@ -789,9 +781,8 @@ module Make = (Context: Context.T) => {
     let registerItem =
       React.useCallback1(
         (item: ItemBag.registrationPayload(Item.t, Container.t)) =>
-          items->React.Ref.setCurrent(
-            items
-            ->React.Ref.current
+          items.current =
+            items.current
             ->Map.set(
                 item.id,
                 {
@@ -806,16 +797,14 @@ module Make = (Context: Context.T) => {
                   getGeometry: item.getGeometry,
                 },
               ),
-          ),
         [|items|],
       );
 
     let registerContainer =
       React.useCallback1(
         (container: ContainerBag.registrationPayload(Item.t, Container.t)) =>
-          containers->React.Ref.setCurrent(
-            containers
-            ->React.Ref.current
+          containers.current =
+            containers.current
             ->Map.set(
                 container.id,
                 {
@@ -829,25 +818,19 @@ module Make = (Context: Context.T) => {
                   getGeometryAndScrollable: container.getGeometryAndScrollable,
                 },
               ),
-          ),
         [|containers|],
       );
 
     let disposeItem =
       React.useCallback1(
-        itemId =>
-          items->React.Ref.setCurrent(
-            items->React.Ref.current->Map.remove(itemId),
-          ),
+        itemId => items.current = items.current->Map.remove(itemId),
         [|items|],
       );
 
     let disposeContainer =
       React.useCallback1(
         containerId =>
-          containers->React.Ref.setCurrent(
-            containers->React.Ref.current->Map.remove(containerId),
-          ),
+          containers.current = containers.current->Map.remove(containerId),
         [|containers|],
       );
 
@@ -881,9 +864,8 @@ module Make = (Context: Context.T) => {
         ) => {
           open Webapi.Dom;
 
-          let item = items->React.Ref.current->Map.getExn(itemId);
-          let container =
-            containers->React.Ref.current->Map.getExn(containerId);
+          let item = items.current->Map.getExn(itemId);
+          let container = containers.current->Map.getExn(containerId);
 
           let maxScroll = Scrollable.Window.getMaxScroll();
           let scrollPosition = Scrollable.Window.getScrollPosition();
@@ -1044,25 +1026,21 @@ module Make = (Context: Context.T) => {
             };
           };
 
-          items->React.Ref.setCurrent(
-            items
-            ->React.Ref.current
-            ->Map.map(item => {...item, geometry: item.getGeometry()->Some}),
-          );
+          items.current =
+            items.current
+            ->Map.map(item => {...item, geometry: item.getGeometry()->Some});
 
-          containers->React.Ref.setCurrent(
-            containers
-            ->React.Ref.current
+          containers.current =
+            containers.current
             ->Map.map(container => {
                 let (geometry, scrollable) =
                   container.getGeometryAndScrollable();
                 {...container, geometry: geometry->Some, scrollable};
-              }),
-          );
+              });
 
-          viewport->React.Ref.setCurrent(Geometry.getViewport()->Some);
+          viewport.current = Geometry.getViewport()->Some;
 
-          scroll->React.Ref.setCurrent(
+          scroll.current =
             Some(
               Scroll.{
                 max: maxScroll,
@@ -1073,20 +1051,18 @@ module Make = (Context: Context.T) => {
                   y: 0.,
                 },
               },
-            ),
-          );
+            );
 
           // Saving currently focused element and focusing ghost element
           // to be able to listen keyboard events to stop event propagation.
           // This is useful when drag is happening inside a modal
           // that can be closed via Esc key.
           // We don't want that in the middle of dragging.
-          focusTargetToRestore->React.Ref.setCurrent(
+          focusTargetToRestore.current =
             document
             ->Document.unsafeAsHtmlDocument
             ->HtmlDocument.activeElement
-            ->Option.map(Element.unsafeAsHtmlElement),
-          );
+            ->Option.map(Element.unsafeAsHtmlElement);
 
           ghost.element->Webapi.Dom.HtmlElement.focus;
 
@@ -1101,16 +1077,15 @@ module Make = (Context: Context.T) => {
           switch (itemIds) {
           | [] => ()
           | _ as ids =>
-            items->React.Ref.setCurrent(
-              ids->List.reduceU(items->React.Ref.current, (. map, id) =>
+            items.current =
+              ids->List.reduceU(items.current, (. map, id) =>
                 map->Map.updateU(id, (. item) =>
                   switch (item) {
                   | Some(item) => Some(ItemBag.{...item, animating: false})
                   | None => None
                   }
                 )
-              ),
-            )
+              )
           },
         [|items|],
       );
@@ -1152,18 +1127,15 @@ module Make = (Context: Context.T) => {
           ->ignore;
           None;
         | (Dropping(ghost, _), StandBy) =>
-          focusTargetToRestore
-          ->React.Ref.current
+          focusTargetToRestore.current
           ->Option.map(Webapi.Dom.HtmlElement.focus)
           ->ignore;
-          focusTargetToRestore->React.Ref.setCurrent(None);
+          focusTargetToRestore.current = None;
 
-          items->React.Ref.setCurrent(Map.make(~id=(module ComparableItem)));
-          containers->React.Ref.setCurrent(
-            Map.make(~id=(module ComparableContainer)),
-          );
-          scroll->React.Ref.setCurrent(None);
-          viewport->React.Ref.setCurrent(None);
+          items.current = Map.make(~id=(module ComparableItem));
+          containers.current = Map.make(~id=(module ComparableContainer));
+          scroll.current = None;
+          viewport.current = None;
           onDropEnd->Hook.invoke(~itemId=ghost.itemId);
           None;
         | _ => None
@@ -1171,7 +1143,7 @@ module Make = (Context: Context.T) => {
       (state.status, state.prevStatus),
     );
 
-    updateGhostPosition->React.Ref.setCurrent(
+    updateGhostPosition.current =
       React.useCallback3(
         (nextPoint: RelativityBag.t(Point.t)) =>
           switch (state.status) {
@@ -1205,8 +1177,7 @@ module Make = (Context: Context.T) => {
               };
 
             let targetContainer =
-              containers
-              ->React.Ref.current
+              containers.current
               ->Map.valuesToArray
               ->Js.Array.find(
                   (container: ContainerBag.t(Item.t, Container.t)) => {
@@ -1332,21 +1303,19 @@ module Make = (Context: Context.T) => {
               },
             };
 
-            invalidateLayout->React.Ref.current(nextGhost);
+            invalidateLayout.current(nextGhost);
           | Collecting(_)
           | Dropping(_)
           | StandBy => ()
           },
         (state.status, items, containers),
-      ),
-    );
+      );
 
-    updateScrollPosition->React.Ref.setCurrent(
+    updateScrollPosition.current =
       React.useCallback2(
         (ghost: Ghost.t(Item.t, Container.t)) => {
           let scrollable =
-            containers
-            ->React.Ref.current
+            containers.current
             ->Map.reduce(
                 None, (scrollable: option(ScrollableElement.t), _, container) =>
                 switch (scrollable, container.scrollable) {
@@ -1374,23 +1343,23 @@ module Make = (Context: Context.T) => {
           let scroller =
             Scroller.getScroller(
               ~point=ghost.currentPoint,
-              ~viewport=viewport->React.Ref.current->Option.getExn,
-              ~scroll=scroll->React.Ref.current->Option.getExn,
+              ~viewport=viewport.current->Option.getExn,
+              ~scroll=scroll.current->Option.getExn,
               ~scrollable,
             );
 
           switch (scroller) {
           | Some(Window(requestWindowScroll)) =>
-            switch (scheduledWindowScrollFrameId->React.Ref.current) {
+            switch (scheduledWindowScrollFrameId.current) {
             | Some(frameId) =>
               frameId->Webapi.cancelAnimationFrame;
-              scheduledWindowScrollFrameId->React.Ref.setCurrent(None);
+              scheduledWindowScrollFrameId.current = None;
             | None => ()
             };
 
-            scheduledWindowScrollFrameId->React.Ref.setCurrent(
+            scheduledWindowScrollFrameId.current =
               requestWindowScroll(() => {
-                let currentScroll = scroll->React.Ref.current->Option.getExn;
+                let currentScroll = scroll.current->Option.getExn;
 
                 let nextScrollPosition = Scrollable.Window.getScrollPosition();
 
@@ -1430,9 +1399,8 @@ module Make = (Context: Context.T) => {
                     y: nextScrollPosition.y -. currentScroll.current.y,
                   };
 
-                containers->React.Ref.setCurrent(
-                  containers
-                  ->React.Ref.current
+                containers.current =
+                  containers.current
                   ->Map.map(container =>
                       switch (container.scrollable) {
                       | Some(scrollable) => {
@@ -1472,26 +1440,22 @@ module Make = (Context: Context.T) => {
                               ),
                         }
                       }
-                    ),
-                );
+                    );
 
-                scroll->React.Ref.setCurrent(nextScroll->Some);
+                scroll.current = nextScroll->Some;
 
-                updateGhostPosition->React.Ref.current(nextPoint);
-              }),
-            );
+                updateGhostPosition.current(nextPoint);
+              });
 
           | Some(Element(requestElementScroll)) =>
-            switch (scheduledScrollableElementScrollFrameId->React.Ref.current) {
+            switch (scheduledScrollableElementScrollFrameId.current) {
             | Some(frameId) =>
               frameId->Webapi.cancelAnimationFrame;
-              scheduledScrollableElementScrollFrameId->React.Ref.setCurrent(
-                None,
-              );
+              scheduledScrollableElementScrollFrameId.current = None;
             | None => ()
             };
 
-            scheduledScrollableElementScrollFrameId->React.Ref.setCurrent(
+            scheduledScrollableElementScrollFrameId.current =
               requestElementScroll(scrollable => {
                 let nextScrollPosition =
                   scrollable.element->Scrollable.Element.getScrollPosition;
@@ -1513,9 +1477,8 @@ module Make = (Context: Context.T) => {
                     y: nextScrollPosition.y -. scrollable.scroll.current.y,
                   };
 
-                containers->React.Ref.setCurrent(
-                  containers
-                  ->React.Ref.current
+                containers.current =
+                  containers.current
                   ->Map.map(container =>
                       switch (container.scrollable) {
                       | Some(scrollable')
@@ -1554,47 +1517,40 @@ module Make = (Context: Context.T) => {
                       | Some(_)
                       | None => container
                       }
-                    ),
-                );
+                    );
 
-                invalidateLayout->React.Ref.current(ghost);
-              }),
-            );
+                invalidateLayout.current(ghost);
+              });
 
           | None => ()
           };
         },
         (items, containers),
-      ),
-    );
+      );
 
-    invalidateLayout->React.Ref.setCurrent(
+    invalidateLayout.current =
       React.useCallback2(
         (ghost: Ghost.t(Item.t, Container.t)) => {
           let (nextItems, animate) =
             switch (ghost.targetContainer) {
             | None =>
               let items =
-                items
-                ->React.Ref.current
-                ->Map.map(item => {...item, shift: None});
+                items.current->Map.map(item => {...item, shift: None});
               (items, []);
             | Some(targetContainerId) =>
               let container =
-                containers->React.Ref.current->Map.getExn(targetContainerId);
+                containers.current->Map.getExn(targetContainerId);
 
-              items
-              ->React.Ref.current
+              items.current
               ->Map.reduce(
-                  (items->React.Ref.current, []),
-                  ((items, animate), id, item) =>
+                  (items.current, []), ((items, animate), id, item) =>
                   switch (item.containerId) {
                   | itemContainerId
                       when
                         targetContainerId->Container.eq(itemContainerId)
                         && ghost.targetingOriginalContainer =>
                     let geometry = item.geometry->Option.getExn;
-                    let scroll = scroll->React.Ref.current->Option.getExn;
+                    let scroll = scroll.current->Option.getExn;
 
                     let shiftedItemRect =
                       Geometry.shiftInternalSibling(
@@ -1700,7 +1656,7 @@ module Make = (Context: Context.T) => {
                         targetContainerId->Container.eq(itemContainerId)
                         && !ghost.targetingOriginalContainer =>
                     let geometry = item.geometry->Option.getExn;
-                    let scroll = scroll->React.Ref.current->Option.getExn;
+                    let scroll = scroll.current->Option.getExn;
 
                     let shiftedDraggableRect =
                       Geometry.shiftExternalSibling(
@@ -1780,11 +1736,11 @@ module Make = (Context: Context.T) => {
                 );
             };
 
-          items->React.Ref.setCurrent(nextItems);
+          items.current = nextItems;
 
           UpdateGhostPosition(ghost)->dispatch;
 
-          updateScrollPosition->React.Ref.current(ghost);
+          updateScrollPosition.current(ghost);
 
           Js.Global.setTimeout(
             () => animate->resetAnimationsOnDrag,
@@ -1793,8 +1749,7 @@ module Make = (Context: Context.T) => {
           ->ignore;
         },
         (items, containers),
-      ),
-    );
+      );
 
     let prepareDrop =
       React.useCallback3(
@@ -1805,19 +1760,17 @@ module Make = (Context: Context.T) => {
           | Dropping(_)
           | StandBy => ()
           };
-          switch (scheduledWindowScrollFrameId->React.Ref.current) {
+          switch (scheduledWindowScrollFrameId.current) {
           | Some(frameId) =>
             frameId->Webapi.cancelAnimationFrame;
-            scheduledWindowScrollFrameId->React.Ref.setCurrent(None);
+            scheduledWindowScrollFrameId.current = None;
           | None => ()
           };
 
-          switch (scheduledScrollableElementScrollFrameId->React.Ref.current) {
+          switch (scheduledScrollableElementScrollFrameId.current) {
           | Some(frameId) =>
             frameId->Webapi.cancelAnimationFrame;
-            scheduledScrollableElementScrollFrameId->React.Ref.setCurrent(
-              None,
-            );
+            scheduledScrollableElementScrollFrameId.current = None;
           | None => ()
           };
         },
@@ -1828,28 +1781,25 @@ module Make = (Context: Context.T) => {
         ),
       );
 
-    startDropping->React.Ref.setCurrent(
+    startDropping.current =
       React.useCallback1(
         () => {
           prepareDrop();
           StartDropping->dispatch;
         },
         [|prepareDrop|],
-      ),
-    );
+      );
 
-    cancelDrag->React.Ref.setCurrent(
+    cancelDrag.current =
       React.useCallback2(
         () => {
           prepareDrop();
-          items->React.Ref.setCurrent(
-            items->React.Ref.current->Map.map(item => {...item, shift: None}),
-          );
+          items.current =
+            items.current->Map.map(item => {...item, shift: None});
           CancelDrag->dispatch;
         },
         (items, prepareDrop),
-      ),
-    );
+      );
 
     // HACK: We have to add persistent event listener due to webkit bug:
     //       https://bugs.webkit.org/show_bug.cgi?id=184250
@@ -1885,7 +1835,7 @@ module Make = (Context: Context.T) => {
     <Context.Provider
       value={
         status: state.status,
-        scroll: scroll->React.Ref.current,
+        scroll: scroll.current,
         target:
           switch (state.status) {
           | Dragging(ghost, _)
@@ -1897,8 +1847,7 @@ module Make = (Context: Context.T) => {
         registerContainer,
         disposeItem,
         disposeContainer,
-        getItemShift: itemId =>
-          items->React.Ref.current->Map.getExn(itemId).shift,
+        getItemShift: itemId => items.current->Map.getExn(itemId).shift,
         startDragging: collectEntries,
       }>
       children

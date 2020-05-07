@@ -89,8 +89,7 @@ module Make = (Item: SelectableItem) => {
         {current: set, previous: set};
       });
 
-    let refs:
-      React.Ref.t(Map.t(Item.t, Dom.element, ComparableItem.identity)) =
+    let refs: React.ref(Map.t(Item.t, Dom.element, ComparableItem.identity)) =
       React.useRef(Map.make(~id=(module ComparableItem)));
 
     let (state, dispatch) =
@@ -105,8 +104,7 @@ module Make = (Item: SelectableItem) => {
                 previous: state.current,
               },
               _ =>
-                refs
-                ->React.Ref.current
+                refs.current
                 ->Map.get(id)
                 ->Option.mapWithDefault((), Scroll.adjust),
             )
@@ -159,17 +157,12 @@ module Make = (Item: SelectableItem) => {
         switch (
           el->Js.Nullable.toOption->Option.flatMap(Js.Nullable.toOption)
         ) {
-        | Some(el) =>
-          refs->React.Ref.setCurrent(
-            refs->React.Ref.current->Map.set(itemId, el),
-          )
+        | Some(el) => refs.current = refs.current->Map.set(itemId, el)
         | None => ()
         };
       },
       dispose: itemId => {
-        refs->React.Ref.setCurrent(
-          refs->React.Ref.current->Map.remove(itemId),
-        );
+        refs.current = refs.current->Map.remove(itemId);
         if (state.current->Set.has(itemId)) {
           DeselectOne(itemId)->dispatch;
         };
