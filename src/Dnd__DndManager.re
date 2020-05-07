@@ -238,7 +238,14 @@ module Make = (Context: Context.T) => {
         // Stopping propagation to prevent closing modal while dragging
         event->Webapi.Dom.KeyboardEvent.stopPropagation;
         cancelDrag.current();
-      | _ => ()
+      | Tab
+      | Space
+      | Enter
+      | ArrowUp
+      | ArrowDown
+      | ArrowLeft
+      | ArrowRight
+      | Other => ()
       };
     };
 
@@ -406,13 +413,13 @@ module Make = (Context: Context.T) => {
                   let container =
                     containers.current->Map.getExn(ghost.originalContainer);
                   let scrollableDelta =
-                    switch (container) {
-                    | {scrollable: Some(scrollable)} =>
+                    switch (container.scrollable) {
+                    | Some(scrollable) =>
                       Delta.{
                         x: scrollable.scroll.delta.x,
                         y: scrollable.scroll.delta.y,
                       }
-                    | {scrollable: None} => Delta.{x: 0., y: 0.}
+                    | None => Delta.{x: 0., y: 0.}
                     };
                   let nextGhost = {
                     ...ghost,
@@ -434,13 +441,13 @@ module Make = (Context: Context.T) => {
                     containers.current->Map.getExn(targetContainerId);
                   let scroll = scroll.current->Option.getExn;
                   let scrollableDelta =
-                    switch (container) {
-                    | {scrollable: Some(scrollable)} =>
+                    switch (container.scrollable) {
+                    | Some(scrollable) =>
                       Delta.{
                         x: scrollable.scroll.delta.x,
                         y: scrollable.scroll.delta.y,
                       }
-                    | {scrollable: None} => Delta.{x: 0., y: 0.}
+                    | None => Delta.{x: 0., y: 0.}
                     };
 
                   let items =
@@ -591,13 +598,13 @@ module Make = (Context: Context.T) => {
                     containers.current->Map.getExn(targetContainerId);
                   let scroll = scroll.current->Option.getExn;
                   let scrollableDelta =
-                    switch (container) {
-                    | {scrollable: Some(scrollable)} =>
+                    switch (container.scrollable) {
+                    | Some(scrollable) =>
                       Delta.{
                         x: scrollable.scroll.delta.x,
                         y: scrollable.scroll.delta.y,
                       }
-                    | {scrollable: None} => Delta.{x: 0., y: 0.}
+                    | None => Delta.{x: 0., y: 0.}
                     };
 
                   let items =
@@ -750,15 +757,15 @@ module Make = (Context: Context.T) => {
                 containers.current->Map.getExn(ghost.originalContainer);
 
               let nextGhost =
-                switch (container) {
-                | {scrollable: Some(scrollable)} => {
+                switch (container.scrollable) {
+                | Some(scrollable) => {
                     ...ghost,
                     delta: {
                       x: 0. -. scrollable.scroll.delta.x,
                       y: 0. -. scrollable.scroll.delta.y,
                     },
                   }
-                | {scrollable: None} => {
+                | None => {
                     ...ghost,
                     delta: {
                       x: 0.,
@@ -1138,7 +1145,11 @@ module Make = (Context: Context.T) => {
           viewport.current = None;
           onDropEnd->Hook.invoke(~itemId=ghost.itemId);
           None;
-        | _ => None
+        | (
+            StandBy | Collecting(_) | Dragging(_) | Dropping(_),
+            StandBy | Collecting(_) | Dragging(_) | Dropping(_),
+          ) =>
+          None
         },
       (state.status, state.prevStatus),
     );
@@ -1634,7 +1645,7 @@ module Make = (Context: Context.T) => {
 
                     // If we got here, item should go to its original position:
                     // since it was shifted — pushing it back
-                    | (Some(_), _, _) => (
+                    | (Some(Alpha | Omega), _, _) => (
                         items->Map.set(
                           id,
                           {
@@ -1686,7 +1697,7 @@ module Make = (Context: Context.T) => {
                       )
 
                     // Ghost is before item: item is not Omega yet, so pushing it
-                    | (false, _, `GhostIsBefore) => (
+                    | (false, Some(Alpha) | None, `GhostIsBefore) => (
                         items->Map.set(
                           id,
                           {
@@ -1706,7 +1717,7 @@ module Make = (Context: Context.T) => {
                       )
 
                     // Ghost is after item: item is not Alpha yet, so pushing it
-                    | (false, _, `GhostIsAfter) => (
+                    | (false, Some(Omega) | None, `GhostIsAfter) => (
                         items->Map.set(
                           id,
                           {
@@ -1813,7 +1824,9 @@ module Make = (Context: Context.T) => {
           Webapi.Dom.(
             switch (state.status) {
             | Dragging(_) => event->Event.preventDefault
-            | _ => ()
+            | StandBy
+            | Collecting(_)
+            | Dropping(_) => ()
             }
           );
 

@@ -88,7 +88,11 @@ module Make = (Context: Context.T) => {
               ->Helpers.getGeometryAndScrollable,
           });
           None;
-        | _ => None
+        | (
+            Some(_) | None,
+            StandBy | Collecting(_) | Dragging(_) | Dropping(_),
+          ) =>
+          None
         },
       (prevStatus, ctx.status),
     );
