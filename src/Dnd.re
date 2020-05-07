@@ -15,6 +15,7 @@ module MakeSingletonContainer = (()) => {
   type t;
   external id: unit => t = "%identity";
   let eq = (_, _) => true;
+  let cmp = (_, _) => 0;
 };
 
 module Selection = {

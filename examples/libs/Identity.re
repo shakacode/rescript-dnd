@@ -11,10 +11,13 @@ module Make = (()) => {
 
   let toString = x => x->toInt->Int.toString;
 
+  let eq = (x1, x2) => x1->toInt == x2->toInt;
+  let cmp = (x1, x2) => Pervasives.compare(x1->toInt, x2->toInt);
+
   module Comparable =
     Belt.Id.MakeComparable({
       type t = Id.t;
-      let cmp = Pervasives.compare;
+      let cmp = cmp;
     });
 
   module Map = {

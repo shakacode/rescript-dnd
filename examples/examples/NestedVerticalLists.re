@@ -23,12 +23,14 @@ module TodoList = {
 module Todos = {
   module Item = {
     type t = TodoId.t;
-    let eq = (x1, x2) => x1->TodoId.toInt == x2->TodoId.toInt;
+    let eq = TodoId.eq;
+    let cmp = TodoId.cmp;
   };
 
   module Container = {
     type t = TodoListId.t;
-    let eq = (x1, x2) => x1->TodoListId.toInt == x2->TodoListId.toInt;
+    let eq = TodoListId.eq;
+    let cmp = TodoListId.cmp;
   };
 
   include Dnd.Make(Item, Container);
@@ -37,7 +39,8 @@ module Todos = {
 module TodoLists = {
   module Item = {
     type t = TodoListId.t;
-    let eq = (x1, x2) => x1->TodoListId.toInt == x2->TodoListId.toInt;
+    let eq = TodoListId.eq;
+    let cmp = TodoListId.cmp;
   };
 
   module Container =

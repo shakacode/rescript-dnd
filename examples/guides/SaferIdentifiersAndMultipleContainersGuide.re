@@ -8,10 +8,13 @@ module MakeId = (()) => {
   external toInt: t => int = "%identity";
   let toString = x => x->toInt->Int.toString;
 
+  let eq = (x1, x2) => x1->toInt == x2->toInt;
+  let cmp = (x1, x2) => Pervasives.compare(x1->toInt, x2->toInt);
+
   module Comparable =
     Belt.Id.MakeComparable({
       type t = Id.t;
-      let cmp = Pervasives.compare;
+      let cmp = cmp;
     });
 
   module Map = {
@@ -28,12 +31,14 @@ module TodoListId =
 
 module DraggableItem = {
   type t = TodoId.t;
-  let eq = (x1, x2) => x1->TodoId.toInt == x2->TodoId.toInt;
+  let eq = TodoId.eq;
+  let cmp = TodoId.cmp;
 };
 
 module DroppableContainer = {
   type t = TodoListId.t;
-  let eq = (x1, x2) => x1->TodoListId.toInt == x2->TodoListId.toInt;
+  let eq = TodoListId.eq;
+  let cmp = TodoListId.cmp;
 };
 
 module Todos = Dnd.Make(DraggableItem, DroppableContainer);

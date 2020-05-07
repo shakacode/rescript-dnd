@@ -15,13 +15,13 @@ module Make = (Context: Context.T) => {
   module ComparableItem =
     Belt.Id.MakeComparable({
       type t = Item.t;
-      let cmp = Pervasives.compare;
+      let cmp = Item.cmp;
     });
 
   module ComparableContainer =
     Belt.Id.MakeComparable({
       type t = Container.t;
-      let cmp = Pervasives.compare;
+      let cmp = Container.cmp;
     });
 
   type state = {
