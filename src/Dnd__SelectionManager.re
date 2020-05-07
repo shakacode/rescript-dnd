@@ -17,25 +17,24 @@ module Scroll = {
   let smoothScrollBy = (x: float, y: float) =>
     window->scrollBy({"left": x, "top": y, "behavior": "smooth"});
 
-  // TODO: Should be passed as params
-  let upFactor = 4.; // 3 + 1 b/c of sticky navbar
-  let downFactor = 3.;
-
   // TODO: X scrolling
-  let adjust = (el: Dom.element) => {
+  let adjust = (el: Dom.element, ~topMarginFactor, ~bottomMarginFactor) => {
     let rect = el->Element.getBoundingClientRect;
     let clientHeight =
       document->Document.documentElement->Element.clientHeight->Float.fromInt;
 
-    let shouldScrollUp = rect->DomRect.top < rect->DomRect.height *. upFactor;
+    let shouldScrollUp =
+      rect->DomRect.top < rect->DomRect.height *. topMarginFactor;
 
     let shouldScrollDown =
-      clientHeight -. rect->DomRect.bottom < rect->DomRect.height *. downFactor;
+      clientHeight
+      -. rect->DomRect.bottom < rect->DomRect.height
+      *. bottomMarginFactor;
 
     if (shouldScrollUp) {
       smoothScrollBy(
         0.,
-        rect->DomRect.top -. rect->DomRect.height *. upFactor,
+        rect->DomRect.top -. rect->DomRect.height *. topMarginFactor,
       );
     } else if (shouldScrollDown) {
       smoothScrollBy(
@@ -43,7 +42,7 @@ module Scroll = {
         rect->DomRect.bottom
         -. clientHeight
         +. rect->DomRect.height
-        *. downFactor,
+        *. bottomMarginFactor,
       );
     };
   };
@@ -82,7 +81,7 @@ module Make = (Item: SelectableItem) => {
     | RestorePrevious
     | Clear;
 
-  let useSelection = () => {
+  let useSelection = (~topMarginFactor=3., ~bottomMarginFactor=3., ()) => {
     let initialState =
       React.useMemo0(() => {
         let set = Set.make(~id=(module ComparableItem));
@@ -106,7 +105,10 @@ module Make = (Item: SelectableItem) => {
               _ =>
                 refs.current
                 ->Map.get(id)
-                ->Option.mapWithDefault((), Scroll.adjust),
+                ->Option.mapWithDefault(
+                    (),
+                    Scroll.adjust(~topMarginFactor, ~bottomMarginFactor),
+                  ),
             )
 
           | DeselectOne(id) =>
