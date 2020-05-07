@@ -32,7 +32,7 @@ To create components that handle all drag & drop business, we need to call `Dnd.
 module Items = Dnd.Make(Item, Container);
 ```
 
-This code won't compile yet because we need to provide two modules to the `Dnd.Make` functor:
+This code wouldn't compile yet because we need to provide two modules to the `Dnd.Make` functor:
 
 - `Item`: configuration for draggable item.
 - `Container`: configuration for droppable container, which contains draggable items.
@@ -42,11 +42,13 @@ Both of these modules has the same signature:
 ```reason
 type t;
 let eq: (t, t) => bool;
+let cmp: (t, t) => int;
 ```
 
 Basically, functor asks you to answer the following questions:
 1. What the thing is? _Answer: type `t`._
-1. And when two things given, do those equal or not? _Answer: `eq` function._
+1. When two things given, do those equal or not? _Answer: `eq` function._
+1. When two things given, how to compare those? _Answer: `cmp` function._
 
 Let's start with very simple (and in general not 100% safe) implementation of `Item` container:
 
@@ -54,6 +56,7 @@ Let's start with very simple (and in general not 100% safe) implementation of `I
 module Item = {
   type t = item; // `item` is a type alias we defined above which is resolved to `int`
   let eq = (x1, x2) => x1 == x2; // or more concise: let eq = (==);
+  let cmp = compare; // default comparator from Pervasives module
 }
 ```
 
@@ -64,6 +67,7 @@ module Container = {
   type t; // abstract type
   external id: unit => t = "%identity"; // `Container.id()` would produce value of abstract type `t`
   let eq = (_, _) => true; // since `Container` is singleton, it's always equal to self
+  let cmp = (_, _) => 0; // same logic applies
 }
 ```
 
@@ -73,7 +77,7 @@ For convenience, `re-dnd` exposes functor which would create such singleton for 
 module Container = Dnd.MakeSingletonContainer();
 ```
 
-Now, when we have all configuration defined, we can create module which holds React components:
+Now, when we have complete configuration defined, we can create module which holds React components:
 
 ```reason
 module Items = Dnd.Make(Item, Container);
@@ -189,6 +193,7 @@ type item = int;
 module Item = {
   type t = item;
   let eq = (x1, x2) => x1 == x2;
+  let cmp = compare;
 };
 
 module Container =
