@@ -53,6 +53,8 @@
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
     "re-classnames": "4.1.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
     "reason-react": "0.8.0"
   }
 }
