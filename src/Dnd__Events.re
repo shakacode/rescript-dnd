@@ -163,18 +163,6 @@ module Keyboard = {
 
   module Dom = {
     let key = event => event->KeyboardEvent.key->Key.fromString;
-
-    let isEscKey = event =>
-      switch (event->key) {
-      | Space => true
-      | _ => false
-      };
-
-    let onEscKey = (fn, event) =>
-      switch (event->key) {
-      | Space => fn()
-      | _ => ()
-      };
   };
 
   module React = {

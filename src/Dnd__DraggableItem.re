@@ -29,10 +29,10 @@ module Make = (Context: Context.T) => {
         (
           ~itemId: Item.t,
           ~containerId: Container.t,
-          ~ctx: React.Ref.t(Context.t),
+          ~ctx: React.ref(Context.t),
           event,
         ) =>
-      switch (ctx->React.Ref.current.status) {
+      switch (ctx.current.status) {
       | StandBy when Events.Mouse.(event->leftClick && !event->modifier) =>
         [%log.debug "MouseDown"; ("ItemId", itemId)];
 
@@ -82,7 +82,7 @@ module Make = (Context: Context.T) => {
             dropInitialSubscriptions();
             Helpers.clearSelection();
 
-            ctx->React.Ref.current.startDragging(
+            ctx.current.startDragging(
               itemId,
               containerId,
               start,
@@ -116,10 +116,10 @@ module Make = (Context: Context.T) => {
         (
           ~itemId: Item.t,
           ~containerId: Container.t,
-          ~ctx: React.Ref.t(Context.t),
+          ~ctx: React.ref(Context.t),
           event,
         ) => {
-      switch (ctx->React.Ref.current.status) {
+      switch (ctx.current.status) {
       | StandBy =>
         let delay = 200;
 
@@ -143,7 +143,7 @@ module Make = (Context: Context.T) => {
               dropInitialSubscriptions();
               Helpers.clearSelection();
 
-              ctx->React.Ref.current.startDragging(
+              ctx.current.startDragging(
                 itemId,
                 containerId,
                 start,
@@ -205,7 +205,7 @@ module Make = (Context: Context.T) => {
     let ctxRef = React.useRef(ctx);
 
     React.useEffect(() => {
-      ctxRef->React.Ref.setCurrent(ctx);
+      ctxRef.current = ctx;
       None;
     });
 
@@ -223,21 +223,23 @@ module Make = (Context: Context.T) => {
             containerId,
             index,
             element:
-              element
-              ->React.Ref.current
+              element.current
               ->Js.Nullable.toOption
               ->Option.getExn
               ->Webapi.Dom.Element.unsafeAsHtmlElement,
             getGeometry: () =>
-              element
-              ->React.Ref.current
+              element.current
               ->Js.Nullable.toOption
               ->Option.getExn
               ->Webapi.Dom.Element.unsafeAsHtmlElement
               ->Helpers.getGeometry,
           });
           None;
-        | _ => None
+        | (
+            Some(_) | None,
+            StandBy | Collecting(_) | Dragging(_) | Dropping(_),
+          ) =>
+          None
         },
       (prevStatus, ctx.status),
     );

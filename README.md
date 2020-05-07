@@ -20,9 +20,9 @@ Drag & drop for [`reason-react`](https://reasonml.github.io/reason-react/).
 
 ```shell
 # yarn
-yarn add re-dnd@next
+yarn add re-dnd
 # or npm
-npm install --save re-dnd@next
+npm install --save re-dnd
 ```
 
 Then add it to `bsconfig.json`:
@@ -40,7 +40,7 @@ Then add it to `bsconfig.json`:
 
 ## Examples
 * Demos: [`live`](https://re-dnd.now.sh) | [`sources`](./examples)
-* @Production: [`Minima`](https://minima.app)
+* Production app: [`Minima`](https://minima.app)
 
 ## State
 🚧 The library is not feature-complete and some features/apis might be missing.<br>

@@ -1,23 +1,22 @@
 {
   "name": "re-dnd",
   "version": "1.2.0",
-  "description": "Reasonable drag-n-drop for reason-react",
+  "description": "Drag-n-drop for reason-react",
   "main": "src/Dnd.re",
   "author": "Alex Fedoseev <alex.fedoseev@gmail.com>",
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
-    "prestart": "yarn run build:bs:dev",
+    "prestart": "yarn run bs:build:dev",
     "build": "parcel build examples/index.html",
-    "prebuild": "yarn run build:bs",
-    "build:bs": "BS_LOG=off bsb -clean-world -make-world",
-    "build:bs:dev": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world",
-    "watch:bs": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world -w",
-    "clean": "yarn run clean:bs && yarn run clean:dist",
-    "clean:bs": "bsb -clean-world",
-    "clean:dist": "rm -rf dist",
+    "prebuild": "yarn run bs:build",
+    "bs:build": "BS_LOG=off bsb -clean-world -make-world",
+    "bs:build:dev": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world",
+    "bs:watch": "BS_LOG=*,re-dnd=* bsb -clean-world -make-world -w",
+    "bs:clean": "bsb -clean-world",
+    "clean": "rm -rf dist && yarn run bs:clean",
     "test": "exit 0",
-    "refmt": "find -E . -regex '.+\\.rei?' -exec refmt --in-place {} \\;",
+    "format": "bsrefmt --in-place **/*.re",
     "deploy": "now deploy dist --public --name re-dnd",
     "predeploy": "yarn run build"
   },
@@ -38,18 +37,24 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexfedoseev/re-dnd.git"
+    "url": "https://github.com/MinimaHQ/re-dnd"
   },
   "dependencies": {
     "bs-log": "1.1.0",
-    "bs-webapi": "0.15.6"
+    "bs-webapi": "0.15.9"
+  },
+  "peerDependencies": {
+    "bs-platform": ">=7.1.1",
+    "reason-react": ">=0.8.0"
   },
   "devDependencies": {
-    "autoprefixer": "9.7.3",
-    "bs-platform": "7.0.1",
+    "autoprefixer": "9.7.6",
+    "bs-platform": "7.2.2",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
-    "re-classnames": "4.0.0",
-    "reason-react": "0.7.0"
+    "re-classnames": "4.1.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "reason-react": "0.8.0"
   }
 }

@@ -11,7 +11,8 @@ module Todo = {
 module Todos = {
   module Item = {
     type t = TodoId.t;
-    let eq = (x1, x2) => x1->TodoId.toInt == x2->TodoId.toInt;
+    let eq = TodoId.eq;
+    let cmp = TodoId.cmp;
   };
 
   module Container =

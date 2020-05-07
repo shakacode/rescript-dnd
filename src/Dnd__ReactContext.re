@@ -5,5 +5,4 @@ external makeProps:
     .
     "value": 'value,
     "children": React.element,
-  } =
-  "";
+  };

@@ -1,56 +1,70 @@
-// Previous hook
-let usePrevious = (v: 'a): option('a) => {
-  let x = React.useRef(None);
-  React.useEffect(() => {
-    x->React.Ref.setCurrent(v->Some);
-    None;
-  });
-  x->React.Ref.current;
-};
-
-// Reducer hook
-type update('state, 'action) =
-  | NoUpdate
-  | Update('state)
-  | UpdateWithSideEffects('state, self('state, 'action) => unit)
-  | SideEffects(self('state, 'action) => unit)
-and dispatch('action) = 'action => unit
-and self('state, 'action) = {
-  state: 'state,
-  dispatch: dispatch('action),
-}
-and fullState('state, 'action) = {
-  state: 'state,
-  sideEffects: ref(array(self('state, 'action) => unit)),
-};
-
-let useReducer = (initialState, reducer) => {
-  let ({state, sideEffects}, dispatch) =
-    React.useReducer(
-      ({state, sideEffects} as fullState, action) =>
-        switch (reducer(state, action)) {
-        | NoUpdate => fullState
-        | Update(state) => {...fullState, state}
-        | UpdateWithSideEffects(state, sideEffect) => {
-            state,
-            sideEffects: Array.concat(sideEffects^, [|sideEffect|])->ref,
-          }
-        | SideEffects(sideEffect) => {
-            ...fullState,
-            sideEffects: Array.concat(sideEffects^, [|sideEffect|])->ref,
-          }
-        },
-      {state: initialState, sideEffects: [||]->ref},
-    );
-  React.useEffect1(
-    () => {
-      if (Array.length(sideEffects^) > 0) {
-        Array.forEach(sideEffects^, fn => fn({state, dispatch}));
-        sideEffects := [||];
-      };
+module Previous = {
+  let hook = (v: 'a): option('a) => {
+    let x = React.useRef(None);
+    React.useEffect(() => {
+      x.current = v->Some;
       None;
-    },
-    [|sideEffects^|],
-  );
-  (state, dispatch);
+    });
+    x.current;
+  };
 };
+
+module Reducer = {
+  module Dispatch = {
+    type t('action) = 'action => unit;
+  };
+
+  module Public = {
+    type t('state, 'action) = {
+      state: 'state,
+      dispatch: Dispatch.t('action),
+    };
+  };
+
+  module Private = {
+    type t('state, 'action) = {
+      state: 'state,
+      sideEffects: ref(array(Public.t('state, 'action) => unit)),
+    };
+  };
+
+  type update('state, 'action) =
+    | NoUpdate
+    | Update('state)
+    | UpdateWithSideEffects('state, Public.t('state, 'action) => unit)
+    | SideEffects(Public.t('state, 'action) => unit);
+
+  let hook = (initialState, reducer) => {
+    let ({Private.state, sideEffects}, dispatch) =
+      React.useReducer(
+        ({Private.state, sideEffects} as private, action) =>
+          switch (reducer(state, action)) {
+          | NoUpdate => private
+          | Update(state) => {...private, state}
+          | UpdateWithSideEffects(state, sideEffect) => {
+              state,
+              sideEffects: Array.concat(sideEffects^, [|sideEffect|])->ref,
+            }
+          | SideEffects(sideEffect) => {
+              ...private,
+              sideEffects: Array.concat(sideEffects^, [|sideEffect|])->ref,
+            }
+          },
+        {state: initialState, sideEffects: [||]->ref},
+      );
+    React.useEffect1(
+      () => {
+        if (Array.length(sideEffects^) > 0) {
+          Array.forEach(sideEffects^, fn => fn({state, dispatch}));
+          sideEffects := [||];
+        };
+        None;
+      },
+      [|sideEffects^|],
+    );
+    (state, dispatch);
+  };
+};
+
+let usePrevious = Previous.hook;
+let useReducer = Reducer.hook;

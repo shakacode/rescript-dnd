@@ -17,25 +17,24 @@ module Scroll = {
   let smoothScrollBy = (x: float, y: float) =>
     window->scrollBy({"left": x, "top": y, "behavior": "smooth"});
 
-  // TODO: Should be passed as params
-  let upFactor = 4.; // 3 + 1 b/c of sticky navbar
-  let downFactor = 3.;
-
   // TODO: X scrolling
-  let adjust = (el: Dom.element) => {
+  let adjust = (el: Dom.element, ~topMarginFactor, ~bottomMarginFactor) => {
     let rect = el->Element.getBoundingClientRect;
     let clientHeight =
       document->Document.documentElement->Element.clientHeight->Float.fromInt;
 
-    let shouldScrollUp = rect->DomRect.top < rect->DomRect.height *. upFactor;
+    let shouldScrollUp =
+      rect->DomRect.top < rect->DomRect.height *. topMarginFactor;
 
     let shouldScrollDown =
-      clientHeight -. rect->DomRect.bottom < rect->DomRect.height *. downFactor;
+      clientHeight
+      -. rect->DomRect.bottom < rect->DomRect.height
+      *. bottomMarginFactor;
 
     if (shouldScrollUp) {
       smoothScrollBy(
         0.,
-        rect->DomRect.top -. rect->DomRect.height *. upFactor,
+        rect->DomRect.top -. rect->DomRect.height *. topMarginFactor,
       );
     } else if (shouldScrollDown) {
       smoothScrollBy(
@@ -43,7 +42,7 @@ module Scroll = {
         rect->DomRect.bottom
         -. clientHeight
         +. rect->DomRect.height
-        *. downFactor,
+        *. bottomMarginFactor,
       );
     };
   };
@@ -82,15 +81,14 @@ module Make = (Item: SelectableItem) => {
     | RestorePrevious
     | Clear;
 
-  let useSelection = () => {
+  let useSelection = (~topMarginFactor=3., ~bottomMarginFactor=3., ()) => {
     let initialState =
       React.useMemo0(() => {
         let set = Set.make(~id=(module ComparableItem));
         {current: set, previous: set};
       });
 
-    let refs:
-      React.Ref.t(Map.t(Item.t, Dom.element, ComparableItem.identity)) =
+    let refs: React.ref(Map.t(Item.t, Dom.element, ComparableItem.identity)) =
       React.useRef(Map.make(~id=(module ComparableItem)));
 
     let (state, dispatch) =
@@ -105,10 +103,12 @@ module Make = (Item: SelectableItem) => {
                 previous: state.current,
               },
               _ =>
-                refs
-                ->React.Ref.current
+                refs.current
                 ->Map.get(id)
-                ->Option.mapWithDefault((), Scroll.adjust),
+                ->Option.mapWithDefault(
+                    (),
+                    Scroll.adjust(~topMarginFactor, ~bottomMarginFactor),
+                  ),
             )
 
           | DeselectOne(id) =>
@@ -159,17 +159,12 @@ module Make = (Item: SelectableItem) => {
         switch (
           el->Js.Nullable.toOption->Option.flatMap(Js.Nullable.toOption)
         ) {
-        | Some(el) =>
-          refs->React.Ref.setCurrent(
-            refs->React.Ref.current->Map.set(itemId, el),
-          )
+        | Some(el) => refs.current = refs.current->Map.set(itemId, el)
         | None => ()
         };
       },
       dispose: itemId => {
-        refs->React.Ref.setCurrent(
-          refs->React.Ref.current->Map.remove(itemId),
-        );
+        refs.current = refs.current->Map.remove(itemId);
         if (state.current->Set.has(itemId)) {
           DeselectOne(itemId)->dispatch;
         };

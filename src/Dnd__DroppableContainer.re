@@ -76,21 +76,23 @@ module Make = (Context: Context.T) => {
             lockAxis,
             accept,
             element:
-              element
-              ->React.Ref.current
+              element.current
               ->Js.Nullable.toOption
               ->Option.getExn
               ->Webapi.Dom.Element.unsafeAsHtmlElement,
             getGeometryAndScrollable: () =>
-              element
-              ->React.Ref.current
+              element.current
               ->Js.Nullable.toOption
               ->Option.getExn
               ->Webapi.Dom.Element.unsafeAsHtmlElement
               ->Helpers.getGeometryAndScrollable,
           });
           None;
-        | _ => None
+        | (
+            Some(_) | None,
+            StandBy | Collecting(_) | Dragging(_) | Dropping(_),
+          ) =>
+          None
         },
       (prevStatus, ctx.status),
     );

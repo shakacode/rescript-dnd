@@ -222,10 +222,13 @@ module MakeId = () => {
   external make: int => t = "%identity";
   external toInt: t => int = "%identity";
 
+  let eq = (x1, x2) => x1->toInt == x2->toInt;
+  let cmp = (x1, x2) => compare(x1->toInt, x2->toInt);
+
   module Comparable =
     Belt.Id.MakeComparable({
       type t = Id.t;
-      let cmp = Pervasives.compare;
+      let cmp = cmp;
     });
 
   module Map = {
@@ -248,12 +251,14 @@ With all the hard prerequisite work done, we can finally proceed to implementati
 ```reason
 module DraggableItem = {
   type t = TodoId.t;
-  let eq = (x1, x2) => x1->TodoId.toInt == x2->TodoId.toInt;
+  let eq = TodoId.eq;
+  let cmp = TodoId.cmp;
 };
 
 module DroppableContainer = {
   type t = TodoListId.t;
-  let eq = (x1, x2) => x1->TodoListId.toInt == x2->TodoListId.toInt;
+  let eq = TodoListId.eq;
+  let cmp = TodoListId.cmp;
 };
 
 module Todos = Dnd.Make(DraggableItem, DroppableContainer);

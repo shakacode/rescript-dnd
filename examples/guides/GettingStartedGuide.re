@@ -2,7 +2,8 @@ type item = int;
 
 module Item = {
   type t = item;
-  let eq = (x1, x2) => x1 == x2;
+  let eq: (item, item) => bool = (x1, x2) => x1 == x2;
+  let cmp: (item, item) => int = Pervasives.compare;
 };
 
 module Container =

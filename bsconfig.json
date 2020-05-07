@@ -17,7 +17,7 @@
     "react-jsx": 3
   },
   "refmt": 3,
-  "bsc-flags": ["-w -45", "-open Belt"],
+  "bsc-flags": ["-open Belt"],
   "ppx-flags": [
     ["bs-log/ppx", "--lib=re-dnd"],
   ],
@@ -25,5 +25,8 @@
     "module": "es6",
     "in-source": true
   },
-  "suffix": ".bs.js"
+  "suffix": ".bs.js",
+  "warnings": {
+    "number": "+A-40-42-44"
+  }
 }

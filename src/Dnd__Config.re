@@ -6,4 +6,5 @@ module type SelectableItem = {
 module type DndEntry = {
   type t;
   let eq: (t, t) => bool;
+  let cmp: (t, t) => int;
 };

@@ -5,7 +5,7 @@ open Dnd__Types;
 module Style = Dnd__Style;
 module Web = Dnd__Web;
 
-let getDirection = (~was, ~is) =>
+let getDirection = (~was: float, ~is: float) =>
   if (was > is) {
     Some(Direction.Alpha);
   } else if (was < is) {

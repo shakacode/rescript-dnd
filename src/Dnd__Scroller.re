@@ -1,5 +1,3 @@
-open Webapi.Dom;
-
 open Dnd__Types;
 
 module Geometry = Dnd__Geometry;
@@ -164,7 +162,7 @@ let windowScroller =
       | {x: Some(x), y: Some(y)} =>
         Some(
           Webapi.requestCancellableAnimationFrame(_ => {
-            window->Window.scrollBy(x, y, _);
+            Webapi.Dom.(window->Window.scrollBy(x, y, _));
             onScroll();
           }),
         )
@@ -172,7 +170,7 @@ let windowScroller =
       | {x: Some(x), y: None} =>
         Some(
           Webapi.requestCancellableAnimationFrame(_ => {
-            window->Window.scrollBy(x, 0., _);
+            Webapi.Dom.(window->Window.scrollBy(x, 0., _));
             onScroll();
           }),
         )
@@ -180,7 +178,7 @@ let windowScroller =
       | {x: None, y: Some(y)} =>
         Some(
           Webapi.requestCancellableAnimationFrame(_ => {
-            window->Window.scrollBy(0., y, _);
+            Webapi.Dom.(window->Window.scrollBy(0., y, _));
             onScroll();
           }),
         )
@@ -204,31 +202,45 @@ let elementScroller =
       switch (speed) {
       | {x: Some(x), y: Some(y)} =>
         Some(
-          Webapi.requestCancellableAnimationFrame(_ => {
-            scrollable.element
-            ->HtmlElement.setScrollLeft(scrollable.scroll.current.x +. x);
-            scrollable.element
-            ->HtmlElement.setScrollTop(scrollable.scroll.current.y +. y);
-            scrollable->onScroll;
-          }),
+          Webapi.(
+            requestCancellableAnimationFrame(_ => {
+              scrollable.element
+              ->Dom.HtmlElement.setScrollLeft(
+                  scrollable.scroll.current.x +. x,
+                );
+              scrollable.element
+              ->Dom.HtmlElement.setScrollTop(
+                  scrollable.scroll.current.y +. y,
+                );
+              scrollable->onScroll;
+            })
+          ),
         )
 
       | {x: Some(x), y: None} =>
         Some(
-          Webapi.requestCancellableAnimationFrame(_ => {
-            scrollable.element
-            ->HtmlElement.setScrollLeft(scrollable.scroll.current.x +. x);
-            scrollable->onScroll;
-          }),
+          Webapi.(
+            requestCancellableAnimationFrame(_ => {
+              scrollable.element
+              ->Dom.HtmlElement.setScrollLeft(
+                  scrollable.scroll.current.x +. x,
+                );
+              scrollable->onScroll;
+            })
+          ),
         )
 
       | {x: None, y: Some(y)} =>
         Some(
-          Webapi.requestCancellableAnimationFrame(_ => {
-            scrollable.element
-            ->HtmlElement.setScrollTop(scrollable.scroll.current.y +. y);
-            scrollable->onScroll;
-          }),
+          Webapi.(
+            requestCancellableAnimationFrame(_ => {
+              scrollable.element
+              ->Dom.HtmlElement.setScrollTop(
+                  scrollable.scroll.current.y +. y,
+                );
+              scrollable->onScroll;
+            })
+          ),
         )
 
       | {x: None, y: None} => None
@@ -243,15 +255,13 @@ let relToScrollable =
     y: point.page.y -. scrollable.geometry.rect.page.top,
   };
 
-/*
- * Scroller can either scroll window or scrollable element:
- *   a. if ghost is inside scrollable which is bigger than viewport
- *      -> scroll window until edge of scrollable then scroll scrollable
- *   b. if ghost is inside scrollable which is smaller than viewport
- *      -> scroll scrollable then scroll window (if required)
- *   c. if ghost is not inside scrollable
- *      -> scroll window (if required)
- */
+// Scroller can either scroll window or scrollable element:
+//   a. if ghost is inside scrollable which is bigger than viewport
+//      -> scroll window until edge of scrollable then scroll scrollable
+//   b. if ghost is inside scrollable which is smaller than viewport
+//      -> scroll scrollable then scroll window (if required)
+//   c. if ghost is not inside scrollable
+//      -> scroll window (if required)
 let getScroller =
     (
       ~point: RelativityBag.t(Point.t),
