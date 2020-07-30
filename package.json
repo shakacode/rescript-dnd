@@ -40,16 +40,17 @@
     "url": "https://github.com/MinimaHQ/re-dnd"
   },
   "dependencies": {
-    "bs-log": "1.1.0",
-    "bs-webapi": ">=0.15.9"
+    "bs-log": "1.1.0"
   },
   "peerDependencies": {
     "bs-platform": ">=7.1.1",
+    "bs-webapi": ">=0.15.9",
     "reason-react": ">=0.8.0"
   },
   "devDependencies": {
     "autoprefixer": "9.7.6",
     "bs-platform": "7.2.2",
+    "bs-webapi": "0.15.9",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
     "re-classnames": "4.1.0",
