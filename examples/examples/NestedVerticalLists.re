@@ -212,7 +212,7 @@ let make = () => {
                containerId={TodoLists.Container.id()}
                index=todoListIndex
                className={(~dragging) =>
-                 Cn.make(["todo-list", "dragging"->Cn.ifTrue(dragging)])
+                 Cn.("todo-list" + "dragging"->on(dragging))
                }>
                {`ChildrenWithDragHandle(
                   (~style, ~onMouseDown, ~onTouchStart) =>
@@ -221,7 +221,7 @@ let make = () => {
                       key={todoListId->TodoListId.toString}
                       axis=Y
                       className={(~draggingOver) =>
-                        Cn.make(["todos", "active"->Cn.ifTrue(draggingOver)])
+                        Cn.("todos" + "active"->on(draggingOver))
                       }>
                       <div className="todos-header">
                         <Control
@@ -245,10 +245,7 @@ let make = () => {
                              containerId=todoListId
                              index=todoIndex
                              className={(~dragging) =>
-                               Cn.make([
-                                 "todo",
-                                 "dragging"->Cn.ifTrue(dragging),
-                               ])
+                               Cn.("todo" + "dragging"->on(dragging))
                              }>
                              {`Children(todo.title->React.string)}
                            </Todos.DraggableItem>;

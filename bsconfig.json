@@ -11,7 +11,7 @@
       "subdirs": true
     }
   ],
-  "bs-dependencies": ["reason-react", "bs-webapi", "bs-log"],
+  "bs-dependencies": ["reason-react", "bs-webapi", "res-logger"],
   "bs-dev-dependencies": ["re-classnames"],
   "reason": {
     "react-jsx": 3
@@ -19,7 +19,7 @@
   "refmt": 3,
   "bsc-flags": ["-open Belt"],
   "ppx-flags": [
-    ["bs-log/ppx", "--lib=re-dnd"],
+    ["res-logger/ppx", "--lib=re-dnd"],
   ],
   "package-specs": {
     "module": "es6",

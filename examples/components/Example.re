@@ -12,14 +12,16 @@ module Container = {
         ~children: React.element,
       ) => {
     <div
-      className={Cn.make([
-        "example",
-        switch (layout) {
-        | Vertical => "vertical"
-        | Horizontal => "horizontal"
-        | CardBoard => "card-board"
-        },
-      ])}>
+      className=Cn.(
+        "example"
+        + (
+          switch (layout) {
+          | Vertical => "vertical"
+          | Horizontal => "horizontal"
+          | CardBoard => "card-board"
+          }
+        )
+      )>
       <div className="example-navbar-mobile">
         <Control onClick={_ => showMobileNav()}> <MenuIcon /> </Control>
         <h1> "re-dnd"->React.string </h1>

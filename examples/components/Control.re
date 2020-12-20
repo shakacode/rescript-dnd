@@ -10,7 +10,7 @@ let make =
     ) => {
   <button
     type_="button"
-    className={Cn.make(["control", className])}
+    className=Cn.("control" + className)
     ?style
     ?onClick
     ?onMouseDown

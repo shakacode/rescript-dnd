@@ -1,6 +1,6 @@
 [@react.component]
 let make = (~route, ~mobileNavShown, ~hideMobileNav) => {
-  <nav className={Cn.make(["shown-mobile"->Cn.ifTrue(mobileNavShown)])}>
+  <nav className=Cn.("shown-mobile"->on(mobileNavShown))>
     <header>
       <h1 onClick={_ => ReasonReactRouter.push("/")}>
         "re-dnd"->React.string

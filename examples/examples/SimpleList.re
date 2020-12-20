@@ -86,7 +86,7 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
       id={Todos.Container.id()}
       axis
       className={(~draggingOver) =>
-        Cn.make(["todos", "active"->Cn.ifTrue(draggingOver)])
+        Cn.("todos" + "active"->on(draggingOver))
       }>
       {state.todosIndex
        ->Array.mapWithIndex((index, id) => {
@@ -98,7 +98,7 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
              containerId={Todos.Container.id()}
              index
              className={(~dragging) =>
-               Cn.make(["todo", "dragging"->Cn.ifTrue(dragging)])
+               Cn.("todo" + "dragging"->on(dragging))
              }>
              {`Children(todo.title->React.string)}
            </Todos.DraggableItem>;
