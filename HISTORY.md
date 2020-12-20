@@ -1,6 +1,7 @@
 # History
 
 ## 3.0.0
+* **[ BREAKING ]** Replace `bs-log` with `res-logger`.
 * **[ BREAKING ]** Move `bs-webapi` to peer dependensies.
 
 ## 2.0.0
