@@ -4416,10 +4416,10 @@ request@^2.88.0:
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-res-logger@2.0.0-beta.2:
-  version "2.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/res-logger/-/res-logger-2.0.0-beta.2.tgz#1a8428cf5c9de839f5c34652c15921dd2e695531"
-  integrity sha512-UZrgEOhFLkQ1a510C7Dwf/fPnEb9KOIP2MGjj3I+oMFLtO/7TzbM8KgdPAJxS3E5sumOdw57GaybO1dAfyUx4w==
+rescript-logger@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/rescript-logger/-/rescript-logger-2.0.0.tgz#3f0cb49b8704f1eb49dad60ae4827698535c760a"
+  integrity sha512-gr4l6EBlwFedimRerFTiQQTGhCCHqukhF4/LCSDbPkSjqYOh/QURj5n0VxOEfZPN0R6v6blE2TQztH0Q3kfZkw==
 
 resolve-from@^3.0.0:
   version "3.0.0"
