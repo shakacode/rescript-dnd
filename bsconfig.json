@@ -11,8 +11,14 @@
       "subdirs": true
     }
   ],
-  "bs-dependencies": ["reason-react", "bs-webapi", "res-logger"],
-  "bs-dev-dependencies": ["re-classnames"],
+  "bs-dependencies": [
+    "@rescript/react",
+    "bs-webapi",
+    "res-logger"
+  ],
+  "bs-dev-dependencies": [
+    "re-classnames"
+  ],
   "reason": {
     "react-jsx": 3
   },

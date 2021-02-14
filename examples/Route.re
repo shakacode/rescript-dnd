@@ -7,7 +7,7 @@ type t =
   | NestedVerticalLists;
 
 let fromUrl = url =>
-  ReasonReactRouter.(
+  RescriptReactRouter.(
     switch (url.hash) {
     | "vertical-list" => VerticalList
     | "horizontal-list" => HorizontalList

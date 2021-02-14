@@ -2,7 +2,7 @@
 let make =
     (
       ~className="",
-      ~style: option(ReactDOMRe.Style.t)=?,
+      ~style: option(ReactDOM.Style.t)=?,
       ~onClick: option(ReactEvent.Mouse.t => unit)=?,
       ~onMouseDown: option(ReactEvent.Mouse.t => unit)=?,
       ~onTouchStart: option(ReactEvent.Touch.t => unit)=?,

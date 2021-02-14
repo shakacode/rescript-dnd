@@ -1,5 +1,9 @@
 # History
 
+## 4.0.0-beta.1
+* **[ BREAKING ]** Switch to `@rescript/react`.
+* **[ BREAKING ]** Update `bs-platform`.
+
 ## 3.0.0
 * **[ BREAKING ]** Replace `bs-log` with `res-logger`.
 * **[ BREAKING ]** Move `bs-webapi` to peer dependensies.
