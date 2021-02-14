@@ -2,7 +2,7 @@
 let make = (~route, ~mobileNavShown, ~hideMobileNav) => {
   <nav className=Cn.("shown-mobile"->on(mobileNavShown))>
     <header>
-      <h1 onClick={_ => ReasonReactRouter.push("/")}>
+      <h1 onClick={_ => RescriptReactRouter.push("/")}>
         "re-dnd"->React.string
       </h1>
       <a href="https://github.com/alexfedoseev/re-dnd" className="github-link">

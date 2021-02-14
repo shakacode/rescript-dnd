@@ -12,7 +12,7 @@ let reducer = (_state, action) =>
 
 [@react.component]
 let make = () => {
-  let url = ReasonReactRouter.useUrl();
+  let url = RescriptReactRouter.useUrl();
   let route = React.useMemo1(() => url->Route.fromUrl, [|url|]);
 
   let (state, dispatch) = reducer->React.useReducer({mobileNavShown: false});

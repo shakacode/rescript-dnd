@@ -4,7 +4,7 @@
 [![build status](https://img.shields.io/travis/alexfedoseev/re-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/re-dnd)
 [![license](https://img.shields.io/npm/l/re-dnd.svg?style=flat-square)](https://www.npmjs.com/package/re-dnd)
 
-Drag & drop for [`reason-react`](https://reasonml.github.io/reason-react/).
+Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
 ## Features
 * Vertical lists

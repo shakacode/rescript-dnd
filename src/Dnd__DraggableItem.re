@@ -184,7 +184,7 @@ module Make = (Context: Context.T) => {
     | `Children(React.element)
     | `ChildrenWithDragHandle(
         (
-          ~style: ReactDOMRe.Style.t,
+          ~style: ReactDOM.Style.t,
           ~onMouseDown: ReactEvent.Mouse.t => unit,
           ~onTouchStart: ReactEvent.Touch.t => unit
         ) =>
@@ -246,8 +246,8 @@ module Make = (Context: Context.T) => {
 
     let dragHandleStyle =
       React.useMemo0(() =>
-        ReactDOMRe.Style.make()
-        ->ReactDOMRe.Style.unsafeAddProp(
+        ReactDOM.Style.make()
+        ->ReactDOM.Style.unsafeAddProp(
             "WebkitTapHighlightColor",
             "rgba(0, 0, 0, 0)",
           )
@@ -281,10 +281,10 @@ module Make = (Context: Context.T) => {
 
       <>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           tabIndex=(-1)
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~position="fixed",
               ~boxSizing="border-box",
               ~zIndex="10000",
@@ -315,13 +315,13 @@ module Make = (Context: Context.T) => {
                 ),
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=true))}>
           children'
         </div>
         <div
-          style={ReactDOMRe.Style.make(
+          style={ReactDOM.Style.make(
             ~boxSizing="border-box",
             ~width,
             ~minWidth=width,
@@ -346,9 +346,9 @@ module Make = (Context: Context.T) => {
 
       <>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~position="fixed",
               ~boxSizing="border-box",
               ~zIndex="10000",
@@ -380,13 +380,13 @@ module Make = (Context: Context.T) => {
                 ),
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=true))}>
           children'
         </div>
         <div
-          style={ReactDOMRe.Style.make(
+          style={ReactDOM.Style.make(
             ~boxSizing="border-box",
             ~width,
             ~minWidth=width,
@@ -407,9 +407,9 @@ module Make = (Context: Context.T) => {
       switch (ctx.getItemShift(itemId)) {
       | Some(Alpha) when ghost.targetingOriginalContainer =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~boxSizing="border-box",
               ~pointerEvents="none",
               ~userSelect="none",
@@ -437,7 +437,7 @@ module Make = (Context: Context.T) => {
                 },
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
@@ -445,9 +445,9 @@ module Make = (Context: Context.T) => {
 
       | Some(Omega) when ghost.targetingOriginalContainer =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~boxSizing="border-box",
               ~pointerEvents="none",
               ~userSelect="none",
@@ -471,7 +471,7 @@ module Make = (Context: Context.T) => {
                 },
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
@@ -479,16 +479,16 @@ module Make = (Context: Context.T) => {
 
       | Some(Alpha) =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~boxSizing="border-box",
               ~pointerEvents="none",
               ~userSelect="none",
               ~transition=Style.transition("transform"),
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
@@ -496,9 +496,9 @@ module Make = (Context: Context.T) => {
 
       | Some(Omega) =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~boxSizing="border-box",
               ~pointerEvents="none",
               ~userSelect="none",
@@ -522,7 +522,7 @@ module Make = (Context: Context.T) => {
                 },
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
@@ -530,16 +530,16 @@ module Make = (Context: Context.T) => {
 
       | None =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           style={
-            ReactDOMRe.Style.make(
+            ReactDOM.Style.make(
               ~boxSizing="border-box",
               ~pointerEvents="none",
               ~userSelect="none",
               ~transition=Style.transition("transform"),
               (),
             )
-            ->ReactDOMRe.Style.unsafeAddProp("WebkitUserSelect", "none")
+            ->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")
           }
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
@@ -551,9 +551,9 @@ module Make = (Context: Context.T) => {
       switch (children) {
       | `Children(_) =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
+          ref={element->ReactDOM.Ref.domRef}
           tabIndex=0
-          style={ReactDOMRe.Style.make(~boxSizing="border-box", ())}
+          style={ReactDOM.Style.make(~boxSizing="border-box", ())}
           className=?{className->Option.map(fn => fn(~dragging=false))}
           onMouseDown
           onTouchStart>
@@ -561,8 +561,8 @@ module Make = (Context: Context.T) => {
         </div>
       | `ChildrenWithDragHandle(_) =>
         <div
-          ref={element->ReactDOMRe.Ref.domRef}
-          style={ReactDOMRe.Style.make(~boxSizing="border-box", ())}
+          ref={element->ReactDOM.Ref.domRef}
+          style={ReactDOM.Style.make(~boxSizing="border-box", ())}
           className=?{className->Option.map(fn => fn(~dragging=false))}>
           children'
         </div>

@@ -98,7 +98,7 @@ module Make = (Context: Context.T) => {
     );
 
     <div
-      ref={element->ReactDOMRe.Ref.domRef}
+      ref={element->ReactDOM.Ref.domRef}
       className=?{
         className->Option.map(fn =>
           fn(
@@ -124,7 +124,7 @@ module Make = (Context: Context.T) => {
          <>
            children
            <div
-             style={ReactDOMRe.Style.make(
+             style={ReactDOM.Style.make(
                ~boxSizing="border-box",
                ~width,
                ~minWidth=width,
@@ -151,7 +151,7 @@ module Make = (Context: Context.T) => {
          <>
            children
            <div
-             style={ReactDOMRe.Style.make(
+             style={ReactDOM.Style.make(
                ~boxSizing="border-box",
                ~margin=Style.(0.->px),
                ~border=Style.(0.->px),
