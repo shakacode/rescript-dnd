@@ -1,5 +1,10 @@
 # History
 
+## 5.0.0
+* **[ BREAKING ]** Switch to `@rescript/react`.
+* **[ BREAKING ]** Switch to `rescript` from `bs-platform`.
+* **[ BREAKING ]** Drop support for `rescript-logger`
+
 ## 4.0.0-beta.1
 * **[ BREAKING ]** Switch to `@rescript/react`.
 * **[ BREAKING ]** Update `bs-platform`.

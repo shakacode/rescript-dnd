@@ -6,6 +6,14 @@
 
 Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
+## NOTE
+
+This is a forked version of re-dnd.
+
+At Plow, we use Nix to manage our dependencies and setting up Nix to build PPX can be a lot of work (plus the maintenance).
+This forked version drops `rescript-logger` and switches `bs-platform` with `rescript`.
+
+
 ## Features
 * Vertical lists
 * Horizontal lists
