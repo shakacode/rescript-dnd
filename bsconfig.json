@@ -13,8 +13,7 @@
   ],
   "bs-dependencies": [
     "@rescript/react",
-    "bs-webapi",
-    "rescript-logger"
+    "bs-webapi"
   ],
   "bs-dev-dependencies": [
     "re-classnames"
@@ -24,9 +23,6 @@
   },
   "refmt": 3,
   "bsc-flags": ["-open Belt"],
-  "ppx-flags": [
-    ["rescript-logger/ppx", "--lib=re-dnd"],
-  ],
   "package-specs": {
     "module": "es6",
     "in-source": true
