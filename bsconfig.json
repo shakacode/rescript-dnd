@@ -12,8 +12,7 @@
     }
   ],
   "bs-dependencies": [
-    "@rescript/react",
-    "bs-webapi"
+    "@rescript/react"
   ],
   "bs-dev-dependencies": [
     "re-classnames"

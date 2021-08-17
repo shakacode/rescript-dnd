@@ -43,13 +43,11 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@rescript/react": ">=0.10.1",
-    "bs-webapi": ">=0.15.9"
+    "@rescript/react": ">=0.10.1"
   },
   "devDependencies": {
     "@rescript/react": "0.10.1",
     "autoprefixer": "9.8.6",
-    "bs-webapi": "0.19.1",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
     "re-classnames": "5.0.1",

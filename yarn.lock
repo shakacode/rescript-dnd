@@ -1342,18 +1342,6 @@ browserslist@^4.0.0, browserslist@^4.1.0, browserslist@^4.12.0, browserslist@^4.
     escalade "^3.1.0"
     node-releases "^1.1.61"
 
-bs-fetch@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/bs-fetch/-/bs-fetch-0.6.2.tgz#37d982e9f79b9bc44c23e87ae78ccbee1f869adf"
-  integrity sha512-VXEjp8kY3vHPckaoy3d96Bx0KYjJAPLNISBwfpwMN26K6DtuZYwI2HKhx7zeHBajz1bRArfx7O8OOLcdtujMvg==
-
-bs-webapi@0.19.1:
-  version "0.19.1"
-  resolved "https://registry.yarnpkg.com/bs-webapi/-/bs-webapi-0.19.1.tgz#cae7d65fc43795376becc44b56f46d85e5b8e878"
-  integrity sha512-sRhkNdHFBxzoiLH+r8rhlW9XSafBbbGCkvsxtTJ1QMABEaHKj8TejwA7TuBZH2ZYL2ur3sk291ukkge5qFm3Uw==
-  dependencies:
-    bs-fetch "^0.6.2"
-
 bsb-js@1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/bsb-js/-/bsb-js-1.1.7.tgz#12cc91e974f5896b3a2aa8358419d24e56f552c3"
