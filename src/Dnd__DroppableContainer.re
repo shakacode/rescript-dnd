@@ -69,7 +69,6 @@ module Make = (Context: Context.T) => {
       () =>
         switch (prevStatus, ctx.status) {
         | (Some(StandBy), Collecting(_)) =>
-          [%log.debug "RegisterItem"; ("ContainerId", containerId)];
           ctx.registerContainer({
             id: containerId,
             axis,

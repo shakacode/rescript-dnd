@@ -206,7 +206,6 @@ module Make = (Context: Context.T) => {
   module MouseSubscriptions = {
     let onMouseMove =
         (updatePosition: React.ref(RelativityBag.t(Point.t) => unit), event) => {
-      // [%log.debug "MouseMove"; ("", "")];
       Webapi.Dom.(event->MouseEvent.preventDefault);
 
       let point =
@@ -227,12 +226,10 @@ module Make = (Context: Context.T) => {
     };
 
     let onMouseUp = (startDropping: React.ref(unit => unit), _event) => {
-      [%log.debug "MouseUp"; ("", "")];
       startDropping.current();
     };
 
     let onKeyDown = (cancelDrag: React.ref(unit => unit), event) => {
-      [%log.debug "KeyDown"; ("", "")];
       switch (event->Events.Keyboard.Dom.key) {
       | Esc =>
         // Stopping propagation to prevent closing modal while dragging
@@ -352,21 +349,18 @@ module Make = (Context: Context.T) => {
       React.useRef(None);
 
     let updateGhostPosition =
-      React.useRef(_point =>
-        [%log.warn "UpdateGhostPositionNotSet"; ("Point", _point)]
+      React.useRef(_point => ()
       );
     let updateScrollPosition =
-      React.useRef(_ghost =>
-        [%log.warn "UpdateScrollPositionNotSet"; ("Ghost", _ghost)]
+      React.useRef(_ghost => ()
       );
     let invalidateLayout =
-      React.useRef(_ghost =>
-        [%log.warn "InvalidateLayoutNotSet"; ("Ghost", _ghost)]
+      React.useRef(_ghost => ()
       );
     let startDropping =
-      React.useRef(() => [%log.warn "StartDroppingNotSet"; ("", "")]);
+      React.useRef(() => ());
     let cancelDrag =
-      React.useRef(() => [%log.warn "CancelDragNotSet"; ("", "")]);
+      React.useRef(() => ());
 
     let (state, dispatch) =
       React.useReducer(
@@ -409,7 +403,6 @@ module Make = (Context: Context.T) => {
               let (ghost, result) =
                 switch (ghost.targetContainer) {
                 | None =>
-                  [%log.debug "StartDropping::NoTargetContainer"; ("", "")];
                   let container =
                     containers.current->Map.getExn(ghost.originalContainer);
                   let scrollableDelta =
@@ -433,10 +426,6 @@ module Make = (Context: Context.T) => {
 
                 | Some(targetContainerId)
                     when ghost.targetingOriginalContainer =>
-                  [%log.debug
-                    "StartDropping::TargetingOriginalContainer";
-                    ("ContainerId", targetContainerId)
-                  ];
                   let container =
                     containers.current->Map.getExn(targetContainerId);
                   let scroll = scroll.current->Option.getExn;
@@ -506,10 +495,6 @@ module Make = (Context: Context.T) => {
                   switch (before) {
                   | Some(`FirstOmegaItemFound(item))
                   | Some(`NextItemAfterLastAlphaFound(item)) =>
-                    [%log.debug
-                      "StartDropping::TargetingOriginalContainer::Result::Before";
-                      ("Item", item)
-                    ];
                     let itemGeometry = item.geometry->Option.getExn;
                     let itemRect =
                       Geometry.shiftInternalSibling(
@@ -544,10 +529,6 @@ module Make = (Context: Context.T) => {
                     );
 
                   | Some(`SearchingForLastAlphaItem(item)) =>
-                    [%log.debug
-                      "StartDropping::TargetingOriginalContainer::Result::Last";
-                      ("Item", item)
-                    ];
                     let itemGeometry = item.geometry->Option.getExn;
                     let itemRect =
                       Geometry.shiftInternalSibling(
@@ -577,10 +558,6 @@ module Make = (Context: Context.T) => {
                     );
 
                   | None =>
-                    [%log.debug
-                      "StartDropping::TargetingOriginalContainer::Result::None";
-                      ("", "")
-                    ];
                     (
                       {
                         ...ghost,
@@ -636,10 +613,6 @@ module Make = (Context: Context.T) => {
 
                   switch (before) {
                   | Some(item) =>
-                    [%log.debug
-                      "StartDropping::TargetingNewContainer::Result::Before";
-                      ("Item", item)
-                    ];
                     let itemGeometry = item.geometry->Option.getExn;
                     let itemRect =
                       Geometry.shiftExternalSibling(
@@ -677,10 +650,6 @@ module Make = (Context: Context.T) => {
                   | None =>
                     switch (items->Array.get(items->Array.length - 1)) {
                     | Some(item) =>
-                      [%log.debug
-                        "StartDropping::TargetingNewContainer::Result::Last";
-                        ("Item", item)
-                      ];
                       let itemGeometry = item.geometry->Option.getExn;
                       let itemRect =
                         Geometry.shiftExternalSibling(
@@ -715,10 +684,6 @@ module Make = (Context: Context.T) => {
                         ),
                       );
                     | None =>
-                      [%log.debug
-                        "StartDropping::TargetingNewContainer::Result::EmptyContainer";
-                        ("", "")
-                      ];
                       (
                         {
                           ...ghost,
@@ -932,10 +897,6 @@ module Make = (Context: Context.T) => {
 
               Subscriptions.{
                 install: () => {
-                  [%log.debug
-                    "MouseSubscriptions::SubscriptionsInstalled";
-                    ("ItemId", itemId)
-                  ];
                   Window.addMouseMoveEventListener(onMouseMove, window);
                   Window.addMouseUpEventListener(onMouseUp, window);
                   HtmlElement.addKeyDownEventListener(
@@ -950,10 +911,6 @@ module Make = (Context: Context.T) => {
                   );
                 },
                 drop: () => {
-                  [%log.debug
-                    "MouseSubscriptions::SubscriptionsDropped";
-                    ("ItemId", itemId)
-                  ];
                   Window.removeMouseMoveEventListener(onMouseMove, window);
                   Window.removeMouseUpEventListener(onMouseUp, window);
                   HtmlElement.removeKeyDownEventListener(
@@ -980,10 +937,6 @@ module Make = (Context: Context.T) => {
 
               Subscriptions.{
                 install: () => {
-                  [%log.debug
-                    "TouchSubscriptions::SubscriptionsInstalled";
-                    ("ItemId", itemId)
-                  ];
                   Window.addEventListener("touchmove", onTouchMove, window);
                   Window.addEventListener("touchend", onTouchEnd, window);
                   Window.addEventListener(
@@ -1003,10 +956,6 @@ module Make = (Context: Context.T) => {
                   );
                 },
                 drop: () => {
-                  [%log.debug
-                    "TouchSubscriptions::SubscriptionsDropped";
-                    ("ItemId", itemId)
-                  ];
                   Window.removeEventListener(
                     "touchmove",
                     onTouchMove,
@@ -1816,10 +1765,6 @@ module Make = (Context: Context.T) => {
     //       https://bugs.webkit.org/show_bug.cgi?id=184250
     React.useEffect1(
       () => {
-        [%log.debug
-          "AddTouchMoveWebkitEventListener";
-          ("Status", state.status)
-        ];
         let preventTouchMoveInWebkit = event =>
           Webapi.Dom.(
             switch (state.status) {
@@ -1834,10 +1779,6 @@ module Make = (Context: Context.T) => {
 
         Some(
           () => {
-            [%log.debug
-              "RemoveTouchMoveWebkitEventListener";
-              ("Status", state.status)
-            ];
             preventTouchMoveInWebkit->Events.unsubscribeFromTouchMove;
           },
         );
