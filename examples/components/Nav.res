@@ -2,8 +2,10 @@
 let make = (~route, ~mobileNavShown, ~hideMobileNav) =>
   <nav className={mobileNavShown ? "shown-mobile" : ""}>
     <header>
-      <h1 onClick={_ => RescriptReactRouter.push("/")}> {"re-dnd"->React.string} </h1>
-      <a href="https://github.com/alexfedoseev/re-dnd" className="github-link"> <GithubIcon /> </a>
+      <h1 onClick={_ => RescriptReactRouter.push("/")}> {"rescript-dnd"->React.string} </h1>
+      <a href="https://github.com/shakacode/rescript-dnd" className="github-link">
+        <GithubIcon />
+      </a>
       <Control className="close-button" onClick={_ => hideMobileNav()}> <CloseIcon /> </Control>
     </header>
     <Link path="vertical-list" active={route == Route.VerticalList}>

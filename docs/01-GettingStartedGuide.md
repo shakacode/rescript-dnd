@@ -71,7 +71,7 @@ module Container = {
 }
 ```
 
-For convenience, `re-dnd` exposes functor which would create such singleton for you, so you don't have to type this boilerplate yourself:
+For convenience, `rescript-dnd` exposes functor which would create such singleton for you, so you don't have to type this boilerplate yourself:
 
 ```rescript
 module Container = Dnd.MakeSingletonContainer()
@@ -238,4 +238,4 @@ let make = () => {
 _Source code of the final module for this guide: [`GettingStartedGuide.res`](../examples/guides/GettingStartedGuide.res)_
 
 ---
-This guide gives base overview of how `re-dnd` works. To find out more about how to make it safer and how to deal with multiple containers—proceed to the [next guide](./02-SaferIdentifiersAndMultipleContainersGuide.md).
+This guide gives base overview of how `rescript-dnd` works. To find out more about how to make it safer and how to deal with multiple containers—proceed to the [next guide](./02-SaferIdentifiersAndMultipleContainersGuide.md).

@@ -76,7 +76,7 @@ let make: (
 ```
 
 ## `Dnd.MakeSingletonContainer` functor
-For convenience, `re-dnd` exposes this functor which would create `Container` module when there is no specific entity in the app domain which can be associated with container that holds some single list of items in UI.
+For convenience, `rescript-dnd` exposes this functor which would create `Container` module when there is no specific entity in the app domain which can be associated with container that holds some single list of items in UI.
 
 ```rescript
 module Container: DndEntry = Dnd.MakeSingletonContainer()

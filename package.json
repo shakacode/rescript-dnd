@@ -1,5 +1,5 @@
 {
-  "name": "re-dnd",
+  "name": "rescript-dnd",
   "version": "4.0.0-beta.1",
   "description": "Drag-n-drop for @rescript/react",
   "main": "src/Dnd.re",
@@ -11,13 +11,13 @@
     "build": "parcel build examples/index.html",
     "prebuild": "yarn run res:build",
     "res:build": "RES_LOG=off rescript build -with-deps",
-    "res:build:dev": "RES_LOG=*,re-dnd=* rescript build -with-deps",
-    "res:watch": "RES_LOG=*,re-dnd=* rescript build -with-deps -w",
+    "res:build:dev": "RES_LOG=*,rescript-dnd=* rescript build -with-deps",
+    "res:watch": "RES_LOG=*,rescript-dnd=* rescript build -with-deps -w",
     "res:clean": "rescript clean",
     "clean": "rm -rf dist && yarn run res:clean",
     "test": "exit 0",
     "format": "rescript format -all",
-    "deploy": "now deploy dist --public --name re-dnd",
+    "deploy": "vercel deploy dist --prod",
     "predeploy": "yarn run build"
   },
   "files": [
@@ -39,7 +39,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/MinimaHQ/re-dnd"
+    "url": "https://github.com/shakacode/rescript-dnd"
   },
   "dependencies": {
     "rescript-logger": "2.0.1"

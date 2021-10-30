@@ -1,5 +1,5 @@
 {
-  "name": "re-dnd",
+  "name": "rescript-dnd",
   "sources": [
     {
       "dir": "src",
@@ -23,9 +23,11 @@
     "react-jsx": 3
   },
   "refmt": 3,
-  "bsc-flags": ["-open Belt"],
+  "bsc-flags": [
+    "-open Belt"
+  ],
   "ppx-flags": [
-    ["rescript-logger/ppx", "--lib=re-dnd"],
+    ["rescript-logger/ppx", "--lib=rescript-dnd"]
   ],
   "package-specs": {
     "module": "es6",

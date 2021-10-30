@@ -9,7 +9,7 @@
 * **[ BREAKING ]** Move `bs-webapi` to peer dependensies.
 
 ## 2.0.0
-* **[ BREAKING ]** Modules of `DndEntry` type must provide `cmp` function to avoid polymorphic comparison. See [this diff](https://github.com/MinimaHQ/re-dnd/commit/238a0abab8ad88a7c643c0b022c49887c025a89b) for details.
+* **[ BREAKING ]** Modules of `DndEntry` type must provide `cmp` function to avoid polymorphic comparison. See [this diff](https://github.com/MinimaHQ/rescript-dnd/commit/238a0abab8ad88a7c643c0b022c49887c025a89b) for details.
 * **[ BREAKING ]** Minimum required version of `bs-platform` is `7.1.1`.
 * **[ BREAKING ]** Minimum required version of `reason-react` is `0.8.0`.
 

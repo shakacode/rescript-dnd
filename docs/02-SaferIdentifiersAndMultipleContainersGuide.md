@@ -1,7 +1,7 @@
 # Safer identifiers and multiple containers
 In this guide, we will build a UI with multiple todo lists, each contains todos that can be reordered within a list, as well as dragged between the lists.
 
-Most of the topics here are more advanced (relative to [Getting Started](./01-GettingStartedGuide.md) guide), though these are mostly not specific to the `re-dnd`.
+Most of the topics here are more advanced (relative to [Getting Started](./01-GettingStartedGuide.md) guide), though these are mostly not specific to the `rescript-dnd`.
 
 ## Safe identifiers
 Pretty much each entity in our apps has special field that uniquely identifies it. Usually, it's called `id`. Type of such identifier can be `int` or `string` (or any other serializable data type). But when we deal with identifiers of these loose types, there are no guarantees that entity of identifier is not confused with identifier of another entity or even some arbitrary `int` or `string`. In some cases, like handling of nested lists, it can cause nasty bugs that won't be caught by compiler. But this is fixable.
@@ -370,6 +370,6 @@ let reducer = (state, action) =>
 _Source code of the final module for this guide: [`SaferIdentifiersAndMultipleContainersGuide.res`](../examples/guides/SaferIdentifiersAndMultipleContainersGuide.res)_
 
 ---
-Phew, this was a long read! If you're interested in more examples, checkout [live demo](https://re-dnd.now.sh/) and its [sources](../examples).
+Phew, this was a long read! If you're interested in more examples, checkout [live demo](https://rescript-dnd.vercel.app/) and its [sources](../examples).
 
 Or you can explore [API doc](./03-Api.md).

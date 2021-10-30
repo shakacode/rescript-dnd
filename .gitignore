@@ -1,9 +1,10 @@
 node_modules/
 lib/
 dist/
+yarn-error.log
+*.bs.js
+.vercel
 .merlin
 .bsb.lock
-*.bs.js
-yarn-error.log
 .cache
 .DS_Store
