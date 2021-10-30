@@ -3,7 +3,7 @@
   "version": "4.0.0-beta.1",
   "description": "Drag-n-drop for @rescript/react",
   "main": "src/Dnd.re",
-  "author": "Alex Fedoseev <alex.fedoseev@gmail.com>",
+  "author": "Alex Fedoseev <alex@fedoseev.mx>",
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
