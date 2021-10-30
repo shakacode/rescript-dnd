@@ -936,10 +936,10 @@
     "@parcel/utils" "^1.11.0"
     physical-cpu-count "^2.0.0"
 
-"@rescript/react@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@rescript/react/-/react-0.10.1.tgz#ddce66ba664a104354d559c350ca4ebf17ab5a26"
-  integrity sha512-5eIfGnV1yhjv03ktK6fQ6iEfsZKXKXXrq5hx4+ngEY4R/RU8o/oH9ne375m9RJMugV/jsE8hMoEeSSg2YQy3Ag==
+"@rescript/react@0.10.3":
+  version "0.10.3"
+  resolved "https://registry.yarnpkg.com/@rescript/react/-/react-0.10.3.tgz#a2a8bed6b017940ec26c2154764b350f50348889"
+  integrity sha512-Lf9rzrR3bQPKJjOK3PBRa/B3xrJ7CqQ1HYr9VHPVxJidarIJJFZBhj0Dg1uZURX+Wg/xiP0PHFxXmdj2bK8Vxw==
 
 "@types/q@^1.5.1":
   version "1.5.4"
@@ -1346,11 +1346,6 @@ bs-fetch@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/bs-fetch/-/bs-fetch-0.6.2.tgz#37d982e9f79b9bc44c23e87ae78ccbee1f869adf"
   integrity sha512-VXEjp8kY3vHPckaoy3d96Bx0KYjJAPLNISBwfpwMN26K6DtuZYwI2HKhx7zeHBajz1bRArfx7O8OOLcdtujMvg==
-
-bs-platform@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-9.0.0.tgz#873e9edcfe49a89b082e71c604d73bdb8276e2fb"
-  integrity sha512-32gIXIUt1RO+OUWLrkhXFOuZKS5Cka6lEShXaVC/ohg5N8cUnoNZW9M/vW3CWnmgZkQ0Hp9g9vj5I5NfzHpy5A==
 
 bs-webapi@0.19.1:
   version "0.19.1"
@@ -4245,24 +4240,19 @@ range-parser@~1.2.1:
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.1.tgz#3cf37023d199e1c24d1a55b84800c2f3e6468031"
   integrity sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==
 
-re-classnames@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/re-classnames/-/re-classnames-5.0.1.tgz#f107e5b328b79ad423c33e991d9dd11d089400b3"
-  integrity sha512-tTdlHyRnS22+59xeOmj3/eOkW9gtP4Gw1pcIscl9csPvJEZTqnHEfIoGDiCPVKi3yreAOWtPFCPuWk49SlffAA==
-
-react-dom@17.0.1:
-  version "17.0.1"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.1.tgz#1de2560474ec9f0e334285662ede52dbc5426fc6"
-  integrity sha512-6eV150oJZ9U2t9svnsspTMrWNyHc6chX0KzDeAOXftRa8bNeOKTTfCJ7KorIwenkHd2xqVTBTCZd79yk/lx/Ug==
+react-dom@17.0.2:
+  version "17.0.2"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
+  integrity sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    scheduler "^0.20.1"
+    scheduler "^0.20.2"
 
-react@17.0.1:
-  version "17.0.1"
-  resolved "https://registry.yarnpkg.com/react/-/react-17.0.1.tgz#6e0600416bd57574e3f86d92edba3d9008726127"
-  integrity sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w==
+react@17.0.2:
+  version "17.0.2"
+  resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
+  integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -4416,10 +4406,20 @@ request@^2.88.0:
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-rescript-logger@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/rescript-logger/-/rescript-logger-2.0.0.tgz#3f0cb49b8704f1eb49dad60ae4827698535c760a"
-  integrity sha512-gr4l6EBlwFedimRerFTiQQTGhCCHqukhF4/LCSDbPkSjqYOh/QURj5n0VxOEfZPN0R6v6blE2TQztH0Q3kfZkw==
+rescript-classnames@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/rescript-classnames/-/rescript-classnames-6.0.0.tgz#e833d9fc88e0e494c2ef39862721a80ab75fae32"
+  integrity sha512-hfOffijzIPnULtRZW3Kf0DCfCaw9lhGaMxf81WYlREieyBS2KNMcdI/8g5uSXFj0j4Ci21xkf70EFCKjuCTqpw==
+
+rescript-logger@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/rescript-logger/-/rescript-logger-2.0.2.tgz#fdcd564f0c04310cb673f475d501072d371bdeed"
+  integrity sha512-jbml41IgTyuiA7jnEYUqFeAKWnXAnlg5INCOpRPvhu99cLKFyFLl2B4GO04jznEDOgcpisJmwjm4WhfwhZETsQ==
+
+rescript@9.1.4:
+  version "9.1.4"
+  resolved "https://registry.yarnpkg.com/rescript/-/rescript-9.1.4.tgz#1eb126f98d6c16942c0bf0df67c050198e580515"
+  integrity sha512-aXANK4IqecJzdnDpJUsU6pxMViCR5ogAxzuqS0mOr8TloMnzAjJFu63fjD6LCkWrKAhlMkFFzQvVQYaAaVkFXw==
 
 resolve-from@^3.0.0:
   version "3.0.0"
@@ -4510,10 +4510,10 @@ saxes@^3.1.9:
   dependencies:
     xmlchars "^2.1.1"
 
-scheduler@^0.20.1:
-  version "0.20.1"
-  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.20.1.tgz#da0b907e24026b01181ecbc75efdc7f27b5a000c"
-  integrity sha512-LKTe+2xNJBNxu/QhHvDR14wUXHRQbVY5ZOYpOGWRzhydZUqrLb2JBvLPY7cAqFmqrWuDED0Mjk7013SZiOz6Bw==
+scheduler@^0.20.2:
+  version "0.20.2"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.20.2.tgz#4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
+  integrity sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"

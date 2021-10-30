@@ -1,23 +1,23 @@
 {
-  "name": "re-dnd",
+  "name": "rescript-dnd",
   "version": "4.0.0-beta.1",
   "description": "Drag-n-drop for @rescript/react",
   "main": "src/Dnd.re",
-  "author": "Alex Fedoseev <alex.fedoseev@gmail.com>",
+  "author": "Alex Fedoseev <alex@fedoseev.mx>",
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
-    "prestart": "yarn run bs:build:dev",
+    "prestart": "yarn run res:build:dev",
     "build": "parcel build examples/index.html",
-    "prebuild": "yarn run bs:build",
-    "bs:build": "RES_LOG=off bsb -clean-world -make-world",
-    "bs:build:dev": "RES_LOG=*,re-dnd=* bsb -clean-world -make-world",
-    "bs:watch": "RES_LOG=*,re-dnd=* bsb -clean-world -make-world -w",
-    "bs:clean": "bsb -clean-world",
-    "clean": "rm -rf dist && yarn run bs:clean",
+    "prebuild": "yarn run res:build",
+    "res:build": "RES_LOG=off rescript build -with-deps",
+    "res:build:dev": "RES_LOG=*,rescript-dnd=* rescript build -with-deps",
+    "res:watch": "RES_LOG=*,rescript-dnd=* rescript build -with-deps -w",
+    "res:clean": "rescript clean",
+    "clean": "rm -rf dist && yarn run res:clean",
     "test": "exit 0",
-    "format": "bsrefmt --in-place **/*.re",
-    "deploy": "now deploy dist --public --name re-dnd",
+    "format": "rescript format -all",
+    "deploy": "vercel deploy dist --prod",
     "predeploy": "yarn run build"
   },
   "files": [
@@ -39,25 +39,24 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/MinimaHQ/re-dnd"
+    "url": "https://github.com/shakacode/rescript-dnd"
   },
   "dependencies": {
-    "rescript-logger": "2.0.0"
+    "rescript-logger": "2.0.2"
   },
   "peerDependencies": {
-    "@rescript/react": ">=0.10.1",
-    "bs-platform": ">=7.1.1",
+    "@rescript/react": ">=0.10.3",
     "bs-webapi": ">=0.15.9"
   },
   "devDependencies": {
-    "@rescript/react": "0.10.1",
+    "@rescript/react": "0.10.3",
     "autoprefixer": "9.8.6",
-    "bs-platform": "9.0.0",
     "bs-webapi": "0.19.1",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
-    "re-classnames": "5.0.1",
-    "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "rescript": "9.1.4",
+    "rescript-classnames": "6.0.0"
   }
 }

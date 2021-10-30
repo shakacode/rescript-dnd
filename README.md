@@ -1,8 +1,8 @@
-# re-dnd
+# rescript-dnd
 
-[![npm version](https://img.shields.io/npm/v/re-dnd.svg?style=flat-square)](https://www.npmjs.com/package/re-dnd)
-[![build status](https://img.shields.io/travis/alexfedoseev/re-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/re-dnd)
-[![license](https://img.shields.io/npm/l/re-dnd.svg?style=flat-square)](https://www.npmjs.com/package/re-dnd)
+[![npm version](https://img.shields.io/npm/v/rescript-dnd.svg?style=flat-square)](https://www.npmjs.com/package/rescript-dnd)
+[![build status](https://img.shields.io/travis/alexfedoseev/rescript-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/rescript-dnd)
+[![license](https://img.shields.io/npm/l/rescript-dnd.svg?style=flat-square)](https://www.npmjs.com/package/rescript-dnd)
 
 Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
@@ -20,16 +20,16 @@ Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
 ```shell
 # yarn
-yarn add re-dnd
+yarn add rescript-dnd
 # or npm
-npm install --save re-dnd
+npm install --save rescript-dnd
 ```
 
 Then add it to `bsconfig.json`:
 
 ```json
 "bs-dependencies": [
-  "re-dnd"
+  "rescript-dnd"
 ]
 ```
 
@@ -39,7 +39,7 @@ Then add it to `bsconfig.json`:
 * [Api](./docs/03-Api.md)
 
 ## Examples
-* Demos: [`live`](https://re-dnd.now.sh) | [`sources`](./examples)
+* Demos: [`live`](https://rescript-dnd.vercel.app) | [`sources`](./examples)
 * Production app: [`Minima`](https://minima.app)
 
 ## State
