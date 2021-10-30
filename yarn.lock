@@ -4411,10 +4411,10 @@ rescript-classnames@6.0.0:
   resolved "https://registry.yarnpkg.com/rescript-classnames/-/rescript-classnames-6.0.0.tgz#e833d9fc88e0e494c2ef39862721a80ab75fae32"
   integrity sha512-hfOffijzIPnULtRZW3Kf0DCfCaw9lhGaMxf81WYlREieyBS2KNMcdI/8g5uSXFj0j4Ci21xkf70EFCKjuCTqpw==
 
-rescript-logger@2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/rescript-logger/-/rescript-logger-2.0.1.tgz#6bb5b2c6539776c3cae2f3ccd14211cf83807d26"
-  integrity sha512-aS8VMNkQ1DZVGAUYLSpMK0+ipgu31HMwpqWx2OGFnDbbHrYwBbwRg+d90cfkdz7Jm36eyq+Z++sEtjf9WM0i8A==
+rescript-logger@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/rescript-logger/-/rescript-logger-2.0.2.tgz#fdcd564f0c04310cb673f475d501072d371bdeed"
+  integrity sha512-jbml41IgTyuiA7jnEYUqFeAKWnXAnlg5INCOpRPvhu99cLKFyFLl2B4GO04jznEDOgcpisJmwjm4WhfwhZETsQ==
 
 rescript@9.1.4:
   version "9.1.4"
