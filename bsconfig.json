@@ -17,7 +17,7 @@
     "rescript-logger"
   ],
   "bs-dev-dependencies": [
-    "re-classnames"
+    "rescript-classnames"
   ],
   "reason": {
     "react-jsx": 3
