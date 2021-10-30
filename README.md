@@ -1,8 +1,8 @@
 # rescript-dnd
 
 [![npm version](https://img.shields.io/npm/v/rescript-dnd.svg?style=flat-square)](https://www.npmjs.com/package/rescript-dnd)
-[![build status](https://img.shields.io/travis/alexfedoseev/rescript-dnd/master.svg?style=flat-square)](https://travis-ci.org/alexfedoseev/rescript-dnd)
 [![license](https://img.shields.io/npm/l/rescript-dnd.svg?style=flat-square)](https://www.npmjs.com/package/rescript-dnd)
+[![build](https://github.com/shakacode/re-dnd/actions/workflows/pr.yml/badge.svg)](https://github.com/shakacode/re-dnd/actions/workflows/pr.yml)
 
 Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
