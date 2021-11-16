@@ -20,15 +20,16 @@ Drag & drop for [`@rescript/react`](https://reasonml.github.io/reason-react/).
 
 ```shell
 # yarn
-yarn add rescript-dnd
+yarn add rescript-dnd bs-webapi
 # or npm
-npm install --save rescript-dnd
+npm install --save rescript-dnd bs-webapi
 ```
 
 Then add it to `bsconfig.json`:
 
 ```json
 "bs-dependencies": [
+  "bs-webapi",
   "rescript-dnd"
 ]
 ```
