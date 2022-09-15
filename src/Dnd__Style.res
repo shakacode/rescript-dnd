@@ -15,5 +15,5 @@ let translate = (x, y) => "translate(" ++ (x->px ++ (", " ++ (y->px ++ ")")))
 
 let getComputedStyle = element => {
   open Webapi.Dom
-  window->Window.getComputedStyle(element->Web.htmlElementToElement, _)
+  window->Window.getComputedStyle(element->Web.htmlElementToElement)
 }

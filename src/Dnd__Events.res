@@ -5,59 +5,59 @@ let addOptions = {"passive": false, "once": false, "capture": false}
 let removeOptions = {"passive": false, "capture": false}
 
 let subscribeToMouseMove = handler =>
-  Window.addMouseMoveEventListenerWithOptions(handler, addOptions, window)
+  Window.addMouseMoveEventListenerWithOptions(window, handler, addOptions)
 let unsubscribeFromMouseMove = handler =>
-  Window.removeMouseMoveEventListenerWithOptions(handler, removeOptions, window)
+  Window.removeMouseMoveEventListenerWithOptions(window, handler, removeOptions)
 
 let subscribeToMouseUp = handler =>
-  Window.addMouseUpEventListenerWithOptions(handler, addOptions, window)
+  Window.addMouseUpEventListenerWithOptions(window, handler, addOptions)
 let unsubscribeFromMouseUp = handler =>
-  Window.removeMouseUpEventListenerWithOptions(handler, removeOptions, window)
+  Window.removeMouseUpEventListenerWithOptions(window, handler, removeOptions)
 
 let subscribeToDrag = handler =>
-  Window.addEventListenerWithOptions("drag", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "drag", handler, addOptions)
 let unsubscribeFromDrag = handler =>
-  Window.removeEventListenerWithOptions("drag", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "drag", handler, removeOptions)
 
 let subscribeToResize = handler =>
-  Window.addEventListenerWithOptions("resize", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "resize", handler, addOptions)
 let unsubscribeFromResize = handler =>
-  Window.removeEventListenerWithOptions("resize", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "resize", handler, removeOptions)
 
 let subscribeToKeyUp = handler =>
-  Window.addKeyUpEventListenerWithOptions(handler, addOptions, window)
+  Window.addKeyUpEventListenerWithOptions(window, handler, addOptions)
 let unsubscribeFromKeyUp = handler =>
-  Window.removeKeyUpEventListenerWithOptions(handler, removeOptions, window)
+  Window.removeKeyUpEventListenerWithOptions(window, handler, removeOptions)
 
 let subscribeToKeyDown = handler =>
-  Window.addKeyDownEventListenerWithOptions(handler, addOptions, window)
+  Window.addKeyDownEventListenerWithOptions(window, handler, addOptions)
 let unsubscribeFromKeyDown = handler =>
-  Window.removeKeyDownEventListenerWithOptions(handler, removeOptions, window)
+  Window.removeKeyDownEventListenerWithOptions(window, handler, removeOptions)
 
 let subscribeToTouchMove = handler =>
-  Window.addEventListenerWithOptions("touchmove", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "touchmove", handler, addOptions)
 let unsubscribeFromTouchMove = handler =>
-  Window.removeEventListenerWithOptions("touchmove", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "touchmove", handler, removeOptions)
 
 let subscribeToTouchEnd = handler =>
-  Window.addEventListenerWithOptions("touchend", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "touchend", handler, addOptions)
 let unsubscribeFromTouchEnd = handler =>
-  Window.removeEventListenerWithOptions("touchend", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "touchend", handler, removeOptions)
 
 let subscribeToOrientationChange = handler =>
-  Window.addEventListenerWithOptions("orientationchange", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "orientationchange", handler, addOptions)
 let unsubscribeFromOrientationChange = handler =>
-  Window.removeEventListenerWithOptions("orientationchange", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "orientationchange", handler, removeOptions)
 
 let subscribeToContextMenu = handler =>
-  Window.addEventListenerWithOptions("contextmenu", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "contextmenu", handler, addOptions)
 let unsubscribeFromContextMenu = handler =>
-  Window.removeEventListenerWithOptions("contextmenu", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "contextmenu", handler, removeOptions)
 
 let subscribeToVisibilityChange = handler =>
-  Window.addEventListenerWithOptions("visibilitychange", handler, addOptions, window)
+  Window.addEventListenerWithOptions(window, "visibilitychange", handler, addOptions)
 let unsubscribeFromVisibilityChange = handler =>
-  Window.removeEventListenerWithOptions("visibilitychange", handler, removeOptions, window)
+  Window.removeEventListenerWithOptions(window, "visibilitychange", handler, removeOptions)
 
 module Mouse = {
   let leftClick = event => event->ReactEvent.Mouse.button === 0

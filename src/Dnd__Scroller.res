@@ -145,7 +145,7 @@ let windowScroller = (
         Webapi.requestCancellableAnimationFrame(_ => {
           {
             open Webapi.Dom
-            window->Window.scrollBy(x, y, _)
+            window->Window.scrollBy(x, y)
           }
 
           onScroll()
@@ -157,7 +157,7 @@ let windowScroller = (
         Webapi.requestCancellableAnimationFrame(_ => {
           {
             open Webapi.Dom
-            window->Window.scrollBy(x, 0., _)
+            window->Window.scrollBy(x, 0.)
           }
 
           onScroll()
@@ -169,7 +169,7 @@ let windowScroller = (
         Webapi.requestCancellableAnimationFrame(_ => {
           {
             open Webapi.Dom
-            window->Window.scrollBy(0., y, _)
+            window->Window.scrollBy(0., y)
           }
 
           onScroll()

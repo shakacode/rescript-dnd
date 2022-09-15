@@ -14,7 +14,10 @@ module Make = (Context: Context.T) => {
   module Helpers = {
     let clearSelection = () => {
       open Webapi.Dom
-      window->Window.getSelection->Selection.removeAllRanges
+      switch window->Window.getSelection {
+      | Some(selection) => Selection.removeAllRanges(selection)
+      | None => ()
+      }
     }
 
     let getGeometry = element =>
