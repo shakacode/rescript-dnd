@@ -13,7 +13,7 @@
   ],
   "bs-dependencies": [
     "@rescript/react",
-    "bs-webapi",
+    "rescript-webapi",
     "rescript-logger"
   ],
   "bs-dev-dependencies": [

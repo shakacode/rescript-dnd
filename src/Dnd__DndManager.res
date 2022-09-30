@@ -794,7 +794,7 @@ module Make = (Context: Context.T) => {
         let scrollPosition = Scrollable.Window.getScrollPosition()
 
         let rect = item.element->HtmlElement.getBoundingClientRect
-        let style = window->Window.getComputedStyle(item.element->Web.htmlElementToElement, _)
+        let style = window->Window.getComputedStyle(item.element->Web.htmlElementToElement)
 
         let viewportRect = rect->Geometry.getViewportRect
         let pageRect = viewportRect->Geometry.getPageRectFromViewportRect(scrollPosition)
@@ -843,22 +843,22 @@ module Make = (Context: Context.T) => {
                 "MouseSubscriptions::SubscriptionsInstalled"
                 ("ItemId", itemId)
               )
-              Window.addMouseMoveEventListener(onMouseMove, window)
-              Window.addMouseUpEventListener(onMouseUp, window)
-              HtmlElement.addKeyDownEventListener(onKeyDown, ghost.element)
-              Window.addEventListener("resize", onResize, window)
-              Window.addEventListener("visibilitychange", onVisibilityChange, window)
+              Window.addMouseMoveEventListener(window, onMouseMove)
+              Window.addMouseUpEventListener(window, onMouseUp)
+              HtmlElement.addKeyDownEventListener(ghost.element, onKeyDown)
+              Window.addEventListener(window, "resize", onResize)
+              Window.addEventListener(window, "visibilitychange", onVisibilityChange)
             },
             drop: () => {
               %log.debug(
                 "MouseSubscriptions::SubscriptionsDropped"
                 ("ItemId", itemId)
               )
-              Window.removeMouseMoveEventListener(onMouseMove, window)
-              Window.removeMouseUpEventListener(onMouseUp, window)
-              HtmlElement.removeKeyDownEventListener(onKeyDown, ghost.element)
-              Window.removeEventListener("resize", onResize, window)
-              Window.removeEventListener("visibilitychange", onVisibilityChange, window)
+              Window.removeMouseMoveEventListener(window, onMouseMove)
+              Window.removeMouseUpEventListener(window, onMouseUp)
+              HtmlElement.removeKeyDownEventListener(ghost.element, onKeyDown)
+              Window.removeEventListener(window, "resize", onResize)
+              Window.removeEventListener(window, "visibilitychange", onVisibilityChange)
             },
           }
         | #Touch =>
@@ -875,22 +875,22 @@ module Make = (Context: Context.T) => {
                 "TouchSubscriptions::SubscriptionsInstalled"
                 ("ItemId", itemId)
               )
-              Window.addEventListener("touchmove", onTouchMove, window)
-              Window.addEventListener("touchend", onTouchEnd, window)
-              Window.addEventListener("contextmenu", onContextMenu, window)
-              Window.addEventListener("orientationchange", onOrientationChange, window)
-              Window.addEventListener("visibilitychange", onVisibilityChange, window)
+              Window.addEventListener(window, "touchmove", onTouchMove)
+              Window.addEventListener(window, "touchend", onTouchEnd)
+              Window.addEventListener(window, "contextmenu", onContextMenu)
+              Window.addEventListener(window, "orientationchange", onOrientationChange)
+              Window.addEventListener(window, "visibilitychange", onVisibilityChange)
             },
             drop: () => {
               %log.debug(
                 "TouchSubscriptions::SubscriptionsDropped"
                 ("ItemId", itemId)
               )
-              Window.removeEventListener("touchmove", onTouchMove, window)
-              Window.removeEventListener("touchend", onTouchEnd, window)
-              Window.removeEventListener("contextmenu", onContextMenu, window)
-              Window.removeEventListener("orientationchange", onOrientationChange, window)
-              Window.removeEventListener("visibilitychange", onVisibilityChange, window)
+              Window.removeEventListener(window, "touchmove", onTouchMove)
+              Window.removeEventListener(window, "touchend", onTouchEnd)
+              Window.removeEventListener(window, "contextmenu", onContextMenu)
+              Window.removeEventListener(window, "orientationchange", onOrientationChange)
+              Window.removeEventListener(window, "visibilitychange", onVisibilityChange)
             },
           }
         }

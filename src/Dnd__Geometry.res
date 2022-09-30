@@ -99,7 +99,7 @@ let getGeometry = (rect, style, scroll) => {
 let getElementGeometry = (el: Dom.htmlElement) =>
   getGeometry(
     el->HtmlElement.getBoundingClientRect,
-    window->Window.getComputedStyle(el->Web.htmlElementToElement, _),
+    window->Window.getComputedStyle(el->Web.htmlElementToElement),
   )
 
 let getViewport = () => {

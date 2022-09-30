@@ -75,7 +75,7 @@ module Element = {
     element
     ->Webapi.Dom.HtmlElement.parentElement
     ->Option.flatMap(element => {
-      let style = Webapi.Dom.window->Webapi.Dom.Window.getComputedStyle(element, _)
+      let style = Webapi.Dom.window->Webapi.Dom.Window.getComputedStyle(element)
       if style->isScrollable {
         let element = {
           open Webapi.Dom
