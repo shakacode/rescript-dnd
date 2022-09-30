@@ -1,6 +1,6 @@
 let findIndexOf = (arr: array<'a>, x: 'a) =>
   switch arr->Js.Array2.findIndex(x' => x' === x) {
-  | -1 => failwith(j`Unable to find \`$(x)\` in array \`$(arr)\``)
+  | -1 => failwith(`Unable to find \`$(x)\` in array \`$(arr)\``)
   | _ as i => i
   }
 
