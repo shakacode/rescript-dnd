@@ -1,6 +1,10 @@
 # History
 
-## 4.0.0-beta.1
+## 5.0.0
+* **[ BREAKING ]** Update to `rescript@10`.
+* **[ BREAKING ]** Replace `bs-webapi` with `rescript-webapi`.
+
+## 4.0.0
 * **[ BREAKING ]** Switch to `@rescript/react`.
 * **[ BREAKING ]** Update `bs-platform`.
 

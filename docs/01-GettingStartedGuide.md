@@ -179,7 +179,7 @@ let reducer = (state, action) =>
   }
 ```
 
-> `ArrayExt.reinsert` is not a part of the public API since usually in a real-world app reordering is handled differently. If you want to inspect it or use it in your own code, you can find its definition in the [examples](../examples/libs/ArrayExt.re).
+> `ArrayExt.reinsert` is not a part of the public API since usually in a real-world app reordering is handled differently. If you want to inspect it or use it in your own code, you can find its definition in the [examples](../examples/libs/ArrayExt.res).
 
 Looks like we have everything in place. This is how the final module looks like:
 
