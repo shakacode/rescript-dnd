@@ -1,6 +1,6 @@
 {
   "name": "rescript-dnd",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Drag-n-drop for @rescript/react",
   "main": "src/Dnd.re",
   "author": "Alex Fedoseev <alex@fedoseev.mx>",
