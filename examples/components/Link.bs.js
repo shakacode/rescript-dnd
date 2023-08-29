@@ -4,20 +4,18 @@ import * as Cx from "rescript-classnames/src/Cx.bs.js";
 import * as React from "react";
 import * as RescriptReactRouter from "@rescript/react/src/RescriptReactRouter.bs.js";
 
-function Link(Props) {
-  var path = Props.path;
-  var active = Props.active;
-  var children = Props.children;
+function Link(props) {
+  var path = props.path;
   return React.createElement("button", {
               className: Cx.cx([
                     "link",
-                    active ? "active" : ""
+                    props.active ? "active" : ""
                   ]),
               type: "button",
               onClick: (function (param) {
                   RescriptReactRouter.push("#" + path);
                 })
-            }, children);
+            }, props.children);
 }
 
 var make = Link;

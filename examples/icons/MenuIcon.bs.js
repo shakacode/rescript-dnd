@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-function MenuIcon(Props) {
+function MenuIcon(props) {
   return React.createElement("svg", {
               className: "menu-icon",
               viewBox: "0 0 32 32",

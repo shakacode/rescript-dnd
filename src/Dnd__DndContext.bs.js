@@ -27,19 +27,8 @@ function Make(Item, Container) {
         startDragging: fail
       });
   var make = x.Provider;
-  var makeProps = function (prim0, prim1, prim2, prim3) {
-    var tmp = {
-      value: prim0,
-      children: prim1
-    };
-    if (prim2 !== undefined) {
-      tmp.key = prim2;
-    }
-    return tmp;
-  };
   var Provider = {
-    make: make,
-    makeProps: makeProps
+    make: make
   };
   var useDnd = function (param) {
     return React.useContext(x);
@@ -53,10 +42,7 @@ function Make(Item, Container) {
         };
 }
 
-var ReactContext;
-
 export {
-  ReactContext ,
   MissingContext ,
   fail ,
   T ,

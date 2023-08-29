@@ -9,6 +9,7 @@ import * as ArrayExt from "../libs/ArrayExt.bs.js";
 import * as Belt_Map from "rescript/lib/es6/belt_Map.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
 import * as Belt_Option from "rescript/lib/es6/belt_Option.js";
+import * as JsxPPXReactSupport from "rescript/lib/es6/jsxPPXReactSupport.js";
 
 function MakeId($star) {
   var Id = {};
@@ -227,7 +228,7 @@ var initialState = {
   todoMap: initialState_todoMap
 };
 
-function SaferIdentifiersAndMultipleContainersGuide(Props) {
+function SaferIdentifiersAndMultipleContainersGuide(props) {
   var match = React.useReducer(reducer, initialState);
   var dispatch = match[1];
   var state = match[0];
@@ -239,24 +240,25 @@ function SaferIdentifiersAndMultipleContainersGuide(Props) {
                 }),
               children: Belt_Array.map(state.todoListIndex, (function (todoListId) {
                       var todoList = Belt_Map.getExn(state.todoListMap, todoListId);
-                      return React.createElement(Todos.DroppableContainer.make, {
+                      return JsxPPXReactSupport.createElementVariadicWithKey(String(todoListId), Todos.DroppableContainer.make, {
                                   id: todoListId,
                                   axis: /* Y */1,
-                                  children: null,
-                                  key: String(todoListId)
-                                }, React.createElement("h2", undefined, todoList.title), Belt_Array.mapWithIndex(todoList.todos, (function (index, todoId) {
-                                        var todo = Belt_Map.getExn(state.todoMap, todoId);
-                                        return React.createElement(Todos.DraggableItem.make, {
-                                                    id: todoId,
-                                                    containerId: todoListId,
-                                                    index: index,
-                                                    children: {
-                                                      NAME: "Children",
-                                                      VAL: todo.title
-                                                    },
-                                                    key: String(todoId)
-                                                  });
-                                      })));
+                                  children: null
+                                }, [
+                                  React.createElement("h2", undefined, todoList.title),
+                                  Belt_Array.mapWithIndex(todoList.todos, (function (index, todoId) {
+                                          var todo = Belt_Map.getExn(state.todoMap, todoId);
+                                          return JsxPPXReactSupport.createElementWithKey(String(todoId), Todos.DraggableItem.make, {
+                                                      id: todoId,
+                                                      containerId: todoListId,
+                                                      index: index,
+                                                      children: {
+                                                        NAME: "Children",
+                                                        VAL: todo.title
+                                                      }
+                                                    });
+                                        }))
+                                ]);
                     }))
             });
 }

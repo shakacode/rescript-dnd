@@ -2,11 +2,10 @@
 
 import * as React from "react";
 
-function Container(Props) {
-  var children = Props.children;
+function Container(props) {
   return React.createElement("div", {
               className: "container"
-            }, children);
+            }, props.children);
 }
 
 var make = Container;

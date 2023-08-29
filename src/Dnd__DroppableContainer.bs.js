@@ -44,14 +44,13 @@ function Make(Context) {
   var Helpers = {
     getGeometryAndScrollable: getGeometryAndScrollable
   };
-  var Dnd__DroppableContainer$Make = function (Props) {
-    var containerId = Props.id;
-    var axis = Props.axis;
-    var lockAxisOpt = Props.lockAxis;
-    var accept = Props.accept;
-    var className = Props.className;
-    var children = Props.children;
-    var lockAxis = lockAxisOpt !== undefined ? lockAxisOpt : false;
+  var Dnd__DroppableContainer$Make = function (props) {
+    var children = props.children;
+    var accept = props.accept;
+    var lockAxis = props.lockAxis;
+    var axis = props.axis;
+    var containerId = props.id;
+    var lockAxis$1 = lockAxis !== undefined ? lockAxis : false;
     var ctx = React.useContext(Context.x);
     var element = React.useRef(null);
     var prevStatus = Dnd__ReactHooks.usePrevious(ctx.status);
@@ -72,7 +71,7 @@ function Make(Context) {
             Curry._1(ctx.registerContainer, {
                   id: containerId,
                   axis: axis,
-                  lockAxis: lockAxis,
+                  lockAxis: lockAxis$1,
                   element: Belt_Option.getExn(Caml_option.nullable_to_opt(element.current)),
                   accept: accept,
                   getGeometryAndScrollable: (function (param) {
@@ -83,19 +82,8 @@ function Make(Context) {
           prevStatus,
           ctx.status
         ]);
-    var tmp = {
-      ref: element
-    };
-    var tmp$1 = Belt_Option.map(className, (function (fn) {
-            return Curry._1(fn, Belt_Option.getWithDefault(Belt_Option.map(ctx.target, (function (target) {
-                                  return Curry._2(Container.eq, target, containerId);
-                                })), false));
-          }));
-    if (tmp$1 !== undefined) {
-      tmp.className = Caml_option.valFromOption(tmp$1);
-    }
     var match = ctx.status;
-    var tmp$2;
+    var tmp;
     var exit = 0;
     var exit$1 = 0;
     if (typeof match === "number") {
@@ -125,7 +113,7 @@ function Make(Context) {
           ];
         var height = match$2[1];
         var width = match$2[0];
-        tmp$2 = React.createElement(React.Fragment, undefined, children, React.createElement("div", {
+        tmp = React.createElement(React.Fragment, undefined, children, React.createElement("div", {
                   style: {
                     borderTop: Dnd__Style.px(ghost.borders.top),
                     borderRight: Dnd__Style.px(ghost.borders.right),
@@ -148,7 +136,7 @@ function Make(Context) {
       }
     }
     if (exit === 1) {
-      tmp$2 = React.createElement(React.Fragment, undefined, children, React.createElement("div", {
+      tmp = React.createElement(React.Fragment, undefined, children, React.createElement("div", {
                 style: {
                   border: Dnd__Style.px(0),
                   height: Dnd__Style.px(0),
@@ -161,7 +149,14 @@ function Make(Context) {
                 }
               }));
     }
-    return React.createElement("div", tmp, tmp$2);
+    return React.createElement("div", {
+                ref: Caml_option.some(element),
+                className: Belt_Option.map(props.className, (function (fn) {
+                        return Curry._1(fn, Belt_Option.getWithDefault(Belt_Option.map(ctx.target, (function (target) {
+                                              return Curry._2(Container.eq, target, containerId);
+                                            })), false));
+                      }))
+              }, tmp);
   };
   return {
           Item: Context.Item,

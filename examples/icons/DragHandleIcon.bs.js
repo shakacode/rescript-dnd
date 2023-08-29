@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-function DragHandleIcon(Props) {
+function DragHandleIcon(props) {
   return React.createElement("svg", {
               className: "drag-handle-icon",
               viewBox: "0 0 32 32",

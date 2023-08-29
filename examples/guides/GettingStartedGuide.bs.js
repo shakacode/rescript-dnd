@@ -6,6 +6,7 @@ import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
 import * as ArrayExt from "../libs/ArrayExt.bs.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
+import * as JsxPPXReactSupport from "rescript/lib/es6/jsxPPXReactSupport.js";
 
 function eq(x1, x2) {
   return x1 === x2;
@@ -47,7 +48,7 @@ var initialState = [
   7
 ];
 
-function GettingStartedGuide(Props) {
+function GettingStartedGuide(props) {
   var match = React.useReducer(reducer, initialState);
   var dispatch = match[1];
   return React.createElement(Items.DndManager.make, {
@@ -57,18 +58,15 @@ function GettingStartedGuide(Props) {
                       });
                 }),
               children: React.createElement(Items.DroppableContainer.make, {
-                    id: undefined,
                     axis: /* Y */1,
                     children: Belt_Array.mapWithIndex(match[0], (function (index, item) {
-                            return React.createElement(Items.DraggableItem.make, {
+                            return JsxPPXReactSupport.createElementWithKey(String(item), Items.DraggableItem.make, {
                                         id: item,
-                                        containerId: undefined,
                                         index: index,
                                         children: {
                                           NAME: "Children",
                                           VAL: String(item)
-                                        },
-                                        key: String(item)
+                                        }
                                       });
                           }))
                   })

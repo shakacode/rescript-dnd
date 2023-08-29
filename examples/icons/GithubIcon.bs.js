@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-function GithubIcon(Props) {
+function GithubIcon(props) {
   return React.createElement("svg", {
               className: "github-icon",
               viewBox: "0 0 32 32",

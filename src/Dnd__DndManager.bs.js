@@ -150,12 +150,11 @@ function Make(Context) {
   var Hook = {
     invoke: invoke
   };
-  var Dnd__DndManager$Make = function (Props) {
-    var onDragStart = Props.onDragStart;
-    var onDropStart = Props.onDropStart;
-    var onDropEnd = Props.onDropEnd;
-    var onReorder = Props.onReorder;
-    var children = Props.children;
+  var Dnd__DndManager$Make = function (props) {
+    var onReorder = props.onReorder;
+    var onDropEnd = props.onDropEnd;
+    var onDropStart = props.onDropStart;
+    var onDragStart = props.onDragStart;
     var items = React.useRef(Belt_Map.make(ComparableItem));
     var containers = React.useRef(Belt_Map.make(ComparableContainer));
     var scroll = React.useRef(undefined);
@@ -332,8 +331,8 @@ function Make(Context) {
                               margins: ghost.margins,
                               borders: ghost.borders,
                               delta: {
-                                x: -scrollableDelta.x,
-                                y: -scrollableDelta.y
+                                x: - scrollableDelta.x,
+                                y: - scrollableDelta.y
                               },
                               departurePoint: ghost.departurePoint,
                               currentPoint: ghost.currentPoint,
@@ -490,9 +489,9 @@ function Make(Context) {
                       var nextGhost_borders = ghost.borders;
                       var nextGhost_delta = match$2 ? ({
                             x: 0,
-                            y: -scrollableDelta$2.y
+                            y: - scrollableDelta$2.y
                           }) : ({
-                            x: -scrollableDelta$2.x,
+                            x: - scrollableDelta$2.x,
                             y: 0
                           });
                       var nextGhost_departurePoint = ghost.departurePoint;
@@ -554,8 +553,8 @@ function Make(Context) {
                           margins: ghost$1.margins,
                           borders: ghost$1.borders,
                           delta: {
-                            x: -scrollable$3.scroll.delta.x,
-                            y: -scrollable$3.scroll.delta.y
+                            x: - scrollable$3.scroll.delta.x,
+                            y: - scrollable$3.scroll.delta.y
                           },
                           departurePoint: ghost$1.departurePoint,
                           currentPoint: ghost$1.currentPoint,
@@ -1559,19 +1558,22 @@ function Make(Context) {
         
       }
     }
-    return React.createElement(Context.Provider.make, Curry._4(Context.Provider.makeProps, {
-                    status: state.status,
-                    target: tmp,
-                    scroll: scroll.current,
-                    registerItem: registerItem,
-                    registerContainer: registerContainer,
-                    disposeItem: disposeItem,
-                    disposeContainer: disposeContainer,
-                    getItemShift: (function (itemId) {
-                        return Belt_Map.getExn(items.current, itemId).shift;
-                      }),
-                    startDragging: collectEntries
-                  }, children, undefined, undefined));
+    return React.createElement(Context.Provider.make, {
+                value: {
+                  status: state.status,
+                  target: tmp,
+                  scroll: scroll.current,
+                  registerItem: registerItem,
+                  registerContainer: registerContainer,
+                  disposeItem: disposeItem,
+                  disposeContainer: disposeContainer,
+                  getItemShift: (function (itemId) {
+                      return Belt_Map.getExn(items.current, itemId).shift;
+                    }),
+                  startDragging: collectEntries
+                },
+                children: props.children
+              });
   };
   return {
           Item: Item,

@@ -8,6 +8,7 @@ import * as ArrayExt from "../libs/ArrayExt.bs.js";
 import * as Belt_Map from "rescript/lib/es6/belt_Map.js";
 import * as Identity from "../libs/Identity.bs.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
+import * as JsxPPXReactSupport from "rescript/lib/es6/jsxPPXReactSupport.js";
 
 var TodoId = Identity.Make({});
 
@@ -61,9 +62,8 @@ function reducer(state, action) {
         };
 }
 
-function SimpleList(Props) {
-  var n = Props.n;
-  var axis = Props.axis;
+function SimpleList(props) {
+  var n = props.n;
   var initialState = React.useMemo((function () {
           return {
                   todosIndex: Belt_Array.range(1, n),
@@ -94,8 +94,7 @@ function SimpleList(Props) {
                       });
                 }),
               children: React.createElement(DroppableContainer.make, {
-                    id: undefined,
-                    axis: axis,
+                    axis: props.axis,
                     className: (function (draggingOver) {
                         return Cx.cx([
                                     "todos",
@@ -104,9 +103,8 @@ function SimpleList(Props) {
                       }),
                     children: Belt_Array.mapWithIndex(state.todosIndex, (function (index, id) {
                             var todo = Belt_Map.getExn(state.todosMap, id);
-                            return React.createElement(DraggableItem.make, {
+                            return JsxPPXReactSupport.createElementWithKey(Curry._1(TodoId.toString, todo.id), DraggableItem.make, {
                                         id: todo.id,
-                                        containerId: undefined,
                                         index: index,
                                         className: (function (dragging) {
                                             return Cx.cx([
@@ -117,8 +115,7 @@ function SimpleList(Props) {
                                         children: {
                                           NAME: "Children",
                                           VAL: todo.title
-                                        },
-                                        key: Curry._1(TodoId.toString, todo.id)
+                                        }
                                       });
                           }))
                   })

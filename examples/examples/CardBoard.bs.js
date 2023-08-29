@@ -11,6 +11,7 @@ import * as Identity from "../libs/Identity.bs.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
 import * as Belt_Option from "rescript/lib/es6/belt_Option.js";
 import * as DragHandleIcon from "../icons/DragHandleIcon.bs.js";
+import * as JsxPPXReactSupport from "rescript/lib/es6/jsxPPXReactSupport.js";
 
 var TodoId = Identity.Make({});
 
@@ -171,7 +172,7 @@ function reducer(state, action) {
         };
 }
 
-function CardBoard(Props) {
+function CardBoard(props) {
   var initialState = React.useMemo((function () {
           return {
                   todosMap: Belt_Array.reduce(Belt_Array.range(1, 40), Curry._1(TodoId.$$Map.make, undefined), (function (map, id) {
@@ -241,16 +242,14 @@ function CardBoard(Props) {
                             });
                       }),
                     children: React.createElement(DroppableContainer$1.make, {
-                          id: undefined,
                           axis: /* X */0,
                           className: (function (param) {
                               return "todo-lists";
                             }),
                           children: Belt_Array.mapWithIndex(state.todoListsIndex, (function (todoListIndex, todoListId) {
                                   var todoList = Belt_Map.getExn(state.todoListsMap, todoListId);
-                                  return React.createElement(DraggableItem$1.make, {
+                                  return JsxPPXReactSupport.createElementWithKey(Curry._1(TodoListId.toString, todoListId), DraggableItem$1.make, {
                                               id: todoListId,
-                                              containerId: undefined,
                                               index: todoListIndex,
                                               className: (function (dragging) {
                                                   return Cx.cx([
@@ -261,7 +260,7 @@ function CardBoard(Props) {
                                               children: {
                                                 NAME: "ChildrenWithDragHandle",
                                                 VAL: (function (style, onMouseDown, onTouchStart) {
-                                                    return React.createElement(DroppableContainer.make, {
+                                                    return JsxPPXReactSupport.createElementVariadicWithKey(Curry._1(TodoListId.toString, todoListId), DroppableContainer.make, {
                                                                 id: todoListId,
                                                                 axis: /* Y */1,
                                                                 className: (function (draggingOver) {
@@ -270,40 +269,40 @@ function CardBoard(Props) {
                                                                                 draggingOver ? "active" : ""
                                                                               ]);
                                                                   }),
-                                                                children: null,
-                                                                key: Curry._1(TodoListId.toString, todoListId)
-                                                              }, React.createElement("div", {
-                                                                    className: "todos-header"
-                                                                  }, React.createElement(Control.make, {
-                                                                        className: "drag-handle",
-                                                                        style: style,
-                                                                        onMouseDown: onMouseDown,
-                                                                        onTouchStart: onTouchStart,
-                                                                        children: React.createElement(DragHandleIcon.make, {})
-                                                                      }), React.createElement("div", {
-                                                                        className: "title"
-                                                                      }, todoList.title)), Belt_Array.mapWithIndex(todoList.todos, (function (todoIndex, todoId) {
-                                                                      var todo = Belt_Map.getExn(state.todosMap, todoId);
-                                                                      return React.createElement(DraggableItem.make, {
-                                                                                  id: todoId,
-                                                                                  containerId: todoListId,
-                                                                                  index: todoIndex,
-                                                                                  className: (function (dragging) {
-                                                                                      return Cx.cx([
-                                                                                                  "todo",
-                                                                                                  dragging ? "dragging" : ""
-                                                                                                ]);
-                                                                                    }),
-                                                                                  children: {
-                                                                                    NAME: "Children",
-                                                                                    VAL: todo.title
-                                                                                  },
-                                                                                  key: Curry._1(TodoId.toString, todoId)
-                                                                                });
-                                                                    })));
+                                                                children: null
+                                                              }, [
+                                                                React.createElement("div", {
+                                                                      className: "todos-header"
+                                                                    }, React.createElement(Control.make, {
+                                                                          className: "drag-handle",
+                                                                          style: style,
+                                                                          onMouseDown: onMouseDown,
+                                                                          onTouchStart: onTouchStart,
+                                                                          children: React.createElement(DragHandleIcon.make, {})
+                                                                        }), React.createElement("div", {
+                                                                          className: "title"
+                                                                        }, todoList.title)),
+                                                                Belt_Array.mapWithIndex(todoList.todos, (function (todoIndex, todoId) {
+                                                                        var todo = Belt_Map.getExn(state.todosMap, todoId);
+                                                                        return JsxPPXReactSupport.createElementWithKey(Curry._1(TodoId.toString, todoId), DraggableItem.make, {
+                                                                                    id: todoId,
+                                                                                    containerId: todoListId,
+                                                                                    index: todoIndex,
+                                                                                    className: (function (dragging) {
+                                                                                        return Cx.cx([
+                                                                                                    "todo",
+                                                                                                    dragging ? "dragging" : ""
+                                                                                                  ]);
+                                                                                      }),
+                                                                                    children: {
+                                                                                      NAME: "Children",
+                                                                                      VAL: todo.title
+                                                                                    }
+                                                                                  });
+                                                                      }))
+                                                              ]);
                                                   })
-                                              },
-                                              key: Curry._1(TodoListId.toString, todoListId)
+                                              }
                                             });
                                 }))
                         })

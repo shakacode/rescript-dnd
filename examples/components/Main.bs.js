@@ -2,9 +2,8 @@
 
 import * as React from "react";
 
-function Main(Props) {
-  var children = Props.children;
-  return React.createElement("main", undefined, children);
+function Main(props) {
+  return React.createElement("main", undefined, props.children);
 }
 
 var make = Main;

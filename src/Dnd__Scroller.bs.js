@@ -23,7 +23,7 @@ function calculateAxis(position, dimension, direction) {
   var maxSpeedAt$1 = dimension * 0.05;
   if (!(position <= startFrom$1 && position > maxSpeedAt$1)) {
     if (position <= maxSpeedAt$1) {
-      return -28.0;
+      return - 28.0;
     } else {
       return ;
     }
@@ -31,7 +31,7 @@ function calculateAxis(position, dimension, direction) {
   var scrollRange$1 = startFrom$1 - maxSpeedAt$1;
   var distanceFromStart$1 = startFrom$1 - position;
   var powed$1 = Math.pow(distanceFromStart$1 / scrollRange$1, 2.0);
-  return -(28.0 * powed$1);
+  return - (28.0 * powed$1);
 }
 
 function calculate(point, dimensions, direction) {

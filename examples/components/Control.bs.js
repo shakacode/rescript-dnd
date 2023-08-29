@@ -2,36 +2,21 @@
 
 import * as Cx from "rescript-classnames/src/Cx.bs.js";
 import * as React from "react";
-import * as Caml_option from "rescript/lib/es6/caml_option.js";
 
-function Control(Props) {
-  var classNameOpt = Props.className;
-  var style = Props.style;
-  var onClick = Props.onClick;
-  var onMouseDown = Props.onMouseDown;
-  var onTouchStart = Props.onTouchStart;
-  var children = Props.children;
-  var className = classNameOpt !== undefined ? classNameOpt : "";
-  var tmp = {
-    className: Cx.cx([
-          "control",
-          className
-        ]),
-    type: "button"
-  };
-  if (style !== undefined) {
-    tmp.style = Caml_option.valFromOption(style);
-  }
-  if (onClick !== undefined) {
-    tmp.onClick = Caml_option.valFromOption(onClick);
-  }
-  if (onMouseDown !== undefined) {
-    tmp.onMouseDown = Caml_option.valFromOption(onMouseDown);
-  }
-  if (onTouchStart !== undefined) {
-    tmp.onTouchStart = Caml_option.valFromOption(onTouchStart);
-  }
-  return React.createElement("button", tmp, children);
+function Control(props) {
+  var className = props.className;
+  var className$1 = className !== undefined ? className : "";
+  return React.createElement("button", {
+              className: Cx.cx([
+                    "control",
+                    className$1
+                  ]),
+              style: props.style,
+              type: "button",
+              onClick: props.onClick,
+              onMouseDown: props.onMouseDown,
+              onTouchStart: props.onTouchStart
+            }, props.children);
 }
 
 var make = Control;

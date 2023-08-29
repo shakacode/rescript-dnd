@@ -9,6 +9,7 @@ import * as Example from "./components/Example.bs.js";
 import * as CardBoard from "./examples/CardBoard.bs.js";
 import * as Container from "./components/Container.bs.js";
 import * as SimpleList from "./examples/SimpleList.bs.js";
+import * as JsxPPXReactSupport from "rescript/lib/es6/jsxPPXReactSupport.js";
 import * as NestedVerticalLists from "./examples/NestedVerticalLists.bs.js";
 import * as RescriptReactRouter from "@rescript/react/src/RescriptReactRouter.bs.js";
 
@@ -24,7 +25,7 @@ function reducer(_state, action) {
   }
 }
 
-function App(Props) {
+function App(props) {
   var url = RescriptReactRouter.useUrl(undefined, undefined);
   var route = React.useMemo((function () {
           return Route.fromUrl(url);
@@ -45,87 +46,77 @@ function App(Props) {
   var tmp;
   switch (route) {
     case /* VerticalList */0 :
-        tmp = React.createElement(Example.Dynamic.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Dynamic.make, {
               title: "Vertical list",
               layout: /* Vertical */0,
               showMobileNav: showMobileNav,
               initialAmount: 7,
               children: (function (n) {
-                  return React.createElement(SimpleList.make, {
+                  return JsxPPXReactSupport.createElementWithKey(String(n), SimpleList.make, {
                               n: n,
-                              axis: /* Y */1,
-                              key: String(n)
+                              axis: /* Y */1
                             });
-                }),
-              key: url.hash
+                })
             });
         break;
     case /* HorizontalList */1 :
-        tmp = React.createElement(Example.Dynamic.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Dynamic.make, {
               title: "Horizontal list",
               layout: /* Horizontal */1,
               showMobileNav: showMobileNav,
               initialAmount: 7,
               children: (function (n) {
-                  return React.createElement(SimpleList.make, {
+                  return JsxPPXReactSupport.createElementWithKey(String(n), SimpleList.make, {
                               n: n,
-                              axis: /* X */0,
-                              key: String(n)
+                              axis: /* X */0
                             });
-                }),
-              key: url.hash
+                })
             });
         break;
     case /* VerticalScrollableContainer */2 :
-        tmp = React.createElement(Example.Dynamic.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Dynamic.make, {
               title: "Vertical scrollable container",
               layout: /* Vertical */0,
               scrollable: true,
               showMobileNav: showMobileNav,
               initialAmount: 50,
               children: (function (n) {
-                  return React.createElement(SimpleList.make, {
+                  return JsxPPXReactSupport.createElementWithKey(String(n), SimpleList.make, {
                               n: n,
-                              axis: /* Y */1,
-                              key: String(n)
+                              axis: /* Y */1
                             });
-                }),
-              key: url.hash
+                })
             });
         break;
     case /* HorizontalScrollableContainer */3 :
-        tmp = React.createElement(Example.Dynamic.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Dynamic.make, {
               title: "Horizontal scrollable container",
               layout: /* Horizontal */1,
               scrollable: true,
               showMobileNav: showMobileNav,
               initialAmount: 50,
               children: (function (n) {
-                  return React.createElement(SimpleList.make, {
+                  return JsxPPXReactSupport.createElementWithKey(String(n), SimpleList.make, {
                               n: n,
-                              axis: /* X */0,
-                              key: String(n)
+                              axis: /* X */0
                             });
-                }),
-              key: url.hash
+                })
             });
         break;
     case /* CardBoard */4 :
-        tmp = React.createElement(Example.Static.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Static.make, {
               title: "Card board",
               layout: /* CardBoard */2,
               showMobileNav: showMobileNav,
-              children: React.createElement(CardBoard.make, {}),
-              key: url.hash
+              children: React.createElement(CardBoard.make, {})
             });
         break;
     case /* NestedVerticalLists */5 :
-        tmp = React.createElement(Example.Static.make, {
+        tmp = JsxPPXReactSupport.createElementWithKey(url.hash, Example.Static.make, {
               title: "Nested vertical list",
               layout: /* Vertical */0,
               showMobileNav: showMobileNav,
-              children: React.createElement(NestedVerticalLists.make, {}),
-              key: url.hash
+              children: React.createElement(NestedVerticalLists.make, {})
             });
         break;
     

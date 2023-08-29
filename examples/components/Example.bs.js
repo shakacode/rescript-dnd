@@ -10,12 +10,10 @@ import * as Belt_Int from "rescript/lib/es6/belt_Int.js";
 import * as MenuIcon from "../icons/MenuIcon.bs.js";
 import * as GithubIcon from "../icons/GithubIcon.bs.js";
 
-function Example$Container(Props) {
-  var layout = Props.layout;
-  var showMobileNav = Props.showMobileNav;
-  var children = Props.children;
+function Example$Container(props) {
+  var showMobileNav = props.showMobileNav;
   var tmp;
-  switch (layout) {
+  switch (props.layout) {
     case /* Vertical */0 :
         tmp = "vertical";
         break;
@@ -41,28 +39,24 @@ function Example$Container(Props) {
                       children: React.createElement(MenuIcon.make, {})
                     }), React.createElement("h1", undefined, "rescript-dnd"), React.createElement("a", {
                       href: "https://github.com/shakacode/rescript-dnd"
-                    }, React.createElement(GithubIcon.make, {}))), children);
+                    }, React.createElement(GithubIcon.make, {}))), props.children);
 }
 
 var Container = {
   make: Example$Container
 };
 
-function Example$Static(Props) {
-  var title = Props.title;
-  var layout = Props.layout;
-  var showMobileNav = Props.showMobileNav;
-  var children = Props.children;
+function Example$Static(props) {
   return React.createElement(Example$Container, {
-              layout: layout,
-              showMobileNav: showMobileNav,
+              layout: props.layout,
+              showMobileNav: props.showMobileNav,
               children: React.createElement("div", {
                     className: "example-wrapper"
                   }, React.createElement("div", {
                         className: "example-header"
                       }, React.createElement("div", {
                             className: "example-header-title"
-                          }, title)), children)
+                          }, props.title)), props.children)
             });
 }
 
@@ -89,27 +83,23 @@ function reducer(state, action) {
   }
 }
 
-function Example$Dynamic(Props) {
-  var title = Props.title;
-  var layout = Props.layout;
-  var scrollableOpt = Props.scrollable;
-  var showMobileNav = Props.showMobileNav;
-  var initialAmount = Props.initialAmount;
-  var children = Props.children;
-  var scrollable = scrollableOpt !== undefined ? scrollableOpt : false;
-  var match = React.useReducer(reducer, initialAmount);
+function Example$Dynamic(props) {
+  var children = props.children;
+  var scrollable = props.scrollable;
+  var scrollable$1 = scrollable !== undefined ? scrollable : false;
+  var match = React.useReducer(reducer, props.initialAmount);
   var dispatch = match[1];
   var amount = match[0];
   return React.createElement(Example$Container, {
-              layout: layout,
-              showMobileNav: showMobileNav,
+              layout: props.layout,
+              showMobileNav: props.showMobileNav,
               children: React.createElement("div", {
                     className: "example-wrapper"
                   }, React.createElement("div", {
                         className: "example-header"
                       }, React.createElement("div", {
                             className: "example-header-title"
-                          }, title), React.createElement("div", {
+                          }, props.title), React.createElement("div", {
                             className: "example-header-toolbar"
                           }, React.createElement(Label.make, {
                                 htmlFor: "input-amount",
@@ -122,7 +112,7 @@ function Example$Dynamic(Props) {
                                           _0: x
                                         });
                                   })
-                              }))), scrollable ? React.createElement("div", {
+                              }))), scrollable$1 ? React.createElement("div", {
                           className: "scrollable-container"
                         }, Curry._1(children, amount)) : Curry._1(children, amount))
             });

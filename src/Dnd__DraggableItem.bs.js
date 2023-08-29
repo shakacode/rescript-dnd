@@ -109,15 +109,6 @@ function Make(Context) {
     var timeoutId = {
       contents: undefined
     };
-    var onInitialTouchEnd = function (param) {
-      cancelDrag(undefined);
-    };
-    var onInitialTouchMove = function (param) {
-      cancelDrag(undefined);
-    };
-    var onInitialDrag = function (param) {
-      cancelDrag(undefined);
-    };
     var cancelDrag = function (param) {
       var timeoutId$1 = timeoutId.contents;
       if (timeoutId$1 !== undefined) {
@@ -125,6 +116,15 @@ function Make(Context) {
         return ;
       }
       
+    };
+    var onInitialTouchMove = function (param) {
+      cancelDrag(undefined);
+    };
+    var onInitialTouchEnd = function (param) {
+      cancelDrag(undefined);
+    };
+    var onInitialDrag = function (param) {
+      cancelDrag(undefined);
     };
     var dropInitialSubscriptions = function (param) {
       Dnd__Events.unsubscribeFromTouchMove(onInitialTouchMove);
@@ -146,12 +146,12 @@ function Make(Context) {
   var TouchInteractions = {
     onTouchStart: onTouchStart
   };
-  var Dnd__DraggableItem$Make = function (Props) {
-    var itemId = Props.id;
-    var containerId = Props.containerId;
-    var index = Props.index;
-    var className = Props.className;
-    var children = Props.children;
+  var Dnd__DraggableItem$Make = function (props) {
+    var children = props.children;
+    var className = props.className;
+    var index = props.index;
+    var containerId = props.containerId;
+    var itemId = props.id;
     var ctx = React.useContext(Context.x);
     var ctxRef = React.useRef(ctx);
     React.useEffect(function () {
@@ -229,35 +229,31 @@ function Make(Context) {
               var width = match$2[0];
               var scroll = ctx.scroll;
               var scroll$1 = ctx.scroll;
-              var tmp = {
-                ref: element,
-                style: ReactDOMStyle.unsafeAddProp({
-                      height: Dnd__Style.px(ghost$1.dimensions.height),
-                      left: Dnd__Style.px(ghost$1.departureRect.page.left),
-                      margin: "0",
-                      overflow: "visible",
-                      position: "fixed",
-                      top: Dnd__Style.px(ghost$1.departureRect.page.top),
-                      width: Dnd__Style.px(ghost$1.dimensions.width),
-                      zIndex: "10000",
-                      boxSizing: "border-box",
-                      transform: Dnd__Style.translate(ghost$1.delta.x - (
-                            scroll !== undefined ? scroll.current.x : window.pageXOffset
-                          ), ghost$1.delta.y - (
-                            scroll$1 !== undefined ? scroll$1.current.y : window.pageYOffset
-                          )),
-                      userSelect: "none",
-                      pointerEvents: "none"
-                    }, "WebkitUserSelect", "none"),
-                tabIndex: -1
-              };
-              var tmp$1 = Belt_Option.map(className, (function (fn) {
-                      return Curry._1(fn, true);
-                    }));
-              if (tmp$1 !== undefined) {
-                tmp.className = Caml_option.valFromOption(tmp$1);
-              }
-              return React.createElement(React.Fragment, undefined, React.createElement("div", tmp, children$p), React.createElement("div", {
+              return React.createElement(React.Fragment, undefined, React.createElement("div", {
+                              ref: Caml_option.some(element),
+                              className: Belt_Option.map(className, (function (fn) {
+                                      return Curry._1(fn, true);
+                                    })),
+                              style: ReactDOMStyle.unsafeAddProp({
+                                    height: Dnd__Style.px(ghost$1.dimensions.height),
+                                    left: Dnd__Style.px(ghost$1.departureRect.page.left),
+                                    margin: "0",
+                                    overflow: "visible",
+                                    position: "fixed",
+                                    top: Dnd__Style.px(ghost$1.departureRect.page.top),
+                                    width: Dnd__Style.px(ghost$1.dimensions.width),
+                                    zIndex: "10000",
+                                    boxSizing: "border-box",
+                                    transform: Dnd__Style.translate(ghost$1.delta.x - (
+                                          scroll !== undefined ? scroll.current.x : window.pageXOffset
+                                        ), ghost$1.delta.y - (
+                                          scroll$1 !== undefined ? scroll$1.current.y : window.pageYOffset
+                                        )),
+                                    userSelect: "none",
+                                    pointerEvents: "none"
+                                  }, "WebkitUserSelect", "none"),
+                              tabIndex: -1
+                            }, children$p), React.createElement("div", {
                               style: {
                                 height: height,
                                 marginTop: Dnd__Style.px(ghost$1.margins.top),
@@ -290,35 +286,31 @@ function Make(Context) {
               var width$1 = match$4[0];
               var scroll$2 = ctx.scroll;
               var scroll$3 = ctx.scroll;
-              var tmp$2 = {
-                ref: element,
-                style: ReactDOMStyle.unsafeAddProp({
-                      height: Dnd__Style.px(ghost$2.dimensions.height),
-                      left: Dnd__Style.px(ghost$2.departureRect.page.left),
-                      margin: "0",
-                      overflow: "visible",
-                      position: "fixed",
-                      top: Dnd__Style.px(ghost$2.departureRect.page.top),
-                      width: Dnd__Style.px(ghost$2.dimensions.width),
-                      zIndex: "10000",
-                      boxSizing: "border-box",
-                      transition: Dnd__Style.transition("transform"),
-                      transform: Dnd__Style.translate(ghost$2.delta.x - (
-                            scroll$2 !== undefined ? scroll$2.current.x : window.pageXOffset
-                          ), ghost$2.delta.y - (
-                            scroll$3 !== undefined ? scroll$3.current.y : window.pageYOffset
-                          )),
-                      userSelect: "none",
-                      pointerEvents: "none"
-                    }, "WebkitUserSelect", "none")
-              };
-              var tmp$3 = Belt_Option.map(className, (function (fn) {
-                      return Curry._1(fn, true);
-                    }));
-              if (tmp$3 !== undefined) {
-                tmp$2.className = Caml_option.valFromOption(tmp$3);
-              }
-              return React.createElement(React.Fragment, undefined, React.createElement("div", tmp$2, children$p), React.createElement("div", {
+              return React.createElement(React.Fragment, undefined, React.createElement("div", {
+                              ref: Caml_option.some(element),
+                              className: Belt_Option.map(className, (function (fn) {
+                                      return Curry._1(fn, true);
+                                    })),
+                              style: ReactDOMStyle.unsafeAddProp({
+                                    height: Dnd__Style.px(ghost$2.dimensions.height),
+                                    left: Dnd__Style.px(ghost$2.departureRect.page.left),
+                                    margin: "0",
+                                    overflow: "visible",
+                                    position: "fixed",
+                                    top: Dnd__Style.px(ghost$2.departureRect.page.top),
+                                    width: Dnd__Style.px(ghost$2.dimensions.width),
+                                    zIndex: "10000",
+                                    boxSizing: "border-box",
+                                    transition: Dnd__Style.transition("transform"),
+                                    transform: Dnd__Style.translate(ghost$2.delta.x - (
+                                          scroll$2 !== undefined ? scroll$2.current.x : window.pageXOffset
+                                        ), ghost$2.delta.y - (
+                                          scroll$3 !== undefined ? scroll$3.current.y : window.pageYOffset
+                                        )),
+                                    userSelect: "none",
+                                    pointerEvents: "none"
+                                  }, "WebkitUserSelect", "none")
+                            }, children$p), React.createElement("div", {
                               style: {
                                 height: height$1,
                                 marginTop: Dnd__Style.px(ghost$2.margins.top),
@@ -342,132 +334,105 @@ function Make(Context) {
     switch (exit) {
       case 1 :
           var match$5 = Curry._1(ctx.getItemShift, itemId);
-          if (match$5 !== undefined) {
-            if (match$5) {
-              if (ghost.targetingOriginalContainer) {
-                var match$6 = ghost.axis;
-                var tmp$4 = {
-                  ref: element,
-                  style: ReactDOMStyle.unsafeAddProp({
-                        boxSizing: "border-box",
-                        transition: Dnd__Style.transition("transform"),
-                        transform: match$6 ? Dnd__Style.translate(0, ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom) : Dnd__Style.translate(ghost.dimensions.width + ghost.margins.left + ghost.margins.right, 0),
-                        userSelect: "none",
-                        pointerEvents: "none"
-                      }, "WebkitUserSelect", "none")
-                };
-                var tmp$5 = Belt_Option.map(className, (function (fn) {
-                        return Curry._1(fn, false);
-                      }));
-                if (tmp$5 !== undefined) {
-                  tmp$4.className = Caml_option.valFromOption(tmp$5);
-                }
-                return React.createElement("div", tmp$4, children$p);
-              }
-              var match$7 = ghost.axis;
-              var tmp$6 = {
-                ref: element,
-                style: ReactDOMStyle.unsafeAddProp({
-                      boxSizing: "border-box",
-                      transition: Dnd__Style.transition("transform"),
-                      transform: match$7 ? Dnd__Style.translate(0, ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom) : Dnd__Style.translate(ghost.dimensions.width + ghost.margins.left + ghost.margins.right, 0),
-                      userSelect: "none",
-                      pointerEvents: "none"
-                    }, "WebkitUserSelect", "none")
-              };
-              var tmp$7 = Belt_Option.map(className, (function (fn) {
-                      return Curry._1(fn, false);
-                    }));
-              if (tmp$7 !== undefined) {
-                tmp$6.className = Caml_option.valFromOption(tmp$7);
-              }
-              return React.createElement("div", tmp$6, children$p);
-            }
+          if (match$5 === undefined) {
+            return React.createElement("div", {
+                        ref: Caml_option.some(element),
+                        className: Belt_Option.map(className, (function (fn) {
+                                return Curry._1(fn, false);
+                              })),
+                        style: ReactDOMStyle.unsafeAddProp({
+                              boxSizing: "border-box",
+                              transition: Dnd__Style.transition("transform"),
+                              userSelect: "none",
+                              pointerEvents: "none"
+                            }, "WebkitUserSelect", "none")
+                      }, children$p);
+          }
+          if (match$5) {
             if (ghost.targetingOriginalContainer) {
-              var match$8 = ghost.axis;
-              var tmp$8 = {
-                ref: element,
-                style: ReactDOMStyle.unsafeAddProp({
-                      boxSizing: "border-box",
-                      transition: Dnd__Style.transition("transform"),
-                      transform: match$8 ? Dnd__Style.translate(0, -(ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom)) : Dnd__Style.translate(-(ghost.dimensions.width + ghost.margins.left + ghost.margins.right), 0),
-                      userSelect: "none",
-                      pointerEvents: "none"
-                    }, "WebkitUserSelect", "none")
-              };
-              var tmp$9 = Belt_Option.map(className, (function (fn) {
-                      return Curry._1(fn, false);
-                    }));
-              if (tmp$9 !== undefined) {
-                tmp$8.className = Caml_option.valFromOption(tmp$9);
-              }
-              return React.createElement("div", tmp$8, children$p);
+              var match$6 = ghost.axis;
+              return React.createElement("div", {
+                          ref: Caml_option.some(element),
+                          className: Belt_Option.map(className, (function (fn) {
+                                  return Curry._1(fn, false);
+                                })),
+                          style: ReactDOMStyle.unsafeAddProp({
+                                boxSizing: "border-box",
+                                transition: Dnd__Style.transition("transform"),
+                                transform: match$6 ? Dnd__Style.translate(0, ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom) : Dnd__Style.translate(ghost.dimensions.width + ghost.margins.left + ghost.margins.right, 0),
+                                userSelect: "none",
+                                pointerEvents: "none"
+                              }, "WebkitUserSelect", "none")
+                        }, children$p);
             }
-            var tmp$10 = {
-              ref: element,
-              style: ReactDOMStyle.unsafeAddProp({
-                    boxSizing: "border-box",
-                    transition: Dnd__Style.transition("transform"),
-                    userSelect: "none",
-                    pointerEvents: "none"
-                  }, "WebkitUserSelect", "none")
-            };
-            var tmp$11 = Belt_Option.map(className, (function (fn) {
-                    return Curry._1(fn, false);
-                  }));
-            if (tmp$11 !== undefined) {
-              tmp$10.className = Caml_option.valFromOption(tmp$11);
-            }
-            return React.createElement("div", tmp$10, children$p);
+            var match$7 = ghost.axis;
+            return React.createElement("div", {
+                        ref: Caml_option.some(element),
+                        className: Belt_Option.map(className, (function (fn) {
+                                return Curry._1(fn, false);
+                              })),
+                        style: ReactDOMStyle.unsafeAddProp({
+                              boxSizing: "border-box",
+                              transition: Dnd__Style.transition("transform"),
+                              transform: match$7 ? Dnd__Style.translate(0, ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom) : Dnd__Style.translate(ghost.dimensions.width + ghost.margins.left + ghost.margins.right, 0),
+                              userSelect: "none",
+                              pointerEvents: "none"
+                            }, "WebkitUserSelect", "none")
+                      }, children$p);
           }
-          var tmp$12 = {
-            ref: element,
-            style: ReactDOMStyle.unsafeAddProp({
-                  boxSizing: "border-box",
-                  transition: Dnd__Style.transition("transform"),
-                  userSelect: "none",
-                  pointerEvents: "none"
-                }, "WebkitUserSelect", "none")
-          };
-          var tmp$13 = Belt_Option.map(className, (function (fn) {
-                  return Curry._1(fn, false);
-                }));
-          if (tmp$13 !== undefined) {
-            tmp$12.className = Caml_option.valFromOption(tmp$13);
+          if (!ghost.targetingOriginalContainer) {
+            return React.createElement("div", {
+                        ref: Caml_option.some(element),
+                        className: Belt_Option.map(className, (function (fn) {
+                                return Curry._1(fn, false);
+                              })),
+                        style: ReactDOMStyle.unsafeAddProp({
+                              boxSizing: "border-box",
+                              transition: Dnd__Style.transition("transform"),
+                              userSelect: "none",
+                              pointerEvents: "none"
+                            }, "WebkitUserSelect", "none")
+                      }, children$p);
           }
-          return React.createElement("div", tmp$12, children$p);
+          var match$8 = ghost.axis;
+          return React.createElement("div", {
+                      ref: Caml_option.some(element),
+                      className: Belt_Option.map(className, (function (fn) {
+                              return Curry._1(fn, false);
+                            })),
+                      style: ReactDOMStyle.unsafeAddProp({
+                            boxSizing: "border-box",
+                            transition: Dnd__Style.transition("transform"),
+                            transform: match$8 ? Dnd__Style.translate(0, - (ghost.dimensions.height + ghost.margins.top + ghost.margins.bottom)) : Dnd__Style.translate(- (ghost.dimensions.width + ghost.margins.left + ghost.margins.right), 0),
+                            userSelect: "none",
+                            pointerEvents: "none"
+                          }, "WebkitUserSelect", "none")
+                    }, children$p);
       case 2 :
           if (children.NAME === "ChildrenWithDragHandle") {
-            var tmp$14 = {
-              ref: element,
-              style: {
-                boxSizing: "border-box"
-              }
-            };
-            var tmp$15 = Belt_Option.map(className, (function (fn) {
-                    return Curry._1(fn, false);
-                  }));
-            if (tmp$15 !== undefined) {
-              tmp$14.className = Caml_option.valFromOption(tmp$15);
-            }
-            return React.createElement("div", tmp$14, children$p);
+            return React.createElement("div", {
+                        ref: Caml_option.some(element),
+                        className: Belt_Option.map(className, (function (fn) {
+                                return Curry._1(fn, false);
+                              })),
+                        style: {
+                          boxSizing: "border-box"
+                        }
+                      }, children$p);
+          } else {
+            return React.createElement("div", {
+                        ref: Caml_option.some(element),
+                        className: Belt_Option.map(className, (function (fn) {
+                                return Curry._1(fn, false);
+                              })),
+                        style: {
+                          boxSizing: "border-box"
+                        },
+                        tabIndex: 0,
+                        onMouseDown: onMouseDown$1,
+                        onTouchStart: onTouchStart$1
+                      }, children$p);
           }
-          var tmp$16 = {
-            ref: element,
-            style: {
-              boxSizing: "border-box"
-            },
-            tabIndex: 0,
-            onMouseDown: onMouseDown$1,
-            onTouchStart: onTouchStart$1
-          };
-          var tmp$17 = Belt_Option.map(className, (function (fn) {
-                  return Curry._1(fn, false);
-                }));
-          if (tmp$17 !== undefined) {
-            tmp$16.className = Caml_option.valFromOption(tmp$17);
-          }
-          return React.createElement("div", tmp$16, children$p);
       
     }
   };

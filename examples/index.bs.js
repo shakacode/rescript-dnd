@@ -2,15 +2,15 @@
 
 import * as App from "./App.bs.js";
 import * as React from "react";
-import * as ReactDom from "react-dom";
 import * as Pervasives from "rescript/lib/es6/pervasives.js";
+import * as Client from "react-dom/client";
 
 var root = document.querySelector("#app");
 
 if (root == null) {
   Pervasives.failwith("DOM node `#app` not found");
 } else {
-  ReactDom.render(React.createElement(App.make, {}), root);
+  Client.createRoot(root).render(React.createElement(App.make, {}));
 }
 
 export {

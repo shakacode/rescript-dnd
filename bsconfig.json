@@ -11,24 +11,13 @@
       "subdirs": true
     }
   ],
-  "bs-dependencies": [
-    "@rescript/react",
-    "rescript-webapi",
-    "rescript-logger"
-  ],
-  "bs-dev-dependencies": [
-    "rescript-classnames"
-  ],
-  "reason": {
-    "react-jsx": 3
+  "bs-dependencies": ["@rescript/react", "rescript-webapi", "rescript-logger"],
+  "bs-dev-dependencies": ["rescript-classnames"],
+  "jsx": {
+    "version": 4
   },
-  "refmt": 3,
-  "bsc-flags": [
-    "-open Belt"
-  ],
-  "ppx-flags": [
-    ["rescript-logger/ppx", "--lib=rescript-dnd"]
-  ],
+  "bsc-flags": ["-open Belt"],
+  "ppx-flags": [["rescript-logger/ppx", "--lib=rescript-dnd"]],
   "package-specs": {
     "module": "es6",
     "in-source": true

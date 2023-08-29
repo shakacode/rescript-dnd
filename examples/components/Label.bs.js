@@ -2,13 +2,11 @@
 
 import * as React from "react";
 
-function Label(Props) {
-  var htmlFor = Props.htmlFor;
-  var children = Props.children;
+function Label(props) {
   return React.createElement("label", {
               className: "label",
-              htmlFor: htmlFor
-            }, children);
+              htmlFor: props.htmlFor
+            }, props.children);
 }
 
 var make = Label;

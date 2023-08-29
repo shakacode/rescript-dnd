@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-function CloseIcon(Props) {
+function CloseIcon(props) {
   return React.createElement("svg", {
               className: "close-icon",
               viewBox: "0 0 32 32",

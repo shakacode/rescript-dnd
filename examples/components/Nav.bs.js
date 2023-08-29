@@ -8,12 +8,11 @@ import * as CloseIcon from "../icons/CloseIcon.bs.js";
 import * as GithubIcon from "../icons/GithubIcon.bs.js";
 import * as RescriptReactRouter from "@rescript/react/src/RescriptReactRouter.bs.js";
 
-function Nav(Props) {
-  var route = Props.route;
-  var mobileNavShown = Props.mobileNavShown;
-  var hideMobileNav = Props.hideMobileNav;
+function Nav(props) {
+  var hideMobileNav = props.hideMobileNav;
+  var route = props.route;
   return React.createElement("nav", {
-              className: mobileNavShown ? "shown-mobile" : ""
+              className: props.mobileNavShown ? "shown-mobile" : ""
             }, React.createElement("header", undefined, React.createElement("h1", {
                       onClick: (function (param) {
                           RescriptReactRouter.push("/");

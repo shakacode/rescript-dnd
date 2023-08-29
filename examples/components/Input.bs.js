@@ -3,14 +3,12 @@
 import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
 
-function Input(Props) {
-  var id = Props.id;
-  var value = Props.value;
-  var onChange = Props.onChange;
+function Input(props) {
+  var onChange = props.onChange;
   return React.createElement("input", {
               className: "input",
-              id: id,
-              value: value,
+              id: props.id,
+              value: props.value,
               onChange: (function ($$event) {
                   Curry._1(onChange, $$event.target.value);
                 })
