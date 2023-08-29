@@ -2,7 +2,7 @@ node_modules/
 lib/
 dist/
 yarn-error.log
-*.bs.js
+# *.bs.js
 .vercel
 .merlin
 .bsb.lock
