@@ -1,9 +1,11 @@
 # History
 
 ## UNRELEASED
-* **[ BREAKING ]** Update to `rescript@11`.
 
 ---
+
+## 6.0.0
+* **[ BREAKING ]** Update to `rescript@11`.
 
 ## 5.0.0
 * **[ BREAKING ]** Update to `rescript@10`.
