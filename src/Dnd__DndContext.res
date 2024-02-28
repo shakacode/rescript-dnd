@@ -1,8 +1,6 @@
 open Dnd__Config
 open Dnd__Types
 
-module ReactContext = Dnd__ReactContext
-
 exception MissingContext
 
 let fail = _ => MissingContext->raise
@@ -37,13 +35,8 @@ module type T = {
   let useDnd: unit => t
 
   module Provider: {
-    let make: React.component<{"value": t, "children": React.element}>
-    let makeProps: (
-      ~value: t,
-      ~children: React.element,
-      ~key: string=?,
-      unit,
-    ) => {"value": t, "children": React.element}
+    type props = React.Context.props<t>
+    let make: props => React.element
   }
 }
 
@@ -69,8 +62,8 @@ module Make = (Item: DndEntry, Container: DndEntry) => {
   })
 
   module Provider = {
+    type props = React.Context.props<t>
     let make = x->React.Context.provider
-    let makeProps = ReactContext.makeProps
   }
 
   let useDnd = () => React.useContext(x)

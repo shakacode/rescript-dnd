@@ -45,17 +45,20 @@
     "rescript-logger": "3.0.0"
   },
   "peerDependencies": {
-    "@rescript/react": ">=0.10.3",
-    "rescript-webapi": ">=0.6.0"
+    "@rescript/react": ">=0.11.0",
+    "rescript-webapi": ">=0.6.0",
+    "rescript": ">=10.1.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@rescript/react": ">=0.10.3",
+    "@rescript/react": "0.11.0",
     "autoprefixer": "9.8.6",
     "bsb-js": "1.1.7",
     "parcel-bundler": "1.12.4",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "rescript": "10.0.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "rescript": "10.1.4",
     "rescript-classnames": "6.0.0",
     "rescript-webapi": "0.6.1"
   }

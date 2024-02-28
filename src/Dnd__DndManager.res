@@ -806,7 +806,7 @@ module Make = (Context: Context.T) => {
         let ghost = {
           open Ghost
           {
-            itemId: itemId,
+            itemId,
             originalContainer: containerId,
             targetContainer: containerId->Some,
             targetingOriginalContainer: true,
@@ -818,9 +818,9 @@ module Make = (Context: Context.T) => {
             margins: style->Geometry.getMargins,
             borders: style->Geometry.getBorders,
             departurePoint: currentPoint,
-            currentPoint: currentPoint,
+            currentPoint,
             departureRect: currentRect,
-            currentRect: currentRect,
+            currentRect,
             delta: {
               x: 0.,
               y: 0.,
@@ -901,7 +901,7 @@ module Make = (Context: Context.T) => {
         containers.current =
           containers.current->Map.map(container => {
             let (geometry, scrollable) = container.getGeometryAndScrollable()
-            {...container, geometry: geometry->Some, scrollable: scrollable}
+            {...container, geometry: geometry->Some, scrollable}
           })
 
         viewport.current = Geometry.getViewport()->Some
@@ -943,15 +943,17 @@ module Make = (Context: Context.T) => {
       | _ as ids =>
         items.current =
           ids->List.reduceU(items.current, (. map, id) =>
-            map->Map.updateU(id, (. item) =>
-              switch item {
-              | Some(item) =>
-                Some({
-                  open ItemBag
-                  {...item, animating: false}
-                })
-              | None => None
-              }
+            map->Map.updateU(
+              id,
+              (. item) =>
+                switch item {
+                | Some(item) =>
+                  Some({
+                    open ItemBag
+                    {...item, animating: false}
+                  })
+                | None => None
+                },
             )
           )
       }
@@ -1111,8 +1113,8 @@ module Make = (Context: Context.T) => {
 
         let nextGhost = {
           ...ghost,
-          targetContainer: targetContainer,
-          targetingOriginalContainer: targetingOriginalContainer,
+          targetContainer,
+          targetingOriginalContainer,
           direction: switch nextDirection {
           | Some(direction) => Some(direction)
           | None => ghost.direction
@@ -1223,30 +1225,35 @@ module Make = (Context: Context.T) => {
           }
 
           containers.current =
-            containers.current->Map.map(container =>
-              switch container.scrollable {
-              | Some(scrollable) => {
-                  ...container,
-                  geometry: container.geometry->Option.map(geometry => {
-                    ...geometry,
-                    rect: geometry.rect->Geometry.shiftViewportRect(delta),
-                  }),
-                  scrollable: Some({
-                    ...scrollable,
-                    geometry: {
-                      ...scrollable.geometry,
-                      rect: scrollable.geometry.rect->Geometry.shiftViewportRect(delta),
-                    },
-                  }),
-                }
-              | None => {
-                  ...container,
-                  geometry: container.geometry->Option.map(geometry => {
-                    ...geometry,
-                    rect: geometry.rect->Geometry.shiftViewportRect(delta),
-                  }),
-                }
-              }
+            containers.current->Map.map(
+              container =>
+                switch container.scrollable {
+                | Some(scrollable) => {
+                    ...container,
+                    geometry: container.geometry->Option.map(
+                      geometry => {
+                        ...geometry,
+                        rect: geometry.rect->Geometry.shiftViewportRect(delta),
+                      },
+                    ),
+                    scrollable: Some({
+                      ...scrollable,
+                      geometry: {
+                        ...scrollable.geometry,
+                        rect: scrollable.geometry.rect->Geometry.shiftViewportRect(delta),
+                      },
+                    }),
+                  }
+                | None => {
+                    ...container,
+                    geometry: container.geometry->Option.map(
+                      geometry => {
+                        ...geometry,
+                        rect: geometry.rect->Geometry.shiftViewportRect(delta),
+                      },
+                    ),
+                  }
+                },
             )
 
           scroll.current = nextScroll->Some
@@ -1289,30 +1296,35 @@ module Make = (Context: Context.T) => {
           }
 
           containers.current =
-            containers.current->Map.map(container =>
-              switch container.scrollable {
-              | Some(scrollable') if scrollable'.element === scrollable.element => {
-                  ...container,
-                  geometry: container.geometry->Option.map(geometry => {
-                    ...geometry,
-                    rect: geometry.rect->Geometry.shiftRects(delta),
-                  }),
-                  scrollable: Some({...scrollable, scroll: nextScroll}),
-                }
-              | Some(scrollable')
-                if Geometry.contains(
-                  ~parent=scrollable.geometry.rect.page,
-                  ~child=scrollable'.geometry.rect.page,
-                ) => {
-                  ...container,
-                  geometry: container.geometry->Option.map(geometry => {
-                    ...geometry,
-                    rect: geometry.rect->Geometry.shiftRects(delta),
-                  }),
-                }
-              | Some(_)
-              | None => container
-              }
+            containers.current->Map.map(
+              container =>
+                switch container.scrollable {
+                | Some(scrollable') if scrollable'.element === scrollable.element => {
+                    ...container,
+                    geometry: container.geometry->Option.map(
+                      geometry => {
+                        ...geometry,
+                        rect: geometry.rect->Geometry.shiftRects(delta),
+                      },
+                    ),
+                    scrollable: Some({...scrollable, scroll: nextScroll}),
+                  }
+                | Some(scrollable')
+                  if Geometry.contains(
+                    ~parent=scrollable.geometry.rect.page,
+                    ~child=scrollable'.geometry.rect.page,
+                  ) => {
+                    ...container,
+                    geometry: container.geometry->Option.map(
+                      geometry => {
+                        ...geometry,
+                        rect: geometry.rect->Geometry.shiftRects(delta),
+                      },
+                    ),
+                  }
+                | Some(_)
+                | None => container
+                },
             )
 
           invalidateLayout.current(ghost)
@@ -1593,10 +1605,10 @@ module Make = (Context: Context.T) => {
         | Collecting(_, containerId, _, _, _) => containerId->Some
         | StandBy => None
         },
-        registerItem: registerItem,
-        registerContainer: registerContainer,
-        disposeItem: disposeItem,
-        disposeContainer: disposeContainer,
+        registerItem,
+        registerContainer,
+        disposeItem,
+        disposeContainer,
         getItemShift: itemId => (items.current->Map.getExn(itemId)).shift,
         startDragging: collectEntries,
       }>
