@@ -1,5 +1,10 @@
 # History
 
+## UNRELEASED
+* **[ BREAKING ]** Update to `rescript@11`.
+
+---
+
 ## 5.0.0
 * **[ BREAKING ]** Update to `rescript@10`.
 * **[ BREAKING ]** Replace `bs-webapi` with `rescript-webapi`.
