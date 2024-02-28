@@ -3,7 +3,7 @@ type item = int
 module Item = {
   type t = item
   let eq: (item, item) => bool = (x1, x2) => x1 == x2
-  let cmp: (item, item) => int = Pervasives.compare
+  let cmp: (item, item) => int = (x1, x2) => Pervasives.compare(x1, x2)
 }
 
 module Container = Dnd.MakeSingletonContainer()

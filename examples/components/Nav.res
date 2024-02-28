@@ -6,7 +6,9 @@ let make = (~route, ~mobileNavShown, ~hideMobileNav) =>
       <a href="https://github.com/shakacode/rescript-dnd" className="github-link">
         <GithubIcon />
       </a>
-      <Control className="close-button" onClick={_ => hideMobileNav()}> <CloseIcon /> </Control>
+      <Control className="close-button" onClick={_ => hideMobileNav()}>
+        <CloseIcon />
+      </Control>
     </header>
     <Link path="vertical-list" active={route == Route.VerticalList}>
       {"Vertical list"->React.string}

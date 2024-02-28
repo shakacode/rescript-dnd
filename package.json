@@ -1,9 +1,8 @@
 {
   "name": "rescript-dnd",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "Drag-n-drop for @rescript/react",
-  "main": "src/Dnd.re",
-  "author": "Alex Fedoseev <alex@fedoseev.mx>",
+  "author": "Alex Fedoseev <alex@35mil.me>",
   "license": "MIT",
   "scripts": {
     "start": "parcel examples/index.html",
@@ -22,7 +21,7 @@
   },
   "files": [
     "src",
-    "bsconfig.json"
+    "rescript.json"
   ],
   "keywords": [
     "react",
@@ -42,24 +41,25 @@
     "url": "https://github.com/shakacode/rescript-dnd"
   },
   "dependencies": {
-    "rescript-logger": "3.0.0"
+    "rescript-logger": "4.0.0"
   },
   "peerDependencies": {
-    "@rescript/react": ">=0.11.0",
-    "rescript-webapi": ">=0.6.0",
-    "rescript": ">=10.1.0",
+    "@rescript/react": ">=0.12.0",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "rescript": ">=11.0.0",
+    "rescript-webapi": ">=0.6.0"
   },
   "devDependencies": {
-    "@rescript/react": "0.11.0",
-    "autoprefixer": "9.8.6",
-    "bsb-js": "1.1.7",
-    "parcel-bundler": "1.12.4",
+    "@rescript/react": "0.12.1",
+    "autoprefixer": "10.4.17",
+    "parcel": "2.11.0",
+    "postcss": "8.4.35",
+    "process": "^0.11.10",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "rescript": "10.1.4",
-    "rescript-classnames": "6.0.0",
-    "rescript-webapi": "0.6.1"
+    "rescript": "11.0.1",
+    "rescript-classnames": "7.0.0",
+    "rescript-webapi": "0.9.1"
   }
 }

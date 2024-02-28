@@ -13,7 +13,7 @@ module MakeId = () => {
   let eq = (x1, x2) => x1->toInt == x2->toInt
   let cmp = (x1, x2) => Pervasives.compare(x1->toInt, x2->toInt)
 
-  module Comparable = Belt.Id.MakeComparable({
+  module Comparable = Belt.Id.MakeComparableU({
     type t = Id.t
     let cmp = cmp
   })
@@ -97,8 +97,8 @@ let reducer = (state, action) =>
       ->Map.update(todo.todoListId, todoList =>
         todoList->Option.map(todoList => {
           ...todoList,
-          todos: todoList.todos->Array.keep(todoId' =>
-            todoId'->TodoId.toInt != todoId->TodoId.toInt
+          todos: todoList.todos->Array.keep(
+            todoId' => todoId'->TodoId.toInt != todoId->TodoId.toInt,
           ),
         })
       )

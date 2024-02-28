@@ -92,7 +92,7 @@ module Element = {
         Some({
           open ScrollableElement
           {
-            element: element,
+            element,
             geometry: Geometry.getGeometry(rect, style, windowScrollPosition),
             scroll: {
               open Scroll

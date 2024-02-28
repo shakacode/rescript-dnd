@@ -83,7 +83,7 @@ let reducer = (state, action) =>
     {
       ...state,
       todosMap: state.todosMap->Map.update(todoId, x =>
-        x->Option.map(todo => {...todo, todoListId: todoListId})
+        x->Option.map(todo => {...todo, todoListId})
       ),
       todoListsMap: state.todoListsMap
       ->Map.update(todo.todoListId, x =>
@@ -157,7 +157,7 @@ let make = () => {
         {
           open Todo
           {
-            id: id,
+            id,
             title: "Todo " ++ id->TodoId.toString,
             todoListId: {
               let id = id->TodoId.toInt

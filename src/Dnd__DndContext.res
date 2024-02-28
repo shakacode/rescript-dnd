@@ -4,6 +4,7 @@ open Dnd__Types
 exception MissingContext
 
 let fail = _ => MissingContext->raise
+let fail5 = (_, _, _, _, _) => MissingContext->raise
 
 module T = {
   type t<'itemId, 'containerId> = {
@@ -57,7 +58,7 @@ module Make = (Item: DndEntry, Container: DndEntry) => {
       disposeItem: fail,
       disposeContainer: fail,
       getItemShift: fail,
-      startDragging: fail,
+      startDragging: fail5,
     }
   })
 

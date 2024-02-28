@@ -241,7 +241,7 @@ module Make = (Context: Context.T) => {
     let ctx = React.useContext(Context.x)
     let ctxRef = React.useRef(ctx)
 
-    React.useEffect(() => {
+    React.useEffectOnEveryRender(() => {
       ctxRef.current = ctx
       None
     })
@@ -259,8 +259,8 @@ module Make = (Context: Context.T) => {
         )
         ctx.registerItem({
           id: itemId,
-          containerId: containerId,
-          index: index,
+          containerId,
+          index,
           element: element.current
           ->Js.Nullable.toOption
           ->Option.getExn
@@ -284,11 +284,11 @@ module Make = (Context: Context.T) => {
       )
     )
     let onMouseDown = React.useCallback3(
-      MouseInteractions.onMouseDown(~itemId, ~containerId, ~ctx=ctxRef),
+      MouseInteractions.onMouseDown(~itemId, ~containerId, ~ctx=ctxRef, ...),
       (containerId, ctxRef, element),
     )
     let onTouchStart = React.useCallback3(
-      TouchInteractions.onTouchStart(~itemId, ~containerId, ~ctx=ctxRef),
+      TouchInteractions.onTouchStart(~itemId, ~containerId, ~ctx=ctxRef, ...),
       (containerId, ctxRef, element),
     )
 

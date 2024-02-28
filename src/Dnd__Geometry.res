@@ -96,12 +96,6 @@ let getGeometry = (rect, style, scroll) => {
   }
 }
 
-let getElementGeometry = (el: Dom.htmlElement) =>
-  getGeometry(
-    el->HtmlElement.getBoundingClientRect,
-    window->Window.getComputedStyle(el->Web.htmlElementToElement),
-  )
-
 let getViewport = () => {
   let element =
     document
@@ -206,7 +200,7 @@ let shiftInternalSibling = (
     let page = viewport->getPageRectFromViewportRect(scroll.current)
 
     open RelativityBag
-    {page: page, viewport: viewport}
+    {page, viewport}
 
   | Y =>
     let scrollableDeltaY =
@@ -229,7 +223,7 @@ let shiftInternalSibling = (
     let page = viewport->getPageRectFromViewportRect(scroll.current)
 
     open RelativityBag
-    {page: page, viewport: viewport}
+    {page, viewport}
   }
 
 let shiftExternalSibling = (
@@ -262,7 +256,7 @@ let shiftExternalSibling = (
     let page = viewport->getPageRectFromViewportRect(scroll.current)
 
     open RelativityBag
-    {page: page, viewport: viewport}
+    {page, viewport}
 
   | Y =>
     let scrollableDeltaY =
@@ -285,7 +279,7 @@ let shiftExternalSibling = (
     let page = viewport->getPageRectFromViewportRect(scroll.current)
 
     open RelativityBag
-    {page: page, viewport: viewport}
+    {page, viewport}
   }
 
 let isWithin = (point: Point.t, rect: Rect.t) =>
