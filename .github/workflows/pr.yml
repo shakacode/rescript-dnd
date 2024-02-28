@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
@@ -39,5 +39,5 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - name: Build lib
+      - name: Build
         run: yarn rescript build -with-deps
