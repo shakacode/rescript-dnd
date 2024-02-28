@@ -18,9 +18,13 @@ module Container = {
         },
       ])}>
       <div className="example-navbar-mobile">
-        <Control onClick={_ => showMobileNav()}> <MenuIcon /> </Control>
+        <Control onClick={_ => showMobileNav()}>
+          <MenuIcon />
+        </Control>
         <h1> {"rescript-dnd"->React.string} </h1>
-        <a href="https://github.com/shakacode/rescript-dnd"> <GithubIcon /> </a>
+        <a href="https://github.com/shakacode/rescript-dnd">
+          <GithubIcon />
+        </a>
       </div>
       children
     </div>

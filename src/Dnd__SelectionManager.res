@@ -34,7 +34,7 @@ module Scroll = {
 }
 
 module Make = (Item: SelectableItem) => {
-  module ComparableItem = Belt.Id.MakeComparable(Item)
+  module ComparableItem = Belt.Id.MakeComparableU(Item)
 
   type t = {
     register: (Item.t, Js.nullable<Js.nullable<Dom.element>>) => unit,
@@ -88,7 +88,7 @@ module Make = (Item: SelectableItem) => {
           _ =>
             refs.current
             ->Map.get(id)
-            ->Option.mapWithDefault((), Scroll.adjust(~topMarginFactor, ~bottomMarginFactor)),
+            ->Option.mapWithDefault((), Scroll.adjust(~topMarginFactor, ~bottomMarginFactor, ...)),
         )
 
       | DeselectOne(id) =>

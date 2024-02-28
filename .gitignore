@@ -1,8 +1,9 @@
 node_modules/
 lib/
 dist/
+.parcel-cache/
 yarn-error.log
-*.bs.js
+*.res.js
 .vercel
 .merlin
 .bsb.lock

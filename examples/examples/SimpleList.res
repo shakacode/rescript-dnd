@@ -54,7 +54,7 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
         id,
         {
           open Todo
-          {id: id, title: "Todo " ++ id->TodoId.toString}
+          {id, title: "Todo " ++ id->TodoId.toString}
         },
       )
     }),

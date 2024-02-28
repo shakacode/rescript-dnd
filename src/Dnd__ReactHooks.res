@@ -1,7 +1,7 @@
 module Previous = {
   let hook = (v: 'a): option<'a> => {
     let x = React.useRef(None)
-    React.useEffect(() => {
+    React.useEffectOnEveryRender(() => {
       x.current = v->Some
       None
     })
@@ -39,9 +39,9 @@ module Reducer = {
       ({Private.state: state, sideEffects} as private_, action) =>
         switch reducer(state, action) {
         | NoUpdate => private_
-        | Update(state) => {...private_, state: state}
+        | Update(state) => {...private_, state}
         | UpdateWithSideEffects(state, sideEffect) => {
-            state: state,
+            state,
             sideEffects: Array.concat(sideEffects.contents, [sideEffect])->ref,
           }
         | SideEffects(sideEffect) => {
@@ -53,7 +53,7 @@ module Reducer = {
     )
     React.useEffect1(() => {
       if Array.length(sideEffects.contents) > 0 {
-        Array.forEach(sideEffects.contents, fn => fn({state: state, dispatch: dispatch}))
+        Array.forEach(sideEffects.contents, fn => fn({state, dispatch}))
         sideEffects := []
       }
       None

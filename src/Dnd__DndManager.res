@@ -12,12 +12,12 @@ module Make = (Context: Context.T) => {
   module Item = Context.Item
   module Container = Context.Container
 
-  module ComparableItem = Belt.Id.MakeComparable({
+  module ComparableItem = Belt.Id.MakeComparableU({
     type t = Item.t
     let cmp = Item.cmp
   })
 
-  module ComparableContainer = Belt.Id.MakeComparable({
+  module ComparableContainer = Belt.Id.MakeComparableU({
     type t = Container.t
     let cmp = Container.cmp
   })
@@ -830,11 +830,11 @@ module Make = (Context: Context.T) => {
 
         let subscriptions = switch interaction {
         | #Mouse =>
-          let onMouseMove = MouseSubscriptions.onMouseMove(updateGhostPosition)
-          let onMouseUp = MouseSubscriptions.onMouseUp(startDropping)
-          let onKeyDown = MouseSubscriptions.onKeyDown(cancelDrag)
-          let onResize = MouseSubscriptions.onResize(cancelDrag)
-          let onVisibilityChange = MouseSubscriptions.onVisibilityChange(cancelDrag)
+          let onMouseMove = MouseSubscriptions.onMouseMove(updateGhostPosition, ...)
+          let onMouseUp = MouseSubscriptions.onMouseUp(startDropping, ...)
+          let onKeyDown = MouseSubscriptions.onKeyDown(cancelDrag, ...)
+          let onResize = MouseSubscriptions.onResize(cancelDrag, ...)
+          let onVisibilityChange = MouseSubscriptions.onVisibilityChange(cancelDrag, ...)
 
           open Subscriptions
           {
@@ -862,11 +862,11 @@ module Make = (Context: Context.T) => {
             },
           }
         | #Touch =>
-          let onTouchMove = TouchSubscriptions.onTouchMove(updateGhostPosition)
-          let onTouchEnd = TouchSubscriptions.onTouchEnd(startDropping)
+          let onTouchMove = TouchSubscriptions.onTouchMove(updateGhostPosition, ...)
+          let onTouchEnd = TouchSubscriptions.onTouchEnd(startDropping, ...)
           let onContextMenu = TouchSubscriptions.onContextMenu
-          let onOrientationChange = TouchSubscriptions.onOrientationChange(cancelDrag)
-          let onVisibilityChange = TouchSubscriptions.onVisibilityChange(cancelDrag)
+          let onOrientationChange = TouchSubscriptions.onOrientationChange(cancelDrag, ...)
+          let onVisibilityChange = TouchSubscriptions.onVisibilityChange(cancelDrag, ...)
 
           open Subscriptions
           {
@@ -942,10 +942,10 @@ module Make = (Context: Context.T) => {
       | list{} => ()
       | _ as ids =>
         items.current =
-          ids->List.reduceU(items.current, (. map, id) =>
-            map->Map.updateU(
+          ids->List.reduce(items.current, (map, id) =>
+            map->Map.update(
               id,
-              (. item) =>
+              item =>
                 switch item {
                 | Some(item) =>
                   Some({

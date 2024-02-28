@@ -1,0 +1,42 @@
+{
+    "name": "rescript-dnd",
+    "sources": [
+        {
+            "dir": "src",
+            "subdirs": true
+        },
+        {
+            "dir": "examples",
+            "type": "dev",
+            "subdirs": true
+        }
+    ],
+    "bs-dependencies": [
+        "@rescript/react",
+        "rescript-webapi",
+        "rescript-logger"
+    ],
+    "bs-dev-dependencies": [
+        "rescript-classnames"
+    ],
+    "jsx": {
+        "version": 4
+    },
+    "bsc-flags": [
+        "-open Belt"
+    ],
+    "ppx-flags": [
+        [
+            "rescript-logger/ppx",
+            "--lib=rescript-dnd"
+        ]
+    ],
+    "package-specs": {
+        "module": "es6",
+        "in-source": true
+    },
+    "suffix": ".res.js",
+    "warnings": {
+        "number": "+A-40-42-44"
+    }
+}

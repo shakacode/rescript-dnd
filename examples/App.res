@@ -22,8 +22,8 @@ let make = () => {
     None
   }, [route])
 
-  let showMobileNav = React.useCallback(() => ShowMobileNav->dispatch)
-  let hideMobileNav = React.useCallback(() => HideMobileNav->dispatch)
+  let showMobileNav = React.useCallback0(() => ShowMobileNav->dispatch)
+  let hideMobileNav = React.useCallback0(() => HideMobileNav->dispatch)
 
   <Container>
     <Nav route mobileNavShown=state.mobileNavShown hideMobileNav />
