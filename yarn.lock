@@ -809,45 +809,15 @@
   resolved "https://registry.yarnpkg.com/@rescript/core/-/core-1.3.0.tgz#e7ebc6814772ccabac23c980d5bb0851ad8338d1"
   integrity sha512-wNZOZ63sYcaIYZCmTZeIPCeLa3HCGgPbIOR8zjyNkoBYUlxNV8Nb2ZyqlXR5Mb9ttvv8fTV56JbKhyVEZEYo8g==
 
-"@rescript/darwin-arm64@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/darwin-arm64/-/darwin-arm64-12.0.0-beta.10.tgz#f10aa57623128439d0c8b7926784edada31ca53f"
-  integrity sha512-P3Y5Yy7uPGVXdBlfyT67NG724bsMfmwrZ/qEAgEabrGEXjJc9iA9I+a7Kz9gq5E252Mfi0O2DGp2JUmNyOyo9A==
-
-"@rescript/darwin-x64@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/darwin-x64/-/darwin-x64-12.0.0-beta.10.tgz#1d4268dbbadf5612f921c0d742ee8c76ae0c89fe"
-  integrity sha512-4WuFdzmZhp0iXmjAtOCGJUnGHxQeK8kxnahk7nViwN6RHZG1RDEQmxvjnVfQUnNdMH2anZGpGYjAhZC+n9goDQ==
-
-"@rescript/linux-arm64@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/linux-arm64/-/linux-arm64-12.0.0-beta.10.tgz#452ffecb64362c3c1bf8f71ce74bf3b9659a3f76"
-  integrity sha512-DgdCbnYySwDhPpJlttb6JvO7FucS4wkueuAtXiecCNCPkdaRWNPIrRAmZS5KZ/MlU8vQWh2jzCvDY9yeh/MNBA==
-
-"@rescript/linux-x64@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/linux-x64/-/linux-x64-12.0.0-beta.10.tgz#826f3983abc20d96414d9e75a1b2d3c644942615"
-  integrity sha512-v0ydM9UdiS1cXgm25ajTl5k61ejWg2s0YDDrjD+5a7N/zUnsfv4L5y+3bhhv6GhV3o/xgH+YYPwMe2057oT3pA==
+"@rescript/core@1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@rescript/core/-/core-1.6.1.tgz#159670c94d64a2b8236f46be2bf09a007b1ece08"
+  integrity sha512-vyb5k90ck+65Fgui+5vCja/mUfzKaK3kOPT4Z6aAJdHLH1eljEi1zKhXroCiCtpNLSWp8k4ulh1bdB5WS0hvqA==
 
 "@rescript/react@0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@rescript/react/-/react-0.14.0.tgz#f5733c2db6b103913a99f0f7c1a1db9d8e85509b"
   integrity sha512-ncOHWK7ujQmff+QMYKRmtwETvJVolzkwRpDa0MFenEXdUz9ZYywNbq+xH9F9RDQeSwC3/4s9JeUQVyTu4fMpHw==
-
-"@rescript/runtime@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/runtime/-/runtime-12.0.0-beta.10.tgz#f88bcea1668ab77c7140f1955db6c45297a3d172"
-  integrity sha512-ZAMUE6C8c5cMaDHzpqoq8+6dDXD/wBHUsRHjeGkbz/BbexFnj8i4O9kEYdOEF+9P7GdY6IyRWKKX5RJaNpAs2g==
-
-"@rescript/runtime@12.0.0-beta.8":
-  version "12.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@rescript/runtime/-/runtime-12.0.0-beta.8.tgz#8ea316579e63b91d58c6fa40ca94d018d1e90818"
-  integrity sha512-ut/MESBBmNvT/cSoDp2C6cZnw7484pBGx3KVLmvd42g7QqKNtjiOI5wWSAKAOIsDMGyHZd7ILOM2vJZm2+0Dkw==
-
-"@rescript/win32-x64@12.0.0-beta.10":
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/@rescript/win32-x64/-/win32-x64-12.0.0-beta.10.tgz#34814f926d9535a3158e46f9e6a505ae46424568"
-  integrity sha512-4CFQBkpuFb+DBFS9xy3+7KaGuAdUEYQyCAtSgDinXgj4IYYTFQ+a/6Sz8pPNkA5OlUwVAwMiONrTu3Zj+5NvMA==
 
 "@swc/core-darwin-arm64@1.13.5":
   version "1.13.5"
@@ -1381,18 +1351,10 @@ rescript-webapi@0.10.0:
   resolved "https://registry.yarnpkg.com/rescript-webapi/-/rescript-webapi-0.10.0.tgz#8a2e65dd73f7cd1c8130d01ecb02e37b400eac91"
   integrity sha512-QgwMMQO7INz0SK8TX91ibGDrOCRAteOuOxhQi3CIR8FMx0wykbp2rRU/TF4GyfKagk2Nby8snPhQnstSxnmm/g==
 
-rescript@12.0.0-beta.10:
-  version "12.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/rescript/-/rescript-12.0.0-beta.10.tgz#d1a33287bf68a06f49b6d8585fa9683d2655e1b2"
-  integrity sha512-QeDZebbCgWIXCn15qlFB+Q+4kis+ZJMmPrKMEoisu5xJnSmFJoCDQIsOH5oubKyTClK9Mr3XROC47nsgPlkNKw==
-  dependencies:
-    "@rescript/runtime" "12.0.0-beta.10"
-  optionalDependencies:
-    "@rescript/darwin-arm64" "12.0.0-beta.10"
-    "@rescript/darwin-x64" "12.0.0-beta.10"
-    "@rescript/linux-arm64" "12.0.0-beta.10"
-    "@rescript/linux-x64" "12.0.0-beta.10"
-    "@rescript/win32-x64" "12.0.0-beta.10"
+rescript@11.1.4:
+  version "11.1.4"
+  resolved "https://registry.yarnpkg.com/rescript/-/rescript-11.1.4.tgz#9a42ebc4fc5363707e39cef5b3188160b63bee42"
+  integrity sha512-0bGU0bocihjSC6MsE3TMjHjY0EUpchyrREquLS8VsZ3ohSMD+VHUEwimEfB3kpBI1vYkw3UFZ3WD8R28guz/Vw==
 
 safe-buffer@^5.0.1:
   version "5.2.1"

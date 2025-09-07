@@ -11,18 +11,19 @@
             "subdirs": true
         }
     ],
-    "dependencies": [
+    "bs-dependencies": [
+        "@rescript/core",
         "@rescript/react",
         "rescript-webapi",
         "rescript-logger"
     ],
-    "dev-dependencies": [
+    "bs-dev-dependencies": [
         "rescript-classnames"
     ],
     "jsx": {
         "version": 4
     },
-    "compiler-flags": [
+    "bsc-flags": [
         "-open Belt"
     ],
     "ppx-flags": [
@@ -32,7 +33,7 @@
         ]
     ],
     "package-specs": {
-        "module": "es6",
+        "module": "esmodule",
         "in-source": true
     },
     "suffix": ".res.js",
