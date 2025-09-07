@@ -118,47 +118,46 @@ module Make = (Context: Context.T) => {
         <>
           children
           <div
-            style={ReactDOM.Style.make(
-              ~boxSizing="border-box",
-              ~width,
-              ~minWidth=width,
-              ~height,
-              ~minHeight=height,
-              ~marginTop={
+            style={{
+              boxSizing: "border-box",
+              width,
+              minWidth: width,
+              height,
+              minHeight: height,
+              marginTop: {
                 open Style
                 ghost.margins.top->px
               },
-              ~marginBottom={
+              marginBottom: {
                 open Style
                 ghost.margins.bottom->px
               },
-              ~marginLeft={
+              marginLeft: {
                 open Style
                 ghost.margins.left->px
               },
-              ~marginRight={
+              marginRight: {
                 open Style
                 ghost.margins.right->px
               },
-              ~borderTop={
+              borderTop: {
                 open Style
                 ghost.borders.top->px
               },
-              ~borderBottom={
+              borderBottom: {
                 open Style
                 ghost.borders.bottom->px
               },
-              ~borderLeft={
+              borderLeft: {
                 open Style
                 ghost.borders.left->px
               },
-              ~borderRight={
+              borderRight: {
                 open Style
                 ghost.borders.right->px
               },
-              ~transition=Style.transition("all"),
-              (),
-            )}
+              transition: Style.transition("all"),
+            }}
           />
         </>
 
@@ -169,35 +168,34 @@ module Make = (Context: Context.T) => {
         <>
           children
           <div
-            style={ReactDOM.Style.make(
-              ~boxSizing="border-box",
-              ~margin={
+            style={{
+              boxSizing: "border-box",
+              margin: {
                 open Style
                 0.->px
               },
-              ~border={
+              border: {
                 open Style
                 0.->px
               },
-              ~width={
+              width: {
                 open Style
                 0.->px
               },
-              ~minWidth={
+              minWidth: {
                 open Style
                 0.->px
               },
-              ~height={
+              height: {
                 open Style
                 0.->px
               },
-              ~minHeight={
+              minHeight: {
                 open Style
                 0.->px
               },
-              ~transition=Style.transition("all"),
-              (),
-            )}
+              transition: Style.transition("all"),
+            }}
           />
         </>
       }}

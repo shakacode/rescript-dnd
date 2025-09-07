@@ -9,13 +9,13 @@
     "prestart": "yarn run res:build:dev",
     "build": "parcel build examples/index.html",
     "prebuild": "yarn run res:build",
-    "res:build": "RES_LOG=off rescript build -with-deps",
-    "res:build:dev": "RES_LOG=*,rescript-dnd=* rescript build -with-deps",
-    "res:watch": "RES_LOG=*,rescript-dnd=* rescript build -with-deps -w",
+    "res:build": "RES_LOG=off rescript build",
+    "res:build:dev": "RES_LOG=*,rescript-dnd=* rescript build",
+    "res:watch": "RES_LOG=*,rescript-dnd=* rescript build -w",
     "res:clean": "rescript clean",
     "clean": "rm -rf dist && yarn run res:clean",
     "test": "exit 0",
-    "format": "rescript format -all",
+    "format": "rescript format",
     "deploy": "vercel deploy dist --prod",
     "predeploy": "yarn run build"
   },
@@ -44,22 +44,24 @@
     "rescript-logger": "4.0.0"
   },
   "peerDependencies": {
-    "@rescript/react": ">=0.12.0",
+    "@rescript/react": ">=0.14.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "rescript": ">=11.0.0",
     "rescript-webapi": ">=0.6.0"
   },
   "devDependencies": {
-    "@rescript/react": "0.12.1",
-    "autoprefixer": "10.4.17",
-    "parcel": "2.11.0",
-    "postcss": "8.4.35",
+    "@rescript/react": "0.14.0",
+    "@rescript/runtime": "12.0.0-beta.8",
+    "autoprefixer": "10.4.21",
+    "parcel": "2.15.4",
+    "postcss": "8.5.6",
     "process": "^0.11.10",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "rescript": "11.0.1",
-    "rescript-classnames": "7.0.0",
-    "rescript-webapi": "0.9.1"
-  }
+    "rescript": "12.0.0-beta.10",
+    "rescript-classnames": "7.0.1",
+    "rescript-webapi": "0.10.0"
+  },
+  "packageManager": "yarn@1.22.15+sha512.033a040f18f6e7a04e4bf8ea0d7037a63ca19a2e054410543206284c7238108b7612144492f1f4b283d512d9c3f8340825f53947d6ca85c6751fd97cccf59ea0"
 }

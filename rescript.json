@@ -11,18 +11,18 @@
             "subdirs": true
         }
     ],
-    "bs-dependencies": [
+    "dependencies": [
         "@rescript/react",
         "rescript-webapi",
         "rescript-logger"
     ],
-    "bs-dev-dependencies": [
+    "dev-dependencies": [
         "rescript-classnames"
     ],
     "jsx": {
         "version": 4
     },
-    "bsc-flags": [
+    "compiler-flags": [
         "-open Belt"
     ],
     "ppx-flags": [
