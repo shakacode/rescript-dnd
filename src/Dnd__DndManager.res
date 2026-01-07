@@ -12,12 +12,12 @@ module Make = (Context: Context.T) => {
   module Item = Context.Item
   module Container = Context.Container
 
-  module ComparableItem = Belt.Id.MakeComparableU({
+  module ComparableItem = Belt.Id.MakeComparable({
     type t = Item.t
     let cmp = Item.cmp
   })
 
-  module ComparableContainer = Belt.Id.MakeComparableU({
+  module ComparableContainer = Belt.Id.MakeComparable({
     type t = Container.t
     let cmp = Container.cmp
   })
@@ -321,12 +321,12 @@ module Make = (Context: Context.T) => {
     ~children,
   ) => {
     let items: React.ref<
-      Map.t<Item.t, ItemBag.t<Item.t, Container.t>, ComparableItem.identity>,
-    > = React.useRef(Map.make(~id=module(ComparableItem)))
+      Belt.Map.t<Item.t, ItemBag.t<Item.t, Container.t>, ComparableItem.identity>,
+    > = React.useRef(Belt.Map.make(~id=module(ComparableItem)))
 
     let containers: React.ref<
-      Map.t<Container.t, ContainerBag.t<Item.t, Container.t>, ComparableContainer.identity>,
-    > = React.useRef(Map.make(~id=module(ComparableContainer)))
+      Belt.Map.t<Container.t, ContainerBag.t<Item.t, Container.t>, ComparableContainer.identity>,
+    > = React.useRef(Belt.Map.make(~id=module(ComparableContainer)))
 
     let scroll: React.ref<option<Scroll.t>> = React.useRef(None)
     let viewport: React.ref<option<Dimensions.t>> = React.useRef(None)
@@ -398,7 +398,7 @@ module Make = (Context: Context.T) => {
               "StartDropping::NoTargetContainer"
               ("", "")
             )
-            let container = containers.current->Map.getExn(ghost.originalContainer)
+            let container = containers.current->Belt.Map.getExn(ghost.originalContainer)
             let scrollableDelta = switch container.scrollable {
             | Some(scrollable) =>
               open Delta
@@ -424,8 +424,8 @@ module Make = (Context: Context.T) => {
               "StartDropping::TargetingOriginalContainer"
               ("ContainerId", targetContainerId)
             )
-            let container = containers.current->Map.getExn(targetContainerId)
-            let scroll = scroll.current->Option.getExn
+            let container = containers.current->Belt.Map.getExn(targetContainerId)
+            let scroll = scroll.current->Option.getOrThrow
             let scrollableDelta = switch container.scrollable {
             | Some(scrollable) =>
               open Delta
@@ -440,15 +440,15 @@ module Make = (Context: Context.T) => {
 
             let items =
               items.current
-              ->Map.keep((_, item) =>
+              ->Belt.Map.keep((_, item) =>
                 item.containerId->Container.eq(targetContainerId) &&
                   !(item.id->Item.eq(ghost.itemId))
               )
-              ->Map.reduce([], (acc, _, item) => {
+              ->Belt.Map.reduce([], (acc, _, item) => {
                 acc->Js.Array.push(item, _)->ignore
                 acc
               })
-              ->SortArray.stableSortBy((i1, i2) => compare(i1.originalIndex, i2.originalIndex))
+              ->Belt.SortArray.stableSortBy((i1, i2) => compare(i1.originalIndex, i2.originalIndex))
 
             let before: option<
               [
@@ -483,7 +483,7 @@ module Make = (Context: Context.T) => {
                 "StartDropping::TargetingOriginalContainer::Result::Before"
                 ("Item", item)
               )
-              let itemGeometry = item.geometry->Option.getExn
+              let itemGeometry = item.geometry->Option.getOrThrow
               let itemRect = Geometry.shiftInternalSibling(
                 ghost.axis,
                 ghost.dimensions,
@@ -514,7 +514,7 @@ module Make = (Context: Context.T) => {
                 "StartDropping::TargetingOriginalContainer::Result::Last"
                 ("Item", item)
               )
-              let itemGeometry = item.geometry->Option.getExn
+              let itemGeometry = item.geometry->Option.getOrThrow
               let itemRect = Geometry.shiftInternalSibling(
                 ghost.axis,
                 ghost.dimensions,
@@ -558,8 +558,8 @@ module Make = (Context: Context.T) => {
             }
 
           | Some(targetContainerId) =>
-            let container = containers.current->Map.getExn(targetContainerId)
-            let scroll = scroll.current->Option.getExn
+            let container = containers.current->Belt.Map.getExn(targetContainerId)
+            let scroll = scroll.current->Option.getOrThrow
             let scrollableDelta = switch container.scrollable {
             | Some(scrollable) =>
               open Delta
@@ -574,15 +574,15 @@ module Make = (Context: Context.T) => {
 
             let items =
               items.current
-              ->Map.keep((_, item) =>
+              ->Belt.Map.keep((_, item) =>
                 item.containerId->Container.eq(targetContainerId) &&
                   !(item.id->Item.eq(ghost.itemId))
               )
-              ->Map.reduce([], (acc, _, item) => {
+              ->Belt.Map.reduce([], (acc, _, item) => {
                 acc->Js.Array.push(item, _)->ignore
                 acc
               })
-              ->SortArray.stableSortBy((i1, i2) => compare(i1.originalIndex, i2.originalIndex))
+              ->Belt.SortArray.stableSortBy((i1, i2) => compare(i1.originalIndex, i2.originalIndex))
 
             let before: option<ItemBag.t<Item.t, Container.t>> = items->Array.reduce(None, (
               res,
@@ -602,7 +602,7 @@ module Make = (Context: Context.T) => {
                 "StartDropping::TargetingNewContainer::Result::Before"
                 ("Item", item)
               )
-              let itemGeometry = item.geometry->Option.getExn
+              let itemGeometry = item.geometry->Option.getOrThrow
               let itemRect = Geometry.shiftExternalSibling(
                 ghost.axis,
                 ghost.dimensions,
@@ -635,7 +635,7 @@ module Make = (Context: Context.T) => {
                   "StartDropping::TargetingNewContainer::Result::Last"
                   ("Item", item)
                 )
-                let itemGeometry = item.geometry->Option.getExn
+                let itemGeometry = item.geometry->Option.getOrThrow
                 let itemRect = Geometry.shiftExternalSibling(
                   ghost.axis,
                   ghost.dimensions,
@@ -670,7 +670,7 @@ module Make = (Context: Context.T) => {
                     ...ghost,
                     delta: Layout.calculateDeltaToLandGhostOnEmptyContainer(
                       ~axis=ghost.axis,
-                      ~containerGeometry=container.geometry->Option.getExn,
+                      ~containerGeometry=container.geometry->Option.getOrThrow,
                       ~ghostDimensions=ghost.dimensions,
                       ~ghostDepartureRect=ghost.departureRect,
                       ~ghostDeparturePoint=ghost.departurePoint,
@@ -691,7 +691,7 @@ module Make = (Context: Context.T) => {
       | CancelDrag =>
         switch state.status {
         | Dragging(ghost, _) =>
-          let container = containers.current->Map.getExn(ghost.originalContainer)
+          let container = containers.current->Belt.Map.getExn(ghost.originalContainer)
 
           let nextGhost = switch container.scrollable {
           | Some(scrollable) => {
@@ -723,7 +723,7 @@ module Make = (Context: Context.T) => {
     let registerItem = React.useCallback1(
       (item: ItemBag.registrationPayload<Item.t, Container.t>) =>
         items.current =
-          items.current->Map.set(
+          items.current->Belt.Map.set(
             item.id,
             {
               id: item.id,
@@ -743,7 +743,7 @@ module Make = (Context: Context.T) => {
     let registerContainer = React.useCallback1(
       (container: ContainerBag.registrationPayload<Item.t, Container.t>) =>
         containers.current =
-          containers.current->Map.set(
+          containers.current->Belt.Map.set(
             container.id,
             {
               id: container.id,
@@ -760,12 +760,12 @@ module Make = (Context: Context.T) => {
     )
 
     let disposeItem = React.useCallback1(
-      itemId => items.current = items.current->Map.remove(itemId),
+      itemId => items.current = items.current->Belt.Map.remove(itemId),
       [items],
     )
 
     let disposeContainer = React.useCallback1(
-      containerId => containers.current = containers.current->Map.remove(containerId),
+      containerId => containers.current = containers.current->Belt.Map.remove(containerId),
       [containers],
     )
 
@@ -787,8 +787,8 @@ module Make = (Context: Context.T) => {
       ) => {
         open Webapi.Dom
 
-        let item = items.current->Map.getExn(itemId)
-        let container = containers.current->Map.getExn(containerId)
+        let item = items.current->Belt.Map.getExn(itemId)
+        let container = containers.current->Belt.Map.getExn(containerId)
 
         let maxScroll = Scrollable.Window.getMaxScroll()
         let scrollPosition = Scrollable.Window.getScrollPosition()
@@ -896,10 +896,10 @@ module Make = (Context: Context.T) => {
         }
 
         items.current =
-          items.current->Map.map(item => {...item, geometry: item.getGeometry()->Some})
+          items.current->Belt.Map.map(item => {...item, geometry: item.getGeometry()->Some})
 
         containers.current =
-          containers.current->Map.map(container => {
+          containers.current->Belt.Map.map(container => {
             let (geometry, scrollable) = container.getGeometryAndScrollable()
             {...container, geometry: geometry->Some, scrollable}
           })
@@ -943,7 +943,7 @@ module Make = (Context: Context.T) => {
       | _ as ids =>
         items.current =
           ids->List.reduce(items.current, (map, id) =>
-            map->Map.update(
+            map->Belt.Map.update(
               id,
               item =>
                 switch item {
@@ -970,7 +970,7 @@ module Make = (Context: Context.T) => {
         None
       | (Dragging(_, _), Dropping(ghost, result)) =>
         onDropStart->Hook.invoke(~itemId=ghost.itemId)
-        Js.Global.setTimeout(
+        setTimeout(
           () => {
             result->onReorder
             Reset->dispatch
@@ -985,8 +985,8 @@ module Make = (Context: Context.T) => {
         focusTargetToRestore.current->Option.map(Webapi.Dom.HtmlElement.focus)->ignore
         focusTargetToRestore.current = None
 
-        items.current = Map.make(~id=module(ComparableItem))
-        containers.current = Map.make(~id=module(ComparableContainer))
+        items.current = Belt.Map.make(~id=module(ComparableItem))
+        containers.current = Belt.Map.make(~id=module(ComparableContainer))
         scroll.current = None
         viewport.current = None
         onDropEnd->Hook.invoke(~itemId=ghost.itemId)
@@ -1031,9 +1031,9 @@ module Make = (Context: Context.T) => {
 
         let targetContainer =
           containers.current
-          ->Map.valuesToArray
-          ->Js.Array.find((container: ContainerBag.t<Item.t, Container.t>) => {
-            let geometry = container.geometry->Option.getExn
+          ->Belt.Map.valuesToArray
+          ->Array.find((container: ContainerBag.t<Item.t, Container.t>) => {
+            let geometry = container.geometry->Option.getOrThrow
             let rect = switch container.scrollable {
             | None => geometry.rect.page
             | Some(scrollable) =>
@@ -1057,11 +1057,11 @@ module Make = (Context: Context.T) => {
             open ContainerBag
             container.accept
             ->Option.map(accept => ghost.itemId->accept)
-            ->Option.getWithDefault(true) && {
+            ->Option.getOr(true) && {
                 open Geometry
                 nextPoint.page->isWithin(rect)
               }
-          }, _)
+          })
           ->Option.map(container => container.id)
 
         let targetingOriginalContainer = switch targetContainer {
@@ -1135,7 +1135,7 @@ module Make = (Context: Context.T) => {
     , (state.status, items, containers))
 
     updateScrollPosition.current = React.useCallback2((ghost: Ghost.t<Item.t, Container.t>) => {
-      let scrollable = containers.current->Map.reduce(None, (
+      let scrollable = containers.current->Belt.Map.reduce(None, (
         scrollable: option<ScrollableElement.t>,
         _,
         container,
@@ -1165,8 +1165,8 @@ module Make = (Context: Context.T) => {
 
       let scroller = Scroller.getScroller(
         ~point=ghost.currentPoint,
-        ~viewport=viewport.current->Option.getExn,
-        ~scroll=scroll.current->Option.getExn,
+        ~viewport=viewport.current->Option.getOrThrow,
+        ~scroll=scroll.current->Option.getOrThrow,
         ~scrollable,
       )
 
@@ -1180,7 +1180,7 @@ module Make = (Context: Context.T) => {
         }
 
         scheduledWindowScrollFrameId.current = requestWindowScroll(() => {
-          let currentScroll = scroll.current->Option.getExn
+          let currentScroll = scroll.current->Option.getOrThrow
 
           let nextScrollPosition = Scrollable.Window.getScrollPosition()
 
@@ -1225,7 +1225,7 @@ module Make = (Context: Context.T) => {
           }
 
           containers.current =
-            containers.current->Map.map(
+            containers.current->Belt.Map.map(
               container =>
                 switch container.scrollable {
                 | Some(scrollable) => {
@@ -1296,7 +1296,7 @@ module Make = (Context: Context.T) => {
           }
 
           containers.current =
-            containers.current->Map.map(
+            containers.current->Belt.Map.map(
               container =>
                 switch container.scrollable {
                 | Some(scrollable') if scrollable'.element === scrollable.element => {
@@ -1337,18 +1337,18 @@ module Make = (Context: Context.T) => {
     invalidateLayout.current = React.useCallback2((ghost: Ghost.t<Item.t, Container.t>) => {
       let (nextItems, animate) = switch ghost.targetContainer {
       | None =>
-        let items = items.current->Map.map(item => {...item, shift: None})
+        let items = items.current->Belt.Map.map(item => {...item, shift: None})
         (items, list{})
       | Some(targetContainerId) =>
-        let container = containers.current->Map.getExn(targetContainerId)
+        let container = containers.current->Belt.Map.getExn(targetContainerId)
 
-        items.current->Map.reduce((items.current, list{}), ((items, animate), id, item) =>
+        items.current->Belt.Map.reduce((items.current, list{}), ((items, animate), id, item) =>
           switch item.containerId {
           | itemContainerId
             if targetContainerId->Container.eq(itemContainerId) &&
               ghost.targetingOriginalContainer =>
-            let geometry = item.geometry->Option.getExn
-            let scroll = scroll.current->Option.getExn
+            let geometry = item.geometry->Option.getOrThrow
+            let scroll = scroll.current->Option.getOrThrow
 
             let shiftedItemRect = Geometry.shiftInternalSibling(
               ghost.axis,
@@ -1389,7 +1389,7 @@ module Make = (Context: Context.T) => {
             // Ghost is before item but initially was after:
             // item is not Omega yet, so pushing it
             | (_, #GhostIsBefore, #GhostWasAfter) => (
-                items->Map.set(
+                items->Belt.Map.set(
                   id,
                   {
                     ...item,
@@ -1408,7 +1408,7 @@ module Make = (Context: Context.T) => {
             // Ghost is after item but initially was before:
             // item is not Alpha yet, so pushing it
             | (_, #GhostIsAfter, #GhostWasBefore) => (
-                items->Map.set(
+                items->Belt.Map.set(
                   id,
                   {
                     ...item,
@@ -1423,7 +1423,7 @@ module Make = (Context: Context.T) => {
             // If we got here, item should go to its original position:
             // since it was shifted — pushing it back
             | (Some(Alpha | Omega), _, _) => (
-                items->Map.set(
+                items->Belt.Map.set(
                   id,
                   {
                     ...item,
@@ -1442,8 +1442,8 @@ module Make = (Context: Context.T) => {
           | itemContainerId
             if targetContainerId->Container.eq(itemContainerId) &&
               !ghost.targetingOriginalContainer =>
-            let geometry = item.geometry->Option.getExn
-            let scroll = scroll.current->Option.getExn
+            let geometry = item.geometry->Option.getOrThrow
+            let scroll = scroll.current->Option.getOrThrow
 
             let shiftedDraggableRect = Geometry.shiftExternalSibling(
               ghost.axis,
@@ -1470,7 +1470,7 @@ module Make = (Context: Context.T) => {
 
             // Ghost is before item: item is not Omega yet, so pushing it
             | (false, Some(Alpha) | None, #GhostIsBefore) => (
-                items->Map.set(
+                items->Belt.Map.set(
                   id,
                   {
                     ...item,
@@ -1487,7 +1487,7 @@ module Make = (Context: Context.T) => {
 
             // Ghost is after item: item is not Alpha yet, so pushing it
             | (false, Some(Omega) | None, #GhostIsAfter) => (
-                items->Map.set(
+                items->Belt.Map.set(
                   id,
                   {
                     ...item,
@@ -1502,7 +1502,7 @@ module Make = (Context: Context.T) => {
 
           // If we got here, item should go to its original position
           | _ => (
-              items->Map.set(
+              items->Belt.Map.set(
                 id,
                 {
                   ...item,
@@ -1522,7 +1522,7 @@ module Make = (Context: Context.T) => {
 
       updateScrollPosition.current(ghost)
 
-      Js.Global.setTimeout(
+      setTimeout(
         () => animate->resetAnimationsOnDrag,
         {
           open Style
@@ -1560,7 +1560,7 @@ module Make = (Context: Context.T) => {
 
     cancelDrag.current = React.useCallback2(() => {
       prepareDrop()
-      items.current = items.current->Map.map(item => {...item, shift: None})
+      items.current = items.current->Belt.Map.map(item => {...item, shift: None})
       CancelDrag->dispatch
     }, (items, prepareDrop))
 
@@ -1609,9 +1609,10 @@ module Make = (Context: Context.T) => {
         registerContainer,
         disposeItem,
         disposeContainer,
-        getItemShift: itemId => (items.current->Map.getExn(itemId)).shift,
+        getItemShift: itemId => (items.current->Belt.Map.getExn(itemId)).shift,
         startDragging: collectEntries,
-      }>
+      }
+    >
       children
     </Context.Provider>
   }

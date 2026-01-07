@@ -61,7 +61,7 @@ module Make = (Context: Context.T) => {
     ~children,
   ) => {
     let ctx = React.useContext(Context.x)
-    let element = React.useRef(Js.Nullable.null)
+    let element = React.useRef(Nullable.null)
     let prevStatus = ReactHooks.usePrevious(ctx.status)
 
     React.useEffect2(() =>
@@ -77,13 +77,13 @@ module Make = (Context: Context.T) => {
           lockAxis,
           accept,
           element: element.current
-          ->Js.Nullable.toOption
-          ->Option.getExn
+          ->Nullable.toOption
+          ->Option.getOrThrow
           ->Webapi.Dom.Element.unsafeAsHtmlElement,
           getGeometryAndScrollable: () =>
             element.current
-            ->Js.Nullable.toOption
-            ->Option.getExn
+            ->Nullable.toOption
+            ->Option.getOrThrow
             ->Webapi.Dom.Element.unsafeAsHtmlElement
             ->Helpers.getGeometryAndScrollable,
         })
@@ -98,13 +98,14 @@ module Make = (Context: Context.T) => {
         fn(
           ~draggingOver=ctx.target
           ->Option.map(target => target->Container.eq(containerId))
-          ->Option.getWithDefault(false),
+          ->Option.getOr(false),
         )
-      )}>
+      )}
+    >
       {switch ctx.status {
       | Dragging(ghost, _)
       | Dropping(ghost, _)
-        if Option.eq(ghost.targetContainer, containerId->Some, Container.eq) &&
+        if Belt.Option.eq(ghost.targetContainer, containerId->Some, Container.eq) &&
         !ghost.targetingOriginalContainer =>
         let (width, height) = switch ghost.axis {
         | X =>

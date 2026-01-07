@@ -79,7 +79,7 @@ module Element = {
       if style->isScrollable {
         let element = {
           open Webapi.Dom
-          element->HtmlElement.ofElement->Option.getExn
+          element->HtmlElement.ofElement->Option.getOrThrow
         }
         let rect = {
           open Webapi.Dom
@@ -109,7 +109,7 @@ module Element = {
           }
         })
       } else {
-        element->Webapi.Dom.HtmlElement.ofElement->Option.getExn->getClosestScrollable
+        element->Webapi.Dom.HtmlElement.ofElement->Option.getOrThrow->getClosestScrollable
       }
     })
 }

@@ -3,8 +3,8 @@ open Dnd__Types
 
 exception MissingContext
 
-let fail = _ => MissingContext->raise
-let fail5 = (_, _, _, _, _) => MissingContext->raise
+let fail = _ => MissingContext->throw
+let fail5 = (_, _, _, _, _) => MissingContext->throw
 
 module T = {
   type t<'itemId, 'containerId> = {

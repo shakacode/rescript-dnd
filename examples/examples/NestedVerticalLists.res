@@ -61,10 +61,10 @@ type action =
 let reducer = (state, action) =>
   switch action {
   | ReorderTodos(Some(SameContainer(todoId, placement))) =>
-    let todo = state.todosMap->Map.getExn(todoId)
+    let todo = state.todosMap->Belt.Map.getExn(todoId)
     {
       ...state,
-      todoListsMap: state.todoListsMap->Map.update(todo.todoListId, x =>
+      todoListsMap: state.todoListsMap->Belt.Map.update(todo.todoListId, x =>
         x->Option.map(list => {
           ...list,
           todos: list.todos->ArrayExt.reinsert(
@@ -79,20 +79,20 @@ let reducer = (state, action) =>
     }
 
   | ReorderTodos(Some(NewContainer(todoId, todoListId, placement))) =>
-    let todo = state.todosMap->Map.getExn(todoId)
+    let todo = state.todosMap->Belt.Map.getExn(todoId)
     {
       ...state,
-      todosMap: state.todosMap->Map.update(todoId, x =>
+      todosMap: state.todosMap->Belt.Map.update(todoId, x =>
         x->Option.map(todo => {...todo, todoListId})
       ),
       todoListsMap: state.todoListsMap
-      ->Map.update(todo.todoListId, x =>
+      ->Belt.Map.update(todo.todoListId, x =>
         x->Option.map(list => {
           ...list,
-          todos: list.todos->Array.keep(id => id->TodoId.toInt != todoId->TodoId.toInt),
+          todos: list.todos->Array.filter(id => id->TodoId.toInt != todoId->TodoId.toInt),
         })
       )
-      ->Map.update(todoListId, x =>
+      ->Belt.Map.update(todoListId, x =>
         x->Option.map(list => {
           ...list,
           todos: list.todos->ArrayExt.insert(
@@ -125,34 +125,34 @@ let reducer = (state, action) =>
 @react.component
 let make = () => {
   let initialState = React.useMemo0(() => {
-    todoListsIndex: Array.range(1, 2)->TodoListId.array,
+    todoListsIndex: Belt.Array.range(1, 2)->TodoListId.array,
     todoListsMap: TodoListId.Map.make()
-    ->Map.set(
+    ->Belt.Map.set(
       TodoListId.make(1),
       {
         open TodoList
         {
           id: TodoListId.make(1),
           title: "List #1",
-          todos: Array.range(1, 5)->TodoId.array,
+          todos: Belt.Array.range(1, 5)->TodoId.array,
         }
       },
     )
-    ->Map.set(
+    ->Belt.Map.set(
       TodoListId.make(2),
       {
         open TodoList
         {
           id: TodoListId.make(2),
           title: "List #2",
-          todos: Array.range(6, 10)->TodoId.array,
+          todos: Belt.Array.range(6, 10)->TodoId.array,
         }
       },
     ),
-    todosMap: Array.range(1, 10)
+    todosMap: Belt.Array.range(1, 10)
     ->TodoId.array
     ->Array.reduce(TodoId.Map.make(), (map, id) =>
-      map->Map.set(
+      map->Belt.Map.set(
         id,
         {
           open Todo
@@ -181,10 +181,11 @@ let make = () => {
         id={TodoLists.Container.id()}
         axis=Y
         lockAxis=true
-        className={(~draggingOver as _) => "todo-lists"}>
+        className={(~draggingOver as _) => "todo-lists"}
+      >
         {state.todoListsIndex
-        ->Array.mapWithIndex((todoListIndex, todoListId) => {
-          let todoList = state.todoListsMap->Map.getExn(todoListId)
+        ->Array.mapWithIndex((todoListId, todoListIndex) => {
+          let todoList = state.todoListsMap->Belt.Map.getExn(todoListId)
 
           <TodoLists.DraggableItem
             id=todoListId
@@ -193,7 +194,8 @@ let make = () => {
             index=todoListIndex
             className={(~dragging) => {
               cx(["todo-list", dragging ? "dragging" : ""])
-            }}>
+            }}
+          >
             #ChildrenWithDragHandle(
               (~style, ~onMouseDown, ~onTouchStart) =>
                 <Todos.DroppableContainer
@@ -202,7 +204,8 @@ let make = () => {
                   axis=Y
                   className={(~draggingOver) => {
                     cx(["todos", draggingOver ? "active" : ""])
-                  }}>
+                  }}
+                >
                   <div className="todos-header">
                     <Control className="drag-handle" style onMouseDown onTouchStart>
                       <DragHandleIcon />
@@ -210,8 +213,8 @@ let make = () => {
                     <div className="title"> {todoList.title->React.string} </div>
                   </div>
                   {todoList.todos
-                  ->Array.mapWithIndex((todoIndex, todoId) => {
-                    let todo = state.todosMap->Map.getExn(todoId)
+                  ->Array.mapWithIndex((todoId, todoIndex) => {
+                    let todo = state.todosMap->Belt.Map.getExn(todoId)
 
                     <Todos.DraggableItem
                       id=todoId
@@ -220,7 +223,8 @@ let make = () => {
                       index=todoIndex
                       className={(~dragging) => {
                         cx(["todo", dragging ? "dragging" : ""])
-                      }}>
+                      }}
+                    >
                       #Children(todo.title->React.string)
                     </Todos.DraggableItem>
                   })

@@ -4,6 +4,9 @@
 
 ---
 
+## 8.0.0
+* **[ BREAKING ]** Update to `rescript@12`.
+
 ## 7.0.0
 * **[ BREAKING ]** Update to `@rescript/react@0.14`.
 

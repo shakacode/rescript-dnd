@@ -54,14 +54,14 @@
   "devDependencies": {
     "@rescript/core": "1.6.1",
     "@rescript/react": "0.14.0",
-    "autoprefixer": "10.4.21",
-    "parcel": "2.15.4",
+    "autoprefixer": "10.4.23",
+    "parcel": "2.16.3",
     "postcss": "8.5.6",
     "process": "^0.11.10",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "rescript": "11.1.4",
-    "rescript-classnames": "7.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "rescript": "12.0.2",
+    "rescript-classnames": "8.0.0",
     "rescript-webapi": "0.10.0"
   },
   "packageManager": "yarn@1.22.15+sha512.033a040f18f6e7a04e4bf8ea0d7037a63ca19a2e054410543206284c7238108b7612144492f1f4b283d512d9c3f8340825f53947d6ca85c6751fd97cccf59ea0"

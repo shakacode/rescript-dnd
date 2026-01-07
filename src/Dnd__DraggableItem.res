@@ -118,8 +118,8 @@ module Make = (Context: Context.T) => {
           }
 
           let moved =
-            Js.Math.abs_float(start.page.x -. current.page.x) > moveThreshold ||
-              Js.Math.abs_float(start.page.y -. current.page.y) > moveThreshold
+            Math.abs(start.page.x -. current.page.x) > moveThreshold ||
+              Math.abs(start.page.y -. current.page.y) > moveThreshold
 
           if moved {
             %log.debug(
@@ -187,9 +187,9 @@ module Make = (Context: Context.T) => {
           }
         }
 
-        let timeoutId: ref<option<Js.Global.timeoutId>> = None->ref
+        let timeoutId: ref<option<timeoutId>> = None->ref
 
-        let rec startDragging = () => Js.Global.setTimeout(() => {
+        let rec startDragging = () => setTimeout(() => {
             dropInitialSubscriptions()
             Helpers.clearSelection()
 
@@ -197,7 +197,7 @@ module Make = (Context: Context.T) => {
           }, delay)
         and cancelDrag = () =>
           switch timeoutId.contents {
-          | Some(timeoutId) => timeoutId->Js.Global.clearTimeout
+          | Some(timeoutId) => timeoutId->clearTimeout
           | None => ()
           }
         and onInitialTouchMove = _ => cancelDrag()
@@ -246,7 +246,7 @@ module Make = (Context: Context.T) => {
       None
     })
 
-    let element = React.useRef(Js.Nullable.null)
+    let element = React.useRef(Nullable.null)
 
     let prevStatus = ReactHooks.usePrevious(ctx.status)
 
@@ -262,13 +262,13 @@ module Make = (Context: Context.T) => {
           containerId,
           index,
           element: element.current
-          ->Js.Nullable.toOption
-          ->Option.getExn
+          ->Nullable.toOption
+          ->Option.getOrThrow
           ->Webapi.Dom.Element.unsafeAsHtmlElement,
           getGeometry: () =>
             element.current
-            ->Js.Nullable.toOption
-            ->Option.getExn
+            ->Nullable.toOption
+            ->Option.getOrThrow
             ->Webapi.Dom.Element.unsafeAsHtmlElement
             ->Helpers.getGeometry,
         })
@@ -282,11 +282,11 @@ module Make = (Context: Context.T) => {
     )
     let onMouseDown = React.useCallback3(
       MouseInteractions.onMouseDown(~itemId, ~containerId, ~ctx=ctxRef, ...),
-      (containerId, ctxRef, element)
+      (containerId, ctxRef, element),
     )
     let onTouchStart = React.useCallback3(
       TouchInteractions.onTouchStart(~itemId, ~containerId, ~ctx=ctxRef, ...),
-      (containerId, ctxRef, element)
+      (containerId, ctxRef, element),
     )
 
     let children' = switch children {
@@ -352,7 +352,8 @@ module Make = (Context: Context.T) => {
               },
             ),
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=true))}>
+          className=?{className->Option.map(fn => fn(~dragging=true))}
+        >
           children'
         </div>
         <div
@@ -438,7 +439,8 @@ module Make = (Context: Context.T) => {
               },
             ),
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=true))}>
+          className=?{className->Option.map(fn => fn(~dragging=true))}
+        >
           children'
         </div>
         <div
@@ -493,7 +495,8 @@ module Make = (Context: Context.T) => {
               )
             },
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
@@ -518,7 +521,8 @@ module Make = (Context: Context.T) => {
               )
             },
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
@@ -531,7 +535,8 @@ module Make = (Context: Context.T) => {
             userSelect: "none",
             transition: Style.transition("transform"),
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
@@ -556,7 +561,8 @@ module Make = (Context: Context.T) => {
               )
             },
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
@@ -569,7 +575,8 @@ module Make = (Context: Context.T) => {
             userSelect: "none",
             transition: Style.transition("transform"),
           }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
       }
@@ -584,14 +591,16 @@ module Make = (Context: Context.T) => {
           style={{boxSizing: "border-box"}}
           className=?{className->Option.map(fn => fn(~dragging=false))}
           onMouseDown
-          onTouchStart>
+          onTouchStart
+        >
           children'
         </div>
       | #ChildrenWithDragHandle(_) =>
         <div
           ref={element->ReactDOM.Ref.domRef}
           style={{boxSizing: "border-box"}}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
       }
