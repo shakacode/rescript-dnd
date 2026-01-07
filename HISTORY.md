@@ -4,6 +4,9 @@
 
 ---
 
+## 8.0.1
+* Fix peer dependencies.
+
 ## 8.0.0
 * **[ BREAKING ]** Update to `rescript@12`.
 
