@@ -44,15 +44,13 @@
     "rescript-logger": "4.0.0"
   },
   "peerDependencies": {
-    "@rescript/core": ">=1.6.0",
     "@rescript/react": ">=0.14.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
-    "rescript": ">=11.1.0",
+    "rescript": ">=12.0.0",
     "rescript-webapi": ">=0.6.0"
   },
   "devDependencies": {
-    "@rescript/core": "1.6.1",
     "@rescript/react": "0.14.0",
     "autoprefixer": "10.4.23",
     "parcel": "2.16.3",
