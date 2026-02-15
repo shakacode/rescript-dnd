@@ -61,7 +61,7 @@ module Make = (Context: Context.T) => {
     ~children,
   ) => {
     let ctx = React.useContext(Context.x)
-    let element = React.useRef(Js.Nullable.null)
+    let element = React.useRef(Nullable.null)
     let prevStatus = ReactHooks.usePrevious(ctx.status)
 
     React.useEffect2(() =>
@@ -77,13 +77,13 @@ module Make = (Context: Context.T) => {
           lockAxis,
           accept,
           element: element.current
-          ->Js.Nullable.toOption
-          ->Option.getExn
+          ->Nullable.toOption
+          ->Option.getOrThrow
           ->Webapi.Dom.Element.unsafeAsHtmlElement,
           getGeometryAndScrollable: () =>
             element.current
-            ->Js.Nullable.toOption
-            ->Option.getExn
+            ->Nullable.toOption
+            ->Option.getOrThrow
             ->Webapi.Dom.Element.unsafeAsHtmlElement
             ->Helpers.getGeometryAndScrollable,
         })
@@ -98,13 +98,14 @@ module Make = (Context: Context.T) => {
         fn(
           ~draggingOver=ctx.target
           ->Option.map(target => target->Container.eq(containerId))
-          ->Option.getWithDefault(false),
+          ->Option.getOr(false),
         )
-      )}>
+      )}
+    >
       {switch ctx.status {
       | Dragging(ghost, _)
       | Dropping(ghost, _)
-        if Option.eq(ghost.targetContainer, containerId->Some, Container.eq) &&
+        if Belt.Option.eq(ghost.targetContainer, containerId->Some, Container.eq) &&
         !ghost.targetingOriginalContainer =>
         let (width, height) = switch ghost.axis {
         | X =>
@@ -118,47 +119,46 @@ module Make = (Context: Context.T) => {
         <>
           children
           <div
-            style={ReactDOM.Style.make(
-              ~boxSizing="border-box",
-              ~width,
-              ~minWidth=width,
-              ~height,
-              ~minHeight=height,
-              ~marginTop={
+            style={{
+              boxSizing: "border-box",
+              width,
+              minWidth: width,
+              height,
+              minHeight: height,
+              marginTop: {
                 open Style
                 ghost.margins.top->px
               },
-              ~marginBottom={
+              marginBottom: {
                 open Style
                 ghost.margins.bottom->px
               },
-              ~marginLeft={
+              marginLeft: {
                 open Style
                 ghost.margins.left->px
               },
-              ~marginRight={
+              marginRight: {
                 open Style
                 ghost.margins.right->px
               },
-              ~borderTop={
+              borderTop: {
                 open Style
                 ghost.borders.top->px
               },
-              ~borderBottom={
+              borderBottom: {
                 open Style
                 ghost.borders.bottom->px
               },
-              ~borderLeft={
+              borderLeft: {
                 open Style
                 ghost.borders.left->px
               },
-              ~borderRight={
+              borderRight: {
                 open Style
                 ghost.borders.right->px
               },
-              ~transition=Style.transition("all"),
-              (),
-            )}
+              transition: Style.transition("all"),
+            }}
           />
         </>
 
@@ -169,35 +169,34 @@ module Make = (Context: Context.T) => {
         <>
           children
           <div
-            style={ReactDOM.Style.make(
-              ~boxSizing="border-box",
-              ~margin={
+            style={{
+              boxSizing: "border-box",
+              margin: {
                 open Style
                 0.->px
               },
-              ~border={
+              border: {
                 open Style
                 0.->px
               },
-              ~width={
+              width: {
                 open Style
                 0.->px
               },
-              ~minWidth={
+              minWidth: {
                 open Style
                 0.->px
               },
-              ~height={
+              height: {
                 open Style
                 0.->px
               },
-              ~minHeight={
+              minHeight: {
                 open Style
                 0.->px
               },
-              ~transition=Style.transition("all"),
-              (),
-            )}
+              transition: Style.transition("all"),
+            }}
           />
         </>
       }}

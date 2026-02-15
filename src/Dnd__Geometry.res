@@ -181,7 +181,7 @@ let shiftInternalSibling = (
   switch axis {
   | X =>
     let scrollableDeltaX =
-      scrollable->Option.map(scrollable => scrollable.scroll.delta.x)->Option.getWithDefault(0.)
+      scrollable->Option.map(scrollable => scrollable.scroll.delta.x)->Option.getOr(0.)
     let deltaX = switch shift {
     | None => scroll.delta.x +. scrollableDeltaX
     | Some(Alpha) =>
@@ -204,7 +204,7 @@ let shiftInternalSibling = (
 
   | Y =>
     let scrollableDeltaY =
-      scrollable->Option.map(scrollable => scrollable.scroll.delta.y)->Option.getWithDefault(0.)
+      scrollable->Option.map(scrollable => scrollable.scroll.delta.y)->Option.getOr(0.)
     let deltaY = switch shift {
     | None => scroll.delta.y +. scrollableDeltaY
     | Some(Alpha) =>
@@ -237,7 +237,7 @@ let shiftExternalSibling = (
   switch axis {
   | X =>
     let scrollableDeltaX =
-      scrollable->Option.map(scrollable => scrollable.scroll.delta.x)->Option.getWithDefault(0.)
+      scrollable->Option.map(scrollable => scrollable.scroll.delta.x)->Option.getOr(0.)
     let deltaX = switch shift {
     | None
     | Some(Alpha) =>
@@ -260,7 +260,7 @@ let shiftExternalSibling = (
 
   | Y =>
     let scrollableDeltaY =
-      scrollable->Option.map(scrollable => scrollable.scroll.delta.y)->Option.getWithDefault(0.)
+      scrollable->Option.map(scrollable => scrollable.scroll.delta.y)->Option.getOr(0.)
     let deltaY = switch shift {
     | None
     | Some(Alpha) =>
