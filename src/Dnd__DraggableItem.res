@@ -118,8 +118,8 @@ module Make = (Context: Context.T) => {
           }
 
           let moved =
-            Js.Math.abs_float(start.page.x -. current.page.x) > moveThreshold ||
-              Js.Math.abs_float(start.page.y -. current.page.y) > moveThreshold
+            Math.abs(start.page.x -. current.page.x) > moveThreshold ||
+              Math.abs(start.page.y -. current.page.y) > moveThreshold
 
           if moved {
             %log.debug(
@@ -187,9 +187,9 @@ module Make = (Context: Context.T) => {
           }
         }
 
-        let timeoutId: ref<option<Js.Global.timeoutId>> = None->ref
+        let timeoutId: ref<option<timeoutId>> = None->ref
 
-        let rec startDragging = () => Js.Global.setTimeout(() => {
+        let rec startDragging = () => setTimeout(() => {
             dropInitialSubscriptions()
             Helpers.clearSelection()
 
@@ -197,7 +197,7 @@ module Make = (Context: Context.T) => {
           }, delay)
         and cancelDrag = () =>
           switch timeoutId.contents {
-          | Some(timeoutId) => timeoutId->Js.Global.clearTimeout
+          | Some(timeoutId) => timeoutId->clearTimeout
           | None => ()
           }
         and onInitialTouchMove = _ => cancelDrag()
@@ -246,7 +246,7 @@ module Make = (Context: Context.T) => {
       None
     })
 
-    let element = React.useRef(Js.Nullable.null)
+    let element = React.useRef(Nullable.null)
 
     let prevStatus = ReactHooks.usePrevious(ctx.status)
 
@@ -262,13 +262,13 @@ module Make = (Context: Context.T) => {
           containerId,
           index,
           element: element.current
-          ->Js.Nullable.toOption
-          ->Option.getExn
+          ->Nullable.toOption
+          ->Option.getOrThrow
           ->Webapi.Dom.Element.unsafeAsHtmlElement,
           getGeometry: () =>
             element.current
-            ->Js.Nullable.toOption
-            ->Option.getExn
+            ->Nullable.toOption
+            ->Option.getOrThrow
             ->Webapi.Dom.Element.unsafeAsHtmlElement
             ->Helpers.getGeometry,
         })
@@ -278,10 +278,7 @@ module Make = (Context: Context.T) => {
     , (prevStatus, ctx.status))
 
     let dragHandleStyle = React.useMemo0(() =>
-      ReactDOM.Style.make()->ReactDOM.Style.unsafeAddProp(
-        "WebkitTapHighlightColor",
-        "rgba(0, 0, 0, 0)",
-      )
+      {}->ReactDOM.Style.unsafeAddProp("WebkitTapHighlightColor", "rgba(0, 0, 0, 0)")
     )
     let onMouseDown = React.useCallback3(
       MouseInteractions.onMouseDown(~itemId, ~containerId, ~ctx=ctxRef, ...),
@@ -314,31 +311,31 @@ module Make = (Context: Context.T) => {
         <div
           ref={element->ReactDOM.Ref.domRef}
           tabIndex={-1}
-          style={ReactDOM.Style.make(
-            ~position="fixed",
-            ~boxSizing="border-box",
-            ~zIndex="10000",
-            ~margin="0",
-            ~overflow="visible",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~top={
+          style={{
+            position: "fixed",
+            boxSizing: "border-box",
+            zIndex: "10000",
+            margin: "0",
+            overflow: "visible",
+            pointerEvents: "none",
+            userSelect: "none",
+            top: {
               open Style
               ghost.departureRect.page.top->px
             },
-            ~left={
+            left: {
               open Style
               ghost.departureRect.page.left->px
             },
-            ~width={
+            width: {
               open Style
               ghost.dimensions.width->px
             },
-            ~height={
+            height: {
               open Style
               ghost.dimensions.height->px
             },
-            ~transform=Style.translate(
+            transform: Style.translate(
               ghost.delta.x -.
               switch ctx.scroll {
               | Some(scroll) => scroll.current.x
@@ -354,37 +351,36 @@ module Make = (Context: Context.T) => {
                 window->Window.pageYOffset
               },
             ),
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=true))}>
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=true))}
+        >
           children'
         </div>
         <div
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~width,
-            ~minWidth=width,
-            ~height,
-            ~minHeight=height,
-            ~marginTop={
+          style={{
+            boxSizing: "border-box",
+            width,
+            minWidth: width,
+            height,
+            minHeight: height,
+            marginTop: {
               open Style
               ghost.margins.top->px
             },
-            ~marginBottom={
+            marginBottom: {
               open Style
               ghost.margins.bottom->px
             },
-            ~marginLeft={
+            marginLeft: {
               open Style
               ghost.margins.left->px
             },
-            ~marginRight={
+            marginRight: {
               open Style
               ghost.margins.right->px
             },
-            ~transition=Style.transition("all"),
-            (),
-          )}
+            transition: Style.transition("all"),
+          }}
         />
       </>
 
@@ -401,32 +397,32 @@ module Make = (Context: Context.T) => {
       <>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~position="fixed",
-            ~boxSizing="border-box",
-            ~zIndex="10000",
-            ~margin="0",
-            ~overflow="visible",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~top={
+          style={{
+            position: "fixed",
+            boxSizing: "border-box",
+            zIndex: "10000",
+            margin: "0",
+            overflow: "visible",
+            pointerEvents: "none",
+            userSelect: "none",
+            top: {
               open Style
               ghost.departureRect.page.top->px
             },
-            ~left={
+            left: {
               open Style
               ghost.departureRect.page.left->px
             },
-            ~width={
+            width: {
               open Style
               ghost.dimensions.width->px
             },
-            ~height={
+            height: {
               open Style
               ghost.dimensions.height->px
             },
-            ~transition=Style.transition("transform"),
-            ~transform=Style.translate(
+            transition: Style.transition("transform"),
+            transform: Style.translate(
               ghost.delta.x -.
               switch ctx.scroll {
               | Some(scroll) => scroll.current.x
@@ -442,37 +438,36 @@ module Make = (Context: Context.T) => {
                 window->Window.pageYOffset
               },
             ),
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=true))}>
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=true))}
+        >
           children'
         </div>
         <div
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~width,
-            ~minWidth=width,
-            ~height,
-            ~minHeight=height,
-            ~marginTop={
+          style={{
+            boxSizing: "border-box",
+            width,
+            minWidth: width,
+            height,
+            minHeight: height,
+            marginTop: {
               open Style
               ghost.margins.top->px
             },
-            ~marginBottom={
+            marginBottom: {
               open Style
               ghost.margins.bottom->px
             },
-            ~marginLeft={
+            marginLeft: {
               open Style
               ghost.margins.left->px
             },
-            ~marginRight={
+            marginRight: {
               open Style
               ghost.margins.right->px
             },
-            ~transition=Style.transition("all"),
-            (),
-          )}
+            transition: Style.transition("all"),
+          }}
         />
       </>
 
@@ -482,12 +477,12 @@ module Make = (Context: Context.T) => {
       | Some(Alpha) if ghost.targetingOriginalContainer =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~transition=Style.transition("transform"),
-            ~transform=switch ghost.axis {
+          style={{
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            userSelect: "none",
+            transition: Style.transition("transform"),
+            transform: switch ghost.axis {
             | X =>
               Style.translate(
                 -.(ghost.dimensions.width +. ghost.margins.left +. ghost.margins.right),
@@ -499,21 +494,21 @@ module Make = (Context: Context.T) => {
                 -.(ghost.dimensions.height +. ghost.margins.top +. ghost.margins.bottom),
               )
             },
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
       | Some(Omega) if ghost.targetingOriginalContainer =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~transition=Style.transition("transform"),
-            ~transform=switch ghost.axis {
+          style={{
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            userSelect: "none",
+            transition: Style.transition("transform"),
+            transform: switch ghost.axis {
             | X =>
               Style.translate(
                 ghost.dimensions.width +. ghost.margins.left +. ghost.margins.right,
@@ -525,35 +520,35 @@ module Make = (Context: Context.T) => {
                 ghost.dimensions.height +. ghost.margins.top +. ghost.margins.bottom,
               )
             },
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
       | Some(Alpha) =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~transition=Style.transition("transform"),
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          style={{
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            userSelect: "none",
+            transition: Style.transition("transform"),
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
       | Some(Omega) =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~transition=Style.transition("transform"),
-            ~transform=switch ghost.axis {
+          style={{
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            userSelect: "none",
+            transition: Style.transition("transform"),
+            transform: switch ghost.axis {
             | X =>
               Style.translate(
                 ghost.dimensions.width +. ghost.margins.left +. ghost.margins.right,
@@ -565,23 +560,23 @@ module Make = (Context: Context.T) => {
                 ghost.dimensions.height +. ghost.margins.top +. ghost.margins.bottom,
               )
             },
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
 
       | None =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(
-            ~boxSizing="border-box",
-            ~pointerEvents="none",
-            ~userSelect="none",
-            ~transition=Style.transition("transform"),
-            (),
-          )->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          style={{
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            userSelect: "none",
+            transition: Style.transition("transform"),
+          }->ReactDOM.Style.unsafeAddProp("WebkitUserSelect", "none")}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
       }
@@ -593,17 +588,19 @@ module Make = (Context: Context.T) => {
         <div
           ref={element->ReactDOM.Ref.domRef}
           tabIndex=0
-          style={ReactDOM.Style.make(~boxSizing="border-box", ())}
+          style={{boxSizing: "border-box"}}
           className=?{className->Option.map(fn => fn(~dragging=false))}
           onMouseDown
-          onTouchStart>
+          onTouchStart
+        >
           children'
         </div>
       | #ChildrenWithDragHandle(_) =>
         <div
           ref={element->ReactDOM.Ref.domRef}
-          style={ReactDOM.Style.make(~boxSizing="border-box", ())}
-          className=?{className->Option.map(fn => fn(~dragging=false))}>
+          style={{boxSizing: "border-box"}}
+          className=?{className->Option.map(fn => fn(~dragging=false))}
+        >
           children'
         </div>
       }

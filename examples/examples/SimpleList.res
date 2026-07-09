@@ -47,10 +47,10 @@ let reducer = (state, action) =>
 @react.component
 let make = (~n: int, ~axis: Dnd.Axis.t) => {
   let initialState = React.useMemo0(() => {
-    todosIndex: Array.range(1, n)->TodoId.array,
-    todosMap: Array.range(1, n)->Array.reduce(TodoId.Map.make(), (map, id) => {
+    todosIndex: Belt.Array.range(1, n)->TodoId.array,
+    todosMap: Belt.Array.range(1, n)->Array.reduce(TodoId.Map.make(), (map, id) => {
       let id = id->TodoId.make
-      map->Map.set(
+      map->Belt.Map.set(
         id,
         {
           open Todo
@@ -81,16 +81,18 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
         ("Event", "DropEnd")
         ("ItemId", _itemId)
       )}
-    onReorder={result => ReorderTodos(result)->dispatch}>
+    onReorder={result => ReorderTodos(result)->dispatch}
+  >
     <Todos.DroppableContainer
       id={Todos.Container.id()}
       axis
       className={(~draggingOver) => {
         cx(["todos", draggingOver ? "active" : ""])
-      }}>
+      }}
+    >
       {state.todosIndex
-      ->Array.mapWithIndex((index, id) => {
-        let todo = state.todosMap->Map.getExn(id)
+      ->Array.mapWithIndex((id, index) => {
+        let todo = state.todosMap->Belt.Map.getExn(id)
 
         <Todos.DraggableItem
           id=todo.id
@@ -99,7 +101,8 @@ let make = (~n: int, ~axis: Dnd.Axis.t) => {
           index
           className={(~dragging) => {
             cx(["todo", dragging ? "dragging" : ""])
-          }}>
+          }}
+        >
           #Children(todo.title->React.string)
         </Todos.DraggableItem>
       })

@@ -34,10 +34,10 @@ module Scroll = {
 }
 
 module Make = (Item: SelectableItem) => {
-  module ComparableItem = Belt.Id.MakeComparableU(Item)
+  module ComparableItem = Belt.Id.MakeComparable(Item)
 
   type t = {
-    register: (Item.t, Js.nullable<Js.nullable<Dom.element>>) => unit,
+    register: (Item.t, Nullable.t<Nullable.t<Dom.element>>) => unit,
     dispose: Item.t => unit,
     size: unit => int,
     array: unit => array<Item.t>,
@@ -54,8 +54,8 @@ module Make = (Item: SelectableItem) => {
   }
 
   type state = {
-    current: Set.t<Item.t, ComparableItem.identity>,
-    previous: Set.t<Item.t, ComparableItem.identity>,
+    current: Belt.Set.t<Item.t, ComparableItem.identity>,
+    previous: Belt.Set.t<Item.t, ComparableItem.identity>,
   }
 
   type action =
@@ -68,12 +68,12 @@ module Make = (Item: SelectableItem) => {
 
   let useSelection = (~topMarginFactor=3., ~bottomMarginFactor=3., ()) => {
     let initialState = React.useMemo0(() => {
-      let set = Set.make(~id=module(ComparableItem))
+      let set = Belt.Set.make(~id=module(ComparableItem))
       {current: set, previous: set}
     })
 
-    let refs: React.ref<Map.t<Item.t, Dom.element, ComparableItem.identity>> = React.useRef(
-      Map.make(~id=module(ComparableItem)),
+    let refs: React.ref<Belt.Map.t<Item.t, Dom.element, ComparableItem.identity>> = React.useRef(
+      Belt.Map.make(~id=module(ComparableItem)),
     )
 
     let (state, dispatch) = ReactHooks.useReducer(initialState, (state, action) =>
@@ -82,30 +82,30 @@ module Make = (Item: SelectableItem) => {
       | SelectOne(id) =>
         UpdateWithSideEffects(
           {
-            current: Set.make(~id=module(ComparableItem))->Set.add(id),
+            current: Belt.Set.make(~id=module(ComparableItem))->Belt.Set.add(id),
             previous: state.current,
           },
           _ =>
             refs.current
-            ->Map.get(id)
-            ->Option.mapWithDefault((), Scroll.adjust(~topMarginFactor, ~bottomMarginFactor, ...)),
+            ->Belt.Map.get(id)
+            ->Option.mapOr((), Scroll.adjust(~topMarginFactor, ~bottomMarginFactor, ...)),
         )
 
       | DeselectOne(id) =>
         Update({
-          current: state.current->Set.remove(id),
+          current: state.current->Belt.Set.remove(id),
           previous: state.current,
         })
 
       | Concat(items) =>
         Update({
-          current: state.current->Set.mergeMany(items),
+          current: state.current->Belt.Set.mergeMany(items),
           previous: state.current,
         })
 
       | FromArray(items) =>
         Update({
-          current: items->Set.fromArray(~id=module(ComparableItem)),
+          current: items->Belt.Set.fromArray(~id=module(ComparableItem)),
           previous: state.current,
         })
 
@@ -113,19 +113,19 @@ module Make = (Item: SelectableItem) => {
 
       | Clear =>
         Update({
-          current: Set.make(~id=module(ComparableItem)),
+          current: Belt.Set.make(~id=module(ComparableItem)),
           previous: state.current,
         })
       }
     )
 
     {
-      size: () => state.current->Set.size,
-      array: () => state.current->Set.toArray,
-      has: itemId => state.current->Set.has(itemId),
-      isOnly: itemId => state.current->Set.size == 1 && state.current->Set.has(itemId),
-      isMulti: () => state.current->Set.size > 1,
-      isEmpty: () => state.current->Set.isEmpty,
+      size: () => state.current->Belt.Set.size,
+      array: () => state.current->Belt.Set.toArray,
+      has: itemId => state.current->Belt.Set.has(itemId),
+      isOnly: itemId => state.current->Belt.Set.size == 1 && state.current->Belt.Set.has(itemId),
+      isMulti: () => state.current->Belt.Set.size > 1,
+      isEmpty: () => state.current->Belt.Set.isEmpty,
       selectOne: itemId => SelectOne(itemId)->dispatch,
       deselectOne: itemId => DeselectOne(itemId)->dispatch,
       concat: items => Concat(items)->dispatch,
@@ -133,13 +133,13 @@ module Make = (Item: SelectableItem) => {
       restorePrevious: () => RestorePrevious->dispatch,
       clear: () => Clear->dispatch,
       register: (itemId, el) =>
-        switch el->Js.Nullable.toOption->Option.flatMap(Js.Nullable.toOption) {
-        | Some(el) => refs.current = refs.current->Map.set(itemId, el)
+        switch el->Nullable.toOption->Option.flatMap(Nullable.toOption) {
+        | Some(el) => refs.current = refs.current->Belt.Map.set(itemId, el)
         | None => ()
         },
       dispose: itemId => {
-        refs.current = refs.current->Map.remove(itemId)
-        if state.current->Set.has(itemId) {
+        refs.current = refs.current->Belt.Map.remove(itemId)
+        if state.current->Belt.Set.has(itemId) {
           DeselectOne(itemId)->dispatch
         }
       },

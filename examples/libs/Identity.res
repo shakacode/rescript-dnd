@@ -16,13 +16,13 @@ module Make = () => {
   let eq = (x1, x2) => x1->toInt == x2->toInt
   let cmp = (x1, x2) => Pervasives.compare(x1->toInt, x2->toInt)
 
-  module Comparable = Belt.Id.MakeComparableU({
+  module Comparable = Belt.Id.MakeComparable({
     type t = Id.t
     let cmp = cmp
   })
 
   module Map = {
-    type t<'t> = Map.t<Id.t, 't, Comparable.identity>
-    let make = () => Map.make(~id=module(Comparable))
+    type t<'t> = Belt.Map.t<Id.t, 't, Comparable.identity>
+    let make = () => Belt.Map.make(~id=module(Comparable))
   }
 }

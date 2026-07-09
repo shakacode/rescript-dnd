@@ -20,7 +20,7 @@ module Speed = {
       if position <= startFrom && position > maxSpeedAt {
         let scrollRange = startFrom -. maxSpeedAt
         let distanceFromStart = startFrom -. position
-        let powed = Js.Math.pow_float(~base=distanceFromStart /. scrollRange, ~exp=2.0)
+        let powed = Math.pow(distanceFromStart /. scrollRange, ~exp=2.0)
         Some(-.(maxSpeed *. powed))
       } else if position <= maxSpeedAt {
         Some(-.maxSpeed)
@@ -34,7 +34,7 @@ module Speed = {
       if position >= startFrom && position < maxSpeedAt {
         let scrollRange = maxSpeedAt -. startFrom
         let distanceFromStart = position -. startFrom
-        let powed = Js.Math.pow_float(~base=distanceFromStart /. scrollRange, ~exp=2.0)
+        let powed = Math.pow(distanceFromStart /. scrollRange, ~exp=2.0)
         Some(maxSpeed *. powed)
       } else if position >= maxSpeedAt {
         Some(maxSpeed)

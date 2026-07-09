@@ -1,36 +1,36 @@
 let findIndexOf = (arr: array<'a>, x: 'a) =>
-  switch arr->Js.Array2.findIndex(x' => x' === x) {
+  switch arr->Array.findIndex(x' => x' === x) {
   | -1 => failwith(`Unable to find \`$(x)\` in array \`$(arr)\``)
   | _ as i => i
   }
 
 let insert = (arr: array<'a>, ~value: 'a, ~place: [#Before('a) | #Last]) => {
-  let arr = arr->Js.Array2.copy
+  let arr = arr->Array.copy
   arr
-  ->Js.Array2.spliceInPlace(
-    ~pos=switch place {
+  ->Array.splice(
+    ~start=switch place {
     | #Before(x) => arr->findIndexOf(x)
-    | #Last => arr->Js.Array.length
+    | #Last => arr->Array.length
     },
     ~remove=0,
-    ~add=[value],
+    ~insert=[value],
   )
   ->ignore
   arr
 }
 
 let reinsert = (arr: array<'a>, ~value: 'a, ~place: [#Before('a) | #Last]) => {
-  let arr = arr->Js.Array.copy
+  let arr = arr->Array.copy
   let from = arr->findIndexOf(value)
-  arr->Js.Array2.spliceInPlace(~pos=from, ~remove=1, ~add=[])->ignore
+  arr->Array.splice(~start=from, ~remove=1, ~insert=[])->ignore
   arr
-  ->Js.Array2.spliceInPlace(
-    ~pos=switch place {
+  ->Array.splice(
+    ~start=switch place {
     | #Before(x) => arr->findIndexOf(x)
-    | #Last => arr->Js.Array.length
+    | #Last => arr->Array.length
     },
     ~remove=0,
-    ~add=[value],
+    ~insert=[value],
   )
   ->ignore
   arr
